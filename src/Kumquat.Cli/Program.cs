@@ -12,7 +12,7 @@ Console.OutputEncoding = System.Text.Encoding.UTF8;
 var command = CliCommand.Parse(args);
 if (command.Error is not null)
 {
-    await Console.Error.WriteLineAsync($"kumquat: {command.Error}  (usa 'kumquat help')");
+    await Console.Error.WriteLineAsync($"kumquat-cli: {command.Error}  (usa 'kumquat-cli help')");
     return 2;
 }
 
@@ -22,14 +22,14 @@ if (string.Equals(command.Name, "help", StringComparison.Ordinal))
         Kumquat: conversor local de archivos.
 
         Uso:
-          kumquat convert <archivo>... --to <formato> [--out <carpeta>]
-          kumquat targets <archivo>...     formatos a los que se puede convertir
-          kumquat formats                  formatos conocidos
-          kumquat engines                  estado de los motores
+          kumquat-cli convert <archivo>... --to <formato> [--out <carpeta>]
+          kumquat-cli targets <archivo>...     formatos a los que se puede convertir
+          kumquat-cli formats                  formatos conocidos
+          kumquat-cli engines                  estado de los motores
 
         Ejemplos:
-          kumquat convert foto.heic --to jpg
-          kumquat convert *.wav --to mp3 --out D:\musica
+          kumquat-cli convert foto.heic --to jpg
+          kumquat-cli convert *.wav --to mp3 --out D:\musica
         """);
     return 0;
 }
@@ -66,7 +66,7 @@ switch (command.Name)
 var target = KnownFormats.FindById(command.Target!) ?? KnownFormats.FindByExtension(command.Target!);
 if (target is null)
 {
-    await Console.Error.WriteLineAsync($"kumquat: formato desconocido '{command.Target}'. Usa 'kumquat formats'.");
+    await Console.Error.WriteLineAsync($"kumquat-cli: formato desconocido '{command.Target}'. Usa 'kumquat-cli formats'.");
     return 2;
 }
 
@@ -90,13 +90,13 @@ foreach (var file in command.Files)
     }
     else if (cancel.IsCancellationRequested)
     {
-        await Console.Error.WriteLineAsync("kumquat: cancelado.");
+        await Console.Error.WriteLineAsync("kumquat-cli: cancelado.");
         return 130;
     }
     else
     {
         failures++;
-        await Console.Error.WriteLineAsync($"kumquat: {file}: {result.Error.Message}");
+        await Console.Error.WriteLineAsync($"kumquat-cli: {file}: {result.Error.Message}");
     }
 }
 
