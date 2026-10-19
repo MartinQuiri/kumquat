@@ -3,25 +3,30 @@
 ## Capas
 
 ```
-Kumquat.App ─────────────┐   bandeja, preferencias, une rueda ↔ cola de trabajos
+Kumquat.App ─────────────┐   bandeja, preferencias, menú contextual; une rueda ↔ ventanas ↔ cola
 Kumquat.Cli ─────────────┤   misma lógica sin UI
                          ▼
-Kumquat.Hosting              composición DI (motores, cola, logging)
+Kumquat.Hosting              composición DI (motores, cola, logging), PreviewService
    │            │
    ▼            ▼
-Kumquat.Interaction        Kumquat.Engines.*            Kumquat.Infrastructure
- rueda (HWND en capas)      FFmpeg (proceso aparte)      ProcessRunner + Job Object
- IDropTarget (COM)          libvips (en proceso)         TempWorkspace, SafeExtractor
- hooks LL, bandeja          …                            EngineLocator
-   │                           │                            │
-   └───────────────┬───────────┴────────────────────────────┘
+Kumquat.Interaction        Kumquat.Dialogs             Kumquat.Engines.*          Kumquat.Infrastructure
+ WheelSession (lógica)      ventana de opciones (WPF)   FFmpeg, MuPDF, qpdf,       ProcessRunner + Job Object
+ WheelController (Win32)    vistas previas, reproductor Tesseract (procesos)       WaveOutPlayer, TempWorkspace
+ hooks LL, OLE, atajo       sincronizadas con campos    libvips (en proceso)       SafeExtractor, EngineLocator
+   │        │                  │                            │                          │
+   │        └──── Kumquat.Design: íconos, trazados SVG, paleta, Inter, logo (sin UI) ───┤
+   └───────────────────────────┴────────────────────────────┴──────────────────────────┘
                    ▼
              Kumquat.Core   (sin dependencias de Windows: net10.0)
-             formatos + sniffer, grafo de capacidades, política,
-             ConversionService (planifica, encadena, publica atómico), JobRunner
+             formatos + sniffer, grafo de capacidades, política, herramientas,
+             ConversionService / StagedOutput (publica atómico), JobRunner, contratos de vista previa
 ```
 
 `Kumquat.Core` no conoce Windows, ni motores, ni UI: se prueba en cualquier runner.
+
+**Binarios:** toda librería es IL puro (`Directory.Build.targets` fija `PlatformTarget=AnyCPU`); la
+arquitectura la deciden los ejecutables. Una librería compilada para una arquitectura concreta en la
+carpeta de salida compartida no carga en un proceso de otra (lo vigila `ArquitecturaTests`).
 
 ## El grafo de capacidades
 
@@ -53,6 +58,49 @@ Shift, Ctrl y Alt ya significan algo en el protocolo de arrastre de Windows. Kum
 
 Kumquat corre sin elevación: UIPI bloquea drops desde Explorer hacia procesos elevados.
 
+### Lógica separada de Win32
+
+`WheelSession` decide todo (mostrar, resaltar, esperar el drop, elegir, cancelar) sobre una
+`IWheelSurface`; `WheelController` solo traduce hooks, OLE, `WM_HOTKEY` y `WM_COPYDATA`. Así la
+lógica se prueba con una superficie falsa y la geometría real (`WheelSessionTests`).
+
+### Abrir la rueda sin arrastrar
+
+- **Atajo Ctrl+Alt+K** (`RegisterHotKey`): `ExplorerSelection` lee la selección del Explorador en
+  primer plano con las interfaces documentadas del shell — `IShellWindows` → `IShellBrowser` de la
+  pestaña activa (`ShellTabWindowClass` en Windows 11) → `IShellView.GetItemObject(SVGIO_SELECTION)`
+  → `IDataObject`, que lee el mismo `DataObjectReader` del drop. También el escritorio.
+- **Modo clic:** con la rueda abierta así, el hook informa el movimiento (`PointerMoved`) y soltar el
+  botón es el clic. El modo arrastre no cambia.
+- **Menú contextual** (clásico, HKCU, sin administrador): el Explorador lanza `Kumquat.exe --wheel
+  archivo`, uno por archivo seleccionado. El proceso nuevo pasa la ruta a la instancia en ejecución
+  por `WM_COPYDATA` (con firma propia) y sale; la instancia junta los pedidos 250 ms y, si son parte
+  de la selección del Explorador, abre la rueda una vez con la selección completa.
+
+## Diseño
+
+`Kumquat.Design` no depende de UI: íconos Phosphor (MIT) como trazados SVG generados por
+`tools/build-design-assets.py`, un intérprete de trazados que reduce arcos y cuadráticas a Béziers
+cúbicas (W3C SVG 1.1, F.6) para que GDI+ (rueda) y WPF (ventanas) dibujen lo mismo, la paleta por
+familia de herramientas y la tipografía Inter (OFL) cargada desde archivos, sin instalarla.
+
+La rueda simula vidrio (una ventana en capas no puede desenfocar lo de atrás): degradado
+translúcido, borde de luz, sombra y sectores con esquinas redondeadas calculadas exactamente
+(`SectorGeometry`). Las ventanas usan el material acrílico real de Windows 11.
+
+## Ventana de opciones y vistas previas
+
+- La ventana aparece enseguida; `PreviewService` genera la vista previa en segundo plano en una
+  carpeta temporal propia: miniaturas de páginas (MuPDF), tira de fotogramas y forma de onda
+  (FFmpeg), miniatura de fotos (libvips).
+- Las vistas previas se sincronizan con los campos: páginas elegidas ⇄ "Páginas", asas ⇄
+  "Desde/Hasta", cabezal ⇄ "Instante".
+- **Reproductor propio** (`FfmpegPlayback`): un FFmpeg decodifica el video a BGRA y otro el audio a
+  PCM, que suena por `waveOut` (`WaveOutPlayer`). El reloj es el audio que ya sonó; los fotogramas
+  atrasados se descartan. Al mover un asa se pide el fotograma exacto, atendiendo solo el último
+  pedido (nunca hay más de un FFmpeg a la vez).
+- Errores inesperados de estas tareas se registran (`DialogDiagnostics`) y la ventana sigue usable.
+
 ## Decisiones y alternativas descartadas
 
 | Decisión | Por qué | Descartado |
@@ -62,5 +110,8 @@ Kumquat corre sin elevación: UIPI bloquea drops desde Explorer hacia procesos e
 | Motores fuera de proceso | Aislar crashes/exploits, cancelar de verdad, límites de memoria | Enlazar FFmpeg en proceso |
 | libvips en proceso | Madura, fuzzeada, rápida; caché desactivada para no retener archivos | ImageMagick (superficie de ataque mayor) |
 | GPL-3.0-or-later | Permite x264/x265, MuPDF, Ghostscript, Calibre; impide forks cerrados | MIT |
+| Reproducir con FFmpeg + waveOut | Cualquier formato que Kumquat acepta; fotograma exacto; sin componentes opcionales de Windows | `MediaElement` (depende del Reproductor de Windows heredado y de sus códecs: no abre MKV, WebM, Opus…) |
+| OCR con Tesseract compilado por Kumquat | PDF buscable nativo con texto Unicode, más de 100 idiomas, mismo resultado en toda PC y en CI | OCR de Windows (depende de los idiomas instalados; el texto del PDF habría que armarlo a mano) |
+| Menú contextual clásico (HKCU) | Sin administrador ni paquete; funciona desde Windows 10 | `IExplorerCommand` del menú nuevo de Windows 11 (exige app empaquetada y firmada: llegará con el instalador) |
 
 Investigación completa: [docs/research](research/).
