@@ -17,4 +17,7 @@ public enum GestureSignal
 
     /// <summary>Escape con la rueda abierta.</summary>
     Cancel,
+
+    /// <summary>Un arrastre candidato superó el umbral (solo diagnóstico).</summary>
+    DragStarted,
 }

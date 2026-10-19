@@ -33,6 +33,9 @@ internal sealed unsafe class WheelWindow : NativeWindow
     /// <summary>Mensajes de la app enviados a esta ventana (WM_APP + n).</summary>
     public Func<uint, nint, nint, bool>? AppMessageHandler { get; set; }
 
+    /// <summary>Recibe los <c>WM_TIMER</c> de la ventana (id del timer).</summary>
+    public Action<nuint>? TimerHandler { get; set; }
+
     /// <summary>Indica si la rueda está bajo el cursor.</summary>
     public bool IsShown { get; private set; }
 
@@ -72,8 +75,20 @@ internal sealed unsafe class WheelWindow : NativeWindow
         Present(size, ParkingSpot(size), WheelVisualState.Waiting);
     }
 
+    /// <summary>Inicia (o reinicia) un timer de un disparo lógico; el handler debe detenerlo.</summary>
+    public void StartTimer(nuint id, uint milliseconds) => Win32.SetTimer(Handle, id, milliseconds, 0);
+
+    /// <summary>Detiene un timer.</summary>
+    public void StopTimer(nuint id) => Win32.KillTimer(Handle, id);
+
     protected override nint? WndProc(uint message, nint wParam, nint lParam)
     {
+        if (message == Win32.WM_TIMER && TimerHandler is not null)
+        {
+            TimerHandler((nuint)wParam);
+            return 0;
+        }
+
         if (message >= Win32.WM_APP && AppMessageHandler?.Invoke(message, wParam, lParam) == true)
         {
             return 0;
