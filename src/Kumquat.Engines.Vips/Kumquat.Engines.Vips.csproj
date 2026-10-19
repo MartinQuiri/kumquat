@@ -2,8 +2,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Kumquat.Core\Kumquat.Core.csproj" />
     <PackageReference Include="NetVips" />
-    <PackageReference Include="NetVips.Native.win-x64" Condition="'$(RuntimeIdentifier)' == 'win-x64' Or '$(RuntimeIdentifier)' == ''" />
-    <PackageReference Include="NetVips.Native.win-arm64" Condition="'$(RuntimeIdentifier)' == 'win-arm64'" />
+    <!-- Ambos nativos: van a runtimes/<rid>/native y el runtime carga el de la arquitectura actual.
+         Referencias condicionales romperían los lock files entre x64 y ARM64. -->
+    <PackageReference Include="NetVips.Native.win-x64" />
+    <PackageReference Include="NetVips.Native.win-arm64" />
     <InternalsVisibleTo Include="Kumquat.Engines.Tests" />
   </ItemGroup>
 </Project>

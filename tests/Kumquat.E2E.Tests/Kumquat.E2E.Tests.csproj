@@ -11,8 +11,8 @@
     <PackageReference Include="Shouldly" />
   </ItemGroup>
   <ItemGroup>
-    <!-- Se compila la app para lanzarla como proceso real; no se referencia su ensamblado. -->
-    <ProjectReference Include="..\..\src\Kumquat.App\Kumquat.App.csproj" ReferenceOutputAssembly="false" />
+    <!-- Se copia Kumquat.exe junto a los tests para lanzarlo como proceso real. -->
+    <ProjectReference Include="..\..\src\Kumquat.App\Kumquat.App.csproj" />
     <ProjectReference Include="..\..\src\Kumquat.Core\Kumquat.Core.csproj" />
   </ItemGroup>
   <ItemGroup>

@@ -16,12 +16,15 @@ public sealed class ConversionGraph
     public const int DefaultMaxHops = 3;
 
     private readonly FrozenDictionary<FileFormat, ConversionEdge[]> _outgoing;
+    private readonly Func<FileFormat, FileFormat, bool> _isMeaningful;
 
     /// <summary>Construye el grafo a partir de aristas sueltas.</summary>
     /// <param name="edges">Aristas. Si dos convertidores ofrecen la misma, gana la de menor costo.</param>
-    public ConversionGraph(IEnumerable<ConversionEdge> edges)
+    /// <param name="isMeaningful">Filtro de destinos finales; por defecto <see cref="ConversionPolicy.IsMeaningful"/>.</param>
+    public ConversionGraph(IEnumerable<ConversionEdge> edges, Func<FileFormat, FileFormat, bool>? isMeaningful = null)
     {
         ArgumentNullException.ThrowIfNull(edges);
+        _isMeaningful = isMeaningful ?? ConversionPolicy.IsMeaningful;
         var list = edges.ToList();
         var invalid = list.Find(e => !(e.Cost > 0) || double.IsInfinity(e.Cost));
         if (invalid is not null)
@@ -112,7 +115,7 @@ public sealed class ConversionGraph
         var result = new Dictionary<FileFormat, ConversionPath>();
         while (queue.TryDequeue(out var state, out var cost))
         {
-            if (state.Format != from && !result.ContainsKey(state.Format))
+            if (state.Format != from && !result.ContainsKey(state.Format) && _isMeaningful(from, state.Format))
             {
                 result[state.Format] = new ConversionPath(state.Path);
             }

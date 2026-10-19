@@ -15,11 +15,7 @@ public sealed class ProcessRunnerTests
     {
         get
         {
-            // tests/Kumquat.Infrastructure.Tests/bin/<cfg>/<tfm>/ -> tests/Kumquat.TestTools.ProcessProbe/bin/<cfg>/net10.0/
-            var baseDir = new DirectoryInfo(AppContext.BaseDirectory);
-            var configuration = baseDir.Parent!.Name;
-            var testsDir = baseDir.Parent!.Parent!.Parent!.Parent!.FullName;
-            var path = Path.Combine(testsDir, "Kumquat.TestTools.ProcessProbe", "bin", configuration, "net10.0", "Kumquat.TestTools.ProcessProbe.exe");
+            var path = Path.Combine(AppContext.BaseDirectory, "Kumquat.TestTools.ProcessProbe.exe");
             File.Exists(path).ShouldBeTrue($"No se encontró el probe en {path}");
             return path;
         }

@@ -1,0 +1,87 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  CI: true
+
+jobs:
+  build-test:
+    name: Build y tests (${{ matrix.rid }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+            platform: x64
+          - os: windows-11-arm
+            rid: win-arm64
+            platform: ARM64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      - name: Caché de motores nativos
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: engines
+          key: engines-${{ matrix.rid }}-${{ hashFiles('tools/engines.json') }}
+
+      - name: Descargar motores (hash verificado)
+        shell: pwsh
+        run: ./tools/fetch-engines.ps1 -Runtime ${{ matrix.rid }}
+
+      - name: Restore (lock files obligatorios)
+        run: dotnet restore Kumquat.slnx --locked-mode
+
+      - name: Formato
+        if: matrix.rid == 'win-x64'
+        run: dotnet format Kumquat.slnx --verify-no-changes --no-restore
+
+      - name: Build (advertencias = errores)
+        run: dotnet build Kumquat.slnx -c Release --no-restore -p:Platform=${{ matrix.platform }}
+
+      - name: Tests (sin E2E) + cobertura
+        # El código 8 = "ningún test ejecutado": es el proyecto E2E, filtrado a propósito.
+        run: >
+          dotnet test --solution Kumquat.slnx -c Release --no-build -p:Platform=${{ matrix.platform }}
+          --filter-not-trait "Category=E2E" --ignore-exit-code 8
+          --coverage --coverage-output-format cobertura --coverage-output coverage.cobertura.xml
+          --report-trx --results-directory TestResults
+
+      - name: Publicar resultados
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-results-${{ matrix.rid }}
+          path: |
+            TestResults/**
+            **/TestResults/**/*.cobertura.xml
+          if-no-files-found: warn
+
+  licenses:
+    name: Cumplimiento de licencias (REUSE)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: fsfe/reuse-action@676e2d560c9a403aa252096d99fcab3e1132b0f5 # v6.0.0

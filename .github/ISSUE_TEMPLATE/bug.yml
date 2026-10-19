@@ -1,0 +1,29 @@
+name: Reporte de error
+description: Algo no convierte o la rueda no se comporta como esperas
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: Qué pasó
+      description: Qué hiciste, qué esperabas y qué ocurrió.
+    validations:
+      required: true
+  - type: input
+    id: conversion
+    attributes:
+      label: Conversión
+      placeholder: "p. ej. HEIC → JPG"
+  - type: input
+    id: version
+    attributes:
+      label: Versión de Kumquat y de Windows
+      placeholder: "Kumquat 0.1.0, Windows 11 24H2"
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: Últimas líneas de %LOCALAPPDATA%\Kumquat\logs (menú de la bandeja → Abrir carpeta de registros). Revisa que no haya rutas que prefieras no compartir.
+      render: text

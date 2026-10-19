@@ -1,0 +1,11 @@
+version = 1
+SPDX-PackageName = "Kumquat"
+SPDX-PackageDownloadLocation = "https://github.com/"
+
+# Los .cs llevan cabecera SPDX (impuesta por IDE0073). El resto de archivos del repo
+# (configuración, docs, manifiestos) se declara aquí.
+[[annotations]]
+path = "**"
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Kumquat contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"

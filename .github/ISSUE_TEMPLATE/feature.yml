@@ -1,0 +1,16 @@
+name: Propuesta
+description: Un formato, herramienta o acción nueva
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Qué necesitas lograr
+      description: Describe el problema antes que la solución.
+    validations:
+      required: true
+  - type: textarea
+    id: engine
+    attributes:
+      label: Motor sugerido (opcional)
+      description: Librería o programa que lo haría, y su licencia (debe ser compatible con GPL-3.0).

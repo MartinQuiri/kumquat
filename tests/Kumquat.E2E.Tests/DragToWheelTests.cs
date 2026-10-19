@@ -192,9 +192,7 @@ public sealed class DragToWheelTests : IDisposable
 
     private void StartKumquat()
     {
-        var baseDir = new DirectoryInfo(AppContext.BaseDirectory);
-        var configuration = baseDir.Parent!.Name;
-        var exe = Path.Combine(baseDir.Parent!.Parent!.Parent!.Parent!.Parent!.FullName, "src", "Kumquat.App", "bin", configuration, baseDir.Name, "Kumquat.exe");
+        var exe = Path.Combine(AppContext.BaseDirectory, "Kumquat.exe");
         File.Exists(exe).ShouldBeTrue($"No se encontró {exe}");
         Process.GetProcessesByName("Kumquat").Length.ShouldBe(0, "Cierra Kumquat antes de correr los E2E (instancia única).");
 

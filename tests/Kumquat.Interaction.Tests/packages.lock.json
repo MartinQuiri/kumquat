@@ -260,6 +260,7 @@
         "dependencies": {
           "Kumquat.Core": "[0.1.0, )",
           "NetVips": "[3.2.0, )",
+          "NetVips.Native.win-arm64": "[8.18.7, )",
           "NetVips.Native.win-x64": "[8.18.7, )"
         }
       },
@@ -325,6 +326,12 @@
         "requested": "[3.2.0, )",
         "resolved": "3.2.0",
         "contentHash": "ixVatHjsFBBvtKXYwH8jz8nF6OQIhl2e/P0N8ByGaZrlPu9VvcVQxX9zBQ13L8fUpMzKv1WXUybqW8wXZdFsCg=="
+      },
+      "NetVips.Native.win-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "xZGa709UzaMRL6TUKXvNboEeP6rVqgPjP+5u1pXkwq1tXFcauNwXWIMy5ozsrCOf7xvxvcmWf+Y+rtCRpwmGBA=="
       },
       "NetVips.Native.win-x64": {
         "type": "CentralTransitive",
@@ -403,6 +410,12 @@
         "resolved": "6.0.1",
         "contentHash": "IQ4NXP/B3Ayzvw0rDQzVTYsCKyy0Jp9KI6aYcK7UnGVlR9+Awz++TIPCQtPYfLJfOpm8ajowMR09V7quD3sEHw=="
       },
+      "NetVips.Native.win-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "xZGa709UzaMRL6TUKXvNboEeP6rVqgPjP+5u1pXkwq1tXFcauNwXWIMy5ozsrCOf7xvxvcmWf+Y+rtCRpwmGBA=="
+      },
       "NetVips.Native.win-x64": {
         "type": "CentralTransitive",
         "requested": "[8.18.7, )",
@@ -445,6 +458,12 @@
         "type": "Transitive",
         "resolved": "6.0.1",
         "contentHash": "IQ4NXP/B3Ayzvw0rDQzVTYsCKyy0Jp9KI6aYcK7UnGVlR9+Awz++TIPCQtPYfLJfOpm8ajowMR09V7quD3sEHw=="
+      },
+      "NetVips.Native.win-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "xZGa709UzaMRL6TUKXvNboEeP6rVqgPjP+5u1pXkwq1tXFcauNwXWIMy5ozsrCOf7xvxvcmWf+Y+rtCRpwmGBA=="
       },
       "NetVips.Native.win-x64": {
         "type": "CentralTransitive",
