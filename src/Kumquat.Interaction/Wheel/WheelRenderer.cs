@@ -27,6 +27,15 @@ internal static class WheelRenderer
     /// <summary>Anillos para los que se dimensiona el lienzo (el máximo: convertir, herramientas, acciones).</summary>
     public const int MaxRings = 3;
 
+    /// <summary>Franja extra bajo el lienzo cuadrado para la etiqueta de formato y tamaño, en DIP.</summary>
+    public const float CaptionAreaDip = 20;
+
+    /// <summary>Alto de la etiqueta, en DIP.</summary>
+    private const float CaptionHeightDip = 22;
+
+    /// <summary>Separación entre el disco y la etiqueta, en DIP.</summary>
+    private const float CaptionGapDip = 5;
+
     /// <summary>Separación entre sectores y entre anillos, en DIP.</summary>
     private const float GapDip = 3;
 
@@ -35,6 +44,9 @@ internal static class WheelRenderer
 
     /// <summary>Lado del lienzo en píxeles. Fijo para el máximo de anillos: la ventana no cambia de tamaño al llenarse.</summary>
     public static int CanvasSize(float scale) => (int)Math.Ceiling(2 * (CenterRadiusDip + (MaxRings * RingThicknessDip) + MarginDip) * scale);
+
+    /// <summary>Alto del lienzo en píxeles: el cuadrado de la rueda más la franja de la etiqueta.</summary>
+    public static int CanvasHeight(float scale) => CanvasSize(scale) + (int)Math.Ceiling(CaptionAreaDip * scale);
 
     /// <summary>Geometría en píxeles para un estado y una escala.</summary>
     public static WheelLayout Layout(WheelVisualState state, float scale)
@@ -73,6 +85,11 @@ internal static class WheelRenderer
         if (state.Message is not null)
         {
             DrawMessage(g, c, discRadius, scale, theme, state.Message);
+        }
+
+        if (state.Caption is not null)
+        {
+            DrawCaption(g, c, discRadius, scale, theme, state.Caption);
         }
     }
 
@@ -264,6 +281,49 @@ internal static class WheelRenderer
         using var cross = new Pen(theme.Muted, 2f * scale) { StartCap = LineCap.Round, EndCap = LineCap.Round };
         g.DrawLine(cross, c - arm, c - arm, c + arm, c + arm);
         g.DrawLine(cross, c - arm, c + arm, c + arm, c - arm);
+    }
+
+    /// <summary>
+    /// Etiqueta pegada bajo el disco, centrada: una píldora del mismo vidrio con el formato y el
+    /// tamaño. Es solo una ayuda visual: texto secundario, sin color de acento.
+    /// </summary>
+    private static void DrawCaption(Graphics g, float c, float discRadius, float scale, WheelTheme theme, string caption)
+    {
+        using var font = new Font(WheelFonts.Medium, 11.5f * scale, FontStyle.Regular, GraphicsUnit.Pixel);
+        var text = g.MeasureString(caption, font);
+        var height = CaptionHeightDip * scale;
+        var width = Math.Min(text.Width + (22 * scale), 2 * discRadius);
+        var pill = new RectangleF(c - (width / 2), c + discRadius + (CaptionGapDip * scale), width, height);
+
+        using var shape = new GraphicsPath();
+        var r = height / 2;
+        shape.AddArc(pill.Left, pill.Top, 2 * r, height, 90, 180);
+        shape.AddArc(pill.Right - (2 * r), pill.Top, 2 * r, height, 270, 180);
+        shape.CloseFigure();
+
+        // Sombra corta, como la del disco pero más sutil.
+        using (var shadow = new Pen(Color.FromArgb(theme.Shadow.A / 3, theme.Shadow), 3f * scale))
+        {
+            g.TranslateTransform(0, 1.5f * scale);
+            g.DrawPath(shadow, shape);
+            g.ResetTransform();
+        }
+
+        var bounds = RectangleF.Inflate(pill, 0, 1);
+        using (var body = new LinearGradientBrush(bounds, theme.GlassTop, theme.GlassBottom, LinearGradientMode.Vertical))
+        {
+            g.FillPath(body, shape);
+        }
+
+        using (var rimBrush = new LinearGradientBrush(bounds, theme.RimLight, Color.FromArgb(theme.IsDark ? 10 : 120, theme.RimLight), LinearGradientMode.Vertical))
+        using (var rim = new Pen(rimBrush, 1f * scale))
+        {
+            g.DrawPath(rim, shape);
+        }
+
+        using var format = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center, Trimming = StringTrimming.EllipsisCharacter, FormatFlags = StringFormatFlags.NoWrap };
+        using var brush = new SolidBrush(theme.Muted);
+        g.DrawString(caption, font, brush, pill, format);
     }
 
     private static void DrawMessage(Graphics g, float c, float discRadius, float scale, WheelTheme theme, string message)

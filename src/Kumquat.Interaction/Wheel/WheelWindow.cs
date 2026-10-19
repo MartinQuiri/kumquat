@@ -71,7 +71,7 @@ internal sealed unsafe class WheelWindow : NativeWindow
         ArgumentNullException.ThrowIfNull(state);
         var size = WheelRenderer.CanvasSize(_scale);
         var position = IsShown ? new POINT(_center.X - (size / 2), _center.Y - (size / 2)) : ParkingSpot(size);
-        Present(size, position, state);
+        Present(size, WheelRenderer.CanvasHeight(_scale), position, state);
     }
 
     /// <summary>Saca la rueda de la vista sin ocultarla (sigue registrada para OLE).</summary>
@@ -79,7 +79,7 @@ internal sealed unsafe class WheelWindow : NativeWindow
     {
         IsShown = false;
         var size = WheelRenderer.CanvasSize(_scale);
-        Present(size, ParkingSpot(size), WheelVisualState.Waiting);
+        Present(size, WheelRenderer.CanvasHeight(_scale), ParkingSpot(size), WheelVisualState.Waiting);
     }
 
     /// <summary>Inicia (o reinicia) un timer de un disparo lógico; el handler debe detenerlo.</summary>
@@ -117,7 +117,7 @@ internal sealed unsafe class WheelWindow : NativeWindow
     }
 
     private static POINT ParkingSpot(int size)
-        => new(Win32.GetSystemMetrics(Win32.SM_XVIRTUALSCREEN) - size - 64, Win32.GetSystemMetrics(Win32.SM_YVIRTUALSCREEN) - size - 64);
+        => new(Win32.GetSystemMetrics(Win32.SM_XVIRTUALSCREEN) - size - 64, Win32.GetSystemMetrics(Win32.SM_YVIRTUALSCREEN) - (2 * size) - 64);
 
     private static float DpiScaleAt(POINT point)
     {
@@ -125,13 +125,17 @@ internal sealed unsafe class WheelWindow : NativeWindow
         return Win32.GetDpiForMonitor(monitor, 0, out var dpiX, out _) == 0 && dpiX > 0 ? dpiX / 96f : 1f;
     }
 
-    private void Present(int size, POINT position, WheelVisualState state)
+    /// <param name="size">Ancho del lienzo (el disco es un cuadrado de este lado, arriba).</param>
+    /// <param name="height">Alto: el cuadrado más la franja de la etiqueta bajo el disco.</param>
+    /// <param name="position">Esquina superior izquierda en pantalla.</param>
+    /// <param name="state">Qué dibujar.</param>
+    private void Present(int size, int height, POINT position, WheelVisualState state)
     {
         var header = new BITMAPINFOHEADER
         {
             BiSize = (uint)sizeof(BITMAPINFOHEADER),
             BiWidth = size,
-            BiHeight = -size, // top-down
+            BiHeight = -height, // top-down
             BiPlanes = 1,
             BiBitCount = 32,
         };
@@ -149,7 +153,7 @@ internal sealed unsafe class WheelWindow : NativeWindow
         var previous = Win32.SelectObject(memory, bitmap);
         try
         {
-            using (var canvas = new Bitmap(size, size, size * 4, PixelFormat.Format32bppPArgb, bits))
+            using (var canvas = new Bitmap(size, height, size * 4, PixelFormat.Format32bppPArgb, bits))
             using (var g = Graphics.FromImage(canvas))
             {
                 WheelRenderer.Render(g, size, _scale, state, _theme);
@@ -157,7 +161,7 @@ internal sealed unsafe class WheelWindow : NativeWindow
 
             var dst = position;
             var src = new POINT(0, 0);
-            var extent = new SIZE { Cx = size, Cy = size };
+            var extent = new SIZE { Cx = size, Cy = height };
             var blend = new BLENDFUNCTION { BlendOp = Win32.AC_SRC_OVER, SourceConstantAlpha = 255, AlphaFormat = Win32.AC_SRC_ALPHA };
             if (!Win32.UpdateLayeredWindow(Handle, screen, &dst, &extent, memory, &src, 0, &blend, Win32.ULW_ALPHA))
             {

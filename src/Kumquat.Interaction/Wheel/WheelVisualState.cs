@@ -12,6 +12,9 @@ internal sealed record WheelVisualState(IReadOnlyList<WheelRing> Rings, WheelHit
     /// <summary>Rueda recién aparecida, esperando saber qué se arrastra.</summary>
     public static WheelVisualState Waiting { get; } = new([], WheelHit.Center, null);
 
+    /// <summary>Etiqueta bajo la rueda con el formato y el tamaño de lo arrastrado (p. ej. "PNG · 2,4 MB").</summary>
+    public string? Caption { get; init; }
+
     /// <summary>Indica si hay un sector resaltado.</summary>
     public bool HasHighlight => Highlight.Zone == WheelZone.Sector;
 
