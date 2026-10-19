@@ -25,7 +25,7 @@ public sealed class ToolTests : IDisposable
     [
         .. VipsTool.CreateAll(),
         .. FfmpegTool.CreateAll(TestEngines.FfmpegRunner),
-        .. PdfTool.CreateAll(TestEngines.Pdf, TestEngines.ImagePdf),
+        .. PdfTool.CreateAll(TestEngines.Pdf, TestEngines.ImagePdf, TestEngines.Workspaces),
         .. ArchiveTools.CreateAll(),
     ];
 
@@ -71,7 +71,8 @@ public sealed class ToolTests : IDisposable
             .Select(n => Copy(sample!, $"muestra{n}{format.DefaultExtension}"))
             .ToList();
 
-        var result = await Service.ApplyAsync(inputs, toolId, null, TestContext.Current.CancellationToken);
+        var options = await OptionsForAsync(tool, inputs);
+        var result = await Service.ApplyAsync(inputs, toolId, options, null, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue(result.Error?.ToString());
         var output = result.Value!;
@@ -103,6 +104,13 @@ public sealed class ToolTests : IDisposable
         var extracted = await Service.ApplyAsync([zip.Value!], "archive.extract", null, TestContext.Current.CancellationToken);
         extracted.Value.ShouldBe(Path.Combine(_dir, "Mis cosas (2)"));
         (await File.ReadAllTextAsync(Path.Combine(extracted.Value!, "Mis cosas", "sub", "b.txt"), TestContext.Current.CancellationToken)).ShouldBe("bé");
+    }
+
+    private static async Task<int> PageCountAsync(string pdf)
+    {
+        var info = await TestEngines.Pdf.RunMutoolForOutputAsync(["info", pdf], TestContext.Current.CancellationToken) ?? string.Empty;
+        var line = info.Split('\n').First(l => l.StartsWith("Pages:", StringComparison.Ordinal));
+        return int.Parse(line["Pages:".Length..].Trim(), System.Globalization.CultureInfo.InvariantCulture);
     }
 
     private static async Task AssertEffectAsync(string toolId, FileFormat format, string input, string output)
@@ -142,7 +150,65 @@ public sealed class ToolTests : IDisposable
             case "archive.extract":
                 Directory.EnumerateFiles(output, "*.txt", SearchOption.AllDirectories).Count().ShouldBe(2);
                 break;
+            case "media.trim":
+                var trimmed = await MediaProbe.ProbeAsync(output, ct);
+                trimmed.DurationSeconds.ShouldNotBeNull().ShouldBe(1.0, tolerance: 0.15, "Recortar 0:00.5–0:01.5 debe dejar 1 s.");
+                break;
+            case "pdf.extract":
+                (await PageCountAsync(output)).ShouldBe(1);
+                break;
+            case "pdf.protect":
+                (await TestEngines.Pdf.RunQpdfAsync(["--is-encrypted", output], ct)).IsSuccess.ShouldBeTrue("El PDF debe quedar cifrado.");
+                break;
+            case var id when AuthorKey.TryGetValue(id, out var key):
+                var reread = await Tools.Single(t => t.Id == id).GetParametersAsync(ToolService.Describe([output])!, ct);
+                reread.Single(p => p.Key == key).DefaultValue.ShouldBe("María Pérez", "El autor debe leerse de vuelta con tildes.");
+                if (reread.Any(p => p.Kind == ToolParameterKind.CustomFields))
+                {
+                    reread.ShouldContain(p => string.Equals(p.Key, ToolParameter.CustomPrefix + "Proyecto", StringComparison.OrdinalIgnoreCase) && p.DefaultValue == "Kumquat", "El campo personalizado debe guardarse.");
+                }
+
+                break;
         }
+    }
+
+    /// <summary>Clave del campo "autor" en cada herramienta de metadatos.</summary>
+    private static readonly Dictionary<string, string> AuthorKey = new(StringComparer.Ordinal)
+    {
+        ["image.metadata"] = "author",
+        ["pdf.metadata"] = "Author",
+        ["media.metadata"] = "artist",
+        ["office.metadata"] = "creator",
+    };
+
+    /// <summary>Opciones como las dejaría el usuario: valores iniciales de la herramienta + lo que cambiaría.</summary>
+    private static async Task<Dictionary<string, string>> OptionsForAsync(ITool tool, IReadOnlyList<string> inputs)
+    {
+        var parameters = await tool.GetParametersAsync(ToolService.Describe(inputs)!, TestContext.Current.CancellationToken);
+        var options = parameters.Where(p => p.Kind != ToolParameterKind.CustomFields).ToDictionary(p => p.Key, p => p.DefaultValue ?? string.Empty, StringComparer.Ordinal);
+        switch (tool.Id)
+        {
+            case "media.trim":
+                options["start"] = "0:00.5";
+                options["end"] = "0:01.5";
+                break;
+            case "pdf.extract":
+                options["pages"] = "2";
+                break;
+            case "pdf.protect":
+                options["password"] = options["confirm"] = "secreto ñ";
+                break;
+            case var id when AuthorKey.TryGetValue(id, out var key):
+                options[key] = "María Pérez";
+                if (parameters.Any(p => p.Kind == ToolParameterKind.CustomFields))
+                {
+                    options[ToolParameter.CustomPrefix + "Proyecto"] = "Kumquat";
+                }
+
+                break;
+        }
+
+        return options;
     }
 
     private string Copy(string sample, string name)

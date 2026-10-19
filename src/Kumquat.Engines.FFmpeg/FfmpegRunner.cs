@@ -68,6 +68,62 @@ public sealed class FfmpegRunner
         return outcome.Succeeded ? MediaInfo.Parse(output.ToString()) : null;
     }
 
+    /// <summary>Etiquetas del contenedor (título, artista...); las claves se comparan sin distinguir mayúsculas.</summary>
+    public async Task<IReadOnlyDictionary<string, string>> ProbeTagsAsync(string input, CancellationToken cancellationToken)
+    {
+        var tags = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        if (_ffprobe is null)
+        {
+            return tags;
+        }
+
+        var output = new StringBuilder();
+        var outcome = await _runner.RunAsync(
+            new ProcessSpec
+            {
+                FileName = _ffprobe,
+                Arguments = FfmpegArguments.ProbeTags(input),
+                Timeout = ProbeTimeout,
+                MaxMemoryBytes = MaxMemoryBytes,
+                OnStandardOutputLine = line => output.AppendLine(line),
+            },
+            cancellationToken);
+        if (!outcome.Succeeded)
+        {
+            return tags;
+        }
+
+        try
+        {
+            // OGG/Opus guardan las etiquetas en la pista de audio; el resto, en el contenedor (que manda).
+            using var doc = System.Text.Json.JsonDocument.Parse(output.ToString());
+            if (doc.RootElement.TryGetProperty("streams", out var streams))
+            {
+                foreach (var stream in streams.EnumerateArray().Where(s => s.TryGetProperty("tags", out _)))
+                {
+                    foreach (var tag in stream.GetProperty("tags").EnumerateObject())
+                    {
+                        tags[tag.Name] = tag.Value.GetString() ?? string.Empty;
+                    }
+                }
+            }
+
+            if (doc.RootElement.TryGetProperty("format", out var format) && format.TryGetProperty("tags", out var values))
+            {
+                foreach (var tag in values.EnumerateObject())
+                {
+                    tags[tag.Name] = tag.Value.GetString() ?? string.Empty;
+                }
+            }
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            // Sin etiquetas legibles: se edita desde cero.
+        }
+
+        return tags;
+    }
+
     private async Task<Result> ExecuteAsync(IReadOnlyList<string> arguments, TimeSpan? duration, IProgress<double>? progress, CancellationToken cancellationToken)
     {
         if (_ffmpeg is null)

@@ -76,7 +76,11 @@ public sealed class ToolService
     /// Aplica una herramienta a una o más rutas en una sola salida (modo combinar) o a la
     /// primera ruta (modo uno a uno). El resultado queda junto a la (primera) entrada.
     /// </summary>
-    public async Task<Result<string>> ApplyAsync(IReadOnlyList<string> paths, string toolId, IProgress<double>? progress, CancellationToken cancellationToken)
+    public Task<Result<string>> ApplyAsync(IReadOnlyList<string> paths, string toolId, IProgress<double>? progress, CancellationToken cancellationToken)
+        => ApplyAsync(paths, toolId, null, progress, cancellationToken);
+
+    /// <summary>Igual que el anterior, con las opciones elegidas por el usuario (validadas por la herramienta).</summary>
+    public async Task<Result<string>> ApplyAsync(IReadOnlyList<string> paths, string toolId, IReadOnlyDictionary<string, string>? options, IProgress<double>? progress, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(paths);
         var tool = Find(toolId);
@@ -97,6 +101,12 @@ public sealed class ToolService
             return new Error("tool-not-applicable", $"{tool.Label} no sirve para estos archivos.");
         }
 
+        options ??= new Dictionary<string, string>(StringComparer.Ordinal);
+        if (tool.Validate(options) is { } invalid)
+        {
+            return new Error("invalid-options", invalid);
+        }
+
         if (tool.Mode == ToolMode.Combine)
         {
             inputs = [.. inputs.OrderBy(i => Path.GetFileName(i.Path), NaturalComparer.Instance)];
@@ -106,8 +116,8 @@ public sealed class ToolService
         var output = tool.OutputFormat(first.Format);
         var directory = Path.GetDirectoryName(Path.TrimEndingDirectorySeparator(first.Path))!;
         var result = output is null
-            ? await StagedOutput.RunDirectoryAsync(first.Path, directory, tool.OutputSuffix, staging => tool.ApplyAsync(new ToolStep(inputs, staging, null), progress, cancellationToken), cancellationToken)
-            : await StagedOutput.RunAsync(first.Path, output, directory, tool.OutputSuffix, staging => tool.ApplyAsync(new ToolStep(inputs, staging, output), progress, cancellationToken), cancellationToken);
+            ? await StagedOutput.RunDirectoryAsync(first.Path, directory, tool.OutputSuffix, staging => tool.ApplyAsync(new ToolStep(inputs, staging, null, options), progress, cancellationToken), cancellationToken)
+            : await StagedOutput.RunAsync(first.Path, output, directory, tool.OutputSuffix, staging => tool.ApplyAsync(new ToolStep(inputs, staging, output, options), progress, cancellationToken), cancellationToken);
         if (result.IsSuccess)
         {
             progress?.Report(1.0);
@@ -116,15 +126,28 @@ public sealed class ToolService
         return result;
     }
 
+    /// <summary>Parámetros a pedir para estas rutas (vacío si la herramienta no los necesita).</summary>
+    public async Task<IReadOnlyList<ToolParameter>> GetParametersAsync(IReadOnlyList<string> paths, string toolId, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(paths);
+        var tool = Find(toolId);
+        var inputs = tool is null ? null : Describe(paths);
+        return tool is null || inputs is null || inputs.Count == 0 ? [] : await tool.GetParametersAsync(inputs, cancellationToken);
+    }
+
+    /// <summary>Valida opciones antes de encolar (para mostrar el error en la ventana de opciones).</summary>
+    public string? Validate(string toolId, IReadOnlyDictionary<string, string> options)
+        => Find(toolId)?.Validate(options);
+
     /// <summary>Trabajos encolables: uno por archivo, o uno solo si la herramienta combina.</summary>
-    public IReadOnlyList<JobRequest> CreateJobs(IReadOnlyList<string> paths, string toolId)
+    public IReadOnlyList<JobRequest> CreateJobs(IReadOnlyList<string> paths, string toolId, IReadOnlyDictionary<string, string>? options = null)
     {
         ArgumentNullException.ThrowIfNull(paths);
         var tool = Find(toolId);
         var label = tool?.Label ?? toolId;
         return tool?.Mode == ToolMode.Combine
-            ? [new JobRequest(paths[0], label, (progress, ct) => ApplyAsync(paths, toolId, progress, ct))]
-            : [.. paths.Select(p => new JobRequest(p, label, (progress, ct) => ApplyAsync([p], toolId, progress, ct)))];
+            ? [new JobRequest(paths[0], label, (progress, ct) => ApplyAsync(paths, toolId, options, progress, ct))]
+            : [.. paths.Select(p => new JobRequest(p, label, (progress, ct) => ApplyAsync([p], toolId, options, progress, ct)))];
     }
 
     /// <summary>Trabajo encolable para un archivo.</summary>

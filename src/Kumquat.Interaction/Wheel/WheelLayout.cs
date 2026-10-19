@@ -11,8 +11,14 @@ namespace Kumquat.Interaction.Wheel;
 /// </summary>
 public sealed class WheelLayout
 {
-    /// <summary>Máximo de sectores por anillo: más allá la tasa de error sube fuerte.</summary>
+    /// <summary>Máximo de sectores en el anillo interior: más allá la tasa de error sube fuerte.</summary>
     public const int MaxSectors = 8;
+
+    /// <summary>
+    /// Máximo en el anillo de herramientas: al estar más afuera, cada sector sigue siendo ancho con 10
+    /// (un PDF tiene 9 herramientas propias más "Comprimir en ZIP").
+    /// </summary>
+    public const int MaxToolSectors = 10;
 
     private readonly int[] _sectorCounts;
 

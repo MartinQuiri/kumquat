@@ -42,6 +42,21 @@ public sealed class PdfEngines
     public Task<Result> RunQpdfAsync(IReadOnlyList<string> arguments, CancellationToken cancellationToken)
         => RunAsync(Qpdf, "qpdf", arguments, okExitCodes: [0, 3], cancellationToken);
 
+    /// <summary>Ejecuta mutool y devuelve su salida estándar (UTF-8), o <c>null</c> si falló.</summary>
+    public async Task<string?> RunMutoolForOutputAsync(IReadOnlyList<string> arguments, CancellationToken cancellationToken)
+    {
+        if (Mutool is null)
+        {
+            return null;
+        }
+
+        var output = new System.Text.StringBuilder();
+        var outcome = await _runner.RunAsync(
+            new ProcessSpec { FileName = Mutool, Arguments = arguments, Timeout = Timeout, MaxMemoryBytes = MaxMemoryBytes, OnStandardOutputLine = line => output.AppendLine(line) },
+            cancellationToken);
+        return outcome.Succeeded ? output.ToString() : null;
+    }
+
     /// <summary>Ruta absoluta normalizada para pasar a un motor.</summary>
     internal static string Abs(string path) => Path.GetFullPath(path);
 
@@ -67,7 +82,7 @@ public sealed class PdfEngines
         }
 
         var detail = outcome.StandardErrorTail.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries).LastOrDefault() ?? string.Empty;
-        return detail.Contains("password", StringComparison.OrdinalIgnoreCase)
+        return outcome.StandardErrorTail.Contains("password", StringComparison.OrdinalIgnoreCase)
             ? new Error("pdf-encrypted", "El PDF está protegido con contraseña.")
             : new Error("engine-failed", $"{name} terminó con código {outcome.ExitCode}: {detail}");
     }

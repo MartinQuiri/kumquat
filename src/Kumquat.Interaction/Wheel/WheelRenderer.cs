@@ -172,11 +172,11 @@ internal static class WheelRenderer
         return 2 * half * 0.95;
     }
 
-    /// <summary>Achica la fuente (hasta 75 %) si la palabra más larga no cabe: nunca cortar una palabra a la mitad.</summary>
+    /// <summary>Achica la fuente (hasta 60 %) si la palabra más larga no cabe: nunca cortar una palabra a la mitad.</summary>
     private static Font FitFont(Graphics g, Font font, string label, float width)
     {
         var longest = label.Split(' ', StringSplitOptions.RemoveEmptyEntries).Max(word => g.MeasureString(word, font).Width);
-        var ratio = longest > width ? Math.Max(0.75f, width / longest) : 1f;
+        var ratio = longest > width ? Math.Max(0.6f, width / longest) : 1f;
         return new Font(font.FontFamily, font.Size * ratio, font.Style, GraphicsUnit.Pixel);
     }
 

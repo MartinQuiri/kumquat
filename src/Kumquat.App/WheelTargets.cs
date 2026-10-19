@@ -29,7 +29,7 @@ internal sealed class WheelTargets(ConversionGraph graph, ToolService tools)
             return [actions];
         }
 
-        var toolItems = tools.ToolsFor(inputs).Take(WheelLayout.MaxSectors).Select(t => WheelItem.Tool(t.Id, t.Label)).ToList();
+        var toolItems = tools.ToolsFor(inputs).Take(WheelLayout.MaxToolSectors).Select(t => WheelItem.Tool(t.Id, t.Label)).ToList();
         var formats = inputs.Where(i => !i.IsDirectory).Select(i => i.Format!).ToList();
         var convert = formats.Count == inputs.Count
             ? WheelItemOrdering.Arrange(formats[0].Category, graph.CommonTargets(formats))

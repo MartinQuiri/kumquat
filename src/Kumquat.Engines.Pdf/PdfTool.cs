@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Kumquat contributors
 
+using Kumquat.Core.Conversion;
 using Kumquat.Core.Formats;
 using Kumquat.Core.Results;
 using Kumquat.Core.Tools;
@@ -50,10 +51,11 @@ public sealed class PdfTool : ITool
     public int MinInputs { get; }
 
     /// <summary>Herramientas en el orden de la rueda.</summary>
-    public static IReadOnlyList<ITool> CreateAll(PdfEngines engines, ImagePdfBuilder images)
+    public static IReadOnlyList<ITool> CreateAll(PdfEngines engines, ImagePdfBuilder images, ITempWorkspaceFactory workspaces)
     {
         ArgumentNullException.ThrowIfNull(engines);
         ArgumentNullException.ThrowIfNull(images);
+        var secure = new PdfSecureTools(engines, workspaces ?? throw new ArgumentNullException(nameof(workspaces)));
         bool HasMutool() => engines.Mutool is not null;
         bool HasQpdf() => engines.Qpdf is not null;
 
@@ -86,10 +88,47 @@ public sealed class PdfTool : ITool
             new PdfTool("pdf.to-jpg", "Páginas a JPG", "JPG", PdfOnly, null, () => HasMutool() && VipsConverter.IsLibraryAvailable,
                 (step, ct) => PagesToJpegAsync(engines, step, ct)),
 
+            .. CreateWithParameters(engines, secure),
+
             // Unir imágenes en un PDF (una por página).
             new PdfTool("image.to-pdf", "Unir en PDF", "PDF", ImagePdfBuilder.Inputs, KnownFormats.Pdf, () => images.IsAvailable,
                 (step, ct) => images.BuildAsync([.. step.Inputs.Select(i => (i.Path, i.Format!))], step.OutputPath, ct),
                 ToolMode.Combine, minInputs: 2),
+        ];
+    }
+
+    /// <summary>Herramientas que piden datos antes de ejecutarse (páginas, contraseña, metadatos).</summary>
+    private static PdfTool[] CreateWithParameters(PdfEngines engines, PdfSecureTools secure)
+    {
+        bool HasMutool() => engines.Mutool is not null;
+        bool HasQpdf() => engines.Qpdf is not null;
+
+        return
+        [
+            // Extraer páginas: un PDF nuevo solo con las páginas indicadas.
+            new PdfTool("pdf.extract", "Extraer páginas", "extracto", PdfOnly, KnownFormats.Pdf, HasQpdf, secure.ExtractAsync)
+            {
+                ParameterSource = (_, _) => Task.FromResult(PdfSecureTools.ExtractParameters()),
+                Validator = PdfSecureTools.ValidateExtract,
+            },
+
+            new PdfTool("pdf.protect", "Proteger", "protegido", PdfOnly, KnownFormats.Pdf, HasQpdf, secure.ProtectAsync)
+            {
+                ParameterSource = (_, _) => Task.FromResult(PdfSecureTools.ProtectParameters()),
+                Validator = PdfSecureTools.ValidateProtect,
+            },
+
+            new PdfTool("pdf.unlock", "Desbloquear", "desbloqueado", PdfOnly, KnownFormats.Pdf, HasQpdf, secure.UnlockAsync)
+            {
+                ParameterSource = (_, _) => Task.FromResult(PdfSecureTools.UnlockParameters()),
+                Validator = PdfSecureTools.ValidateUnlock,
+            },
+
+            new PdfTool("pdf.metadata", "Metadatos", "metadatos", PdfOnly, KnownFormats.Pdf, HasMutool, secure.WriteMetadataAsync)
+            {
+                ParameterSource = (inputs, ct) => secure.MetadataParametersAsync(inputs[0].Path, ct),
+                Validator = PdfSecureTools.ValidateMetadata,
+            },
         ];
     }
 
@@ -98,6 +137,19 @@ public sealed class PdfTool : ITool
 
     /// <inheritdoc />
     public FileFormat? OutputFormat(FileFormat? input) => _output;
+
+    /// <summary>Origen de los parámetros a pedir (si la herramienta los necesita).</summary>
+    private Func<IReadOnlyList<ToolInput>, CancellationToken, Task<IReadOnlyList<ToolParameter>>>? ParameterSource { get; init; }
+
+    /// <summary>Validación de las opciones elegidas.</summary>
+    private Func<IReadOnlyDictionary<string, string>, string?>? Validator { get; init; }
+
+    /// <inheritdoc />
+    public Task<IReadOnlyList<ToolParameter>> GetParametersAsync(IReadOnlyList<ToolInput> inputs, CancellationToken cancellationToken)
+        => ParameterSource?.Invoke(inputs, cancellationToken) ?? Task.FromResult<IReadOnlyList<ToolParameter>>([]);
+
+    /// <inheritdoc />
+    public string? Validate(IReadOnlyDictionary<string, string> options) => Validator?.Invoke(options);
 
     /// <inheritdoc />
     public Task<Result> ApplyAsync(ToolStep step, IProgress<double>? progress, CancellationToken cancellationToken)

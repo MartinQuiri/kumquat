@@ -65,7 +65,7 @@ public static class KumquatServices
         services.AddSingleton<IConverter, MupdfConverter>();
         services.AddSingleton(sp => new ToolService(OrderForWheel(
         [
-            .. PdfTool.CreateAll(sp.GetRequiredService<PdfEngines>(), sp.GetRequiredService<ImagePdfBuilder>()),
+            .. PdfTool.CreateAll(sp.GetRequiredService<PdfEngines>(), sp.GetRequiredService<ImagePdfBuilder>(), sp.GetRequiredService<ITempWorkspaceFactory>()),
             .. VipsTool.CreateAll(),
             .. FfmpegTool.CreateAll(sp.GetRequiredService<FfmpegRunner>()),
             .. ArchiveTools.CreateAll(),

@@ -6,14 +6,19 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- Arranque rápido del ícono de bandeja: código precompilado. -->
     <PublishReadyToRun>true</PublishReadyToRun>
-    <!-- Trimming verificado: 0 advertencias IL; arranque ~275 ms y ~40 MB en reposo. -->
-    <PublishTrimmed>true</PublishTrimmed>
+    <!-- WPF solo para la ventana de opciones (tema Fluent). WPF no admite trimming, así que la app
+         se publica sin recortar; WPF se carga recién al abrir una ventana, no al arrancar. -->
+    <UseWPF>true</UseWPF>
+    <PublishTrimmed>false</PublishTrimmed>
     <InvariantGlobalization>false</InvariantGlobalization>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Kumquat.Hosting\Kumquat.Hosting.csproj" />
     <ProjectReference Include="..\Kumquat.Interaction\Kumquat.Interaction.csproj" />
+    <ProjectReference Include="..\Kumquat.Dialogs\Kumquat.Dialogs.csproj" />
     <InternalsVisibleTo Include="Kumquat.Interaction.Tests" />
+    <!-- UseWPF quita System.IO de los usings implícitos (choca con System.Windows.Shapes.Path); aquí no se usan formas. -->
+    <Using Include="System.IO" />
   </ItemGroup>
   <ItemGroup>
     <!-- Motores descargados por tools/fetch-engines.ps1: se copian junto al ejecutable. -->

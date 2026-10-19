@@ -192,6 +192,7 @@
       "Kumquat": {
         "type": "Project",
         "dependencies": {
+          "Kumquat.Dialogs": "[0.1.0, )",
           "Kumquat.Hosting": "[0.1.0, )",
           "Kumquat.Interaction": "[0.1.0, )"
         }
@@ -200,6 +201,12 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.13, )"
+        }
+      },
+      "kumquat.dialogs": {
+        "type": "Project",
+        "dependencies": {
+          "Kumquat.Core": "[0.1.0, )"
         }
       },
       "kumquat.engines.archives": {
