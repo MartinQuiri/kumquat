@@ -47,6 +47,23 @@ internal static unsafe partial class SyntheticInput
         Send(new Input { Type = InputKeyboard, Keyboard = new KeyboardInput { Vk = VkShift, Flags = KeyUp } });
     }
 
+    /// <summary>Presiona las teclas en orden y las suelta al revés (p. ej. Ctrl+Alt+K).</summary>
+    public static void PressChord(params ushort[] keys)
+    {
+        ArgumentNullException.ThrowIfNull(keys);
+        foreach (var key in keys)
+        {
+            Send(new Input { Type = InputKeyboard, Keyboard = new KeyboardInput { Vk = key } });
+            Thread.Sleep(30);
+        }
+
+        foreach (var key in keys.Reverse())
+        {
+            Send(new Input { Type = InputKeyboard, Keyboard = new KeyboardInput { Vk = key, Flags = KeyUp } });
+            Thread.Sleep(30);
+        }
+    }
+
     public static (int X, int Y) CursorPosition()
     {
         GetCursorPos(out var x);
