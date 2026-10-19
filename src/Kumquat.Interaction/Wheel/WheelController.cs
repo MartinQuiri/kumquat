@@ -26,6 +26,13 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
     private const uint DropGraceMilliseconds = 600;
     private const nuint CloseTimerId = 1;
     private const int HotkeyId = 1;
+    private const nuint RequestTimerId = 2;
+
+    /// <summary>
+    /// El Explorador lanza un proceso por archivo seleccionado: se juntan los pedidos que llegan en
+    /// este margen y la rueda se abre una sola vez con todos.
+    /// </summary>
+    private const uint RequestGatherMilliseconds = 250;
 
     private readonly Func<IReadOnlyList<string>, IReadOnlyList<WheelRing>> _ringsForFiles;
     private readonly Action<IReadOnlyList<string>, WheelItem> _onChosen;
@@ -37,6 +44,7 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
     private bool _registered;
     private bool _hotkeyRegistered;
     private IReadOnlyList<string>? _clickFiles;
+    private readonly List<string> _requested = [];
 
     /// <summary>Crea el controlador. Debe llamarse en el hilo de UI tras crear <see cref="UiThread"/>.</summary>
     /// <param name="ringsForFiles">Anillos para los archivos arrastrados (vacío si no se puede hacer nada).</param>
@@ -47,7 +55,7 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
         _ringsForFiles = ringsForFiles ?? throw new ArgumentNullException(nameof(ringsForFiles));
         _onChosen = onChosen ?? throw new ArgumentNullException(nameof(onChosen));
         _tracker = new DragGestureTracker(trigger, Win32.GetSystemMetrics(Win32.SM_CXDRAG), Win32.GetSystemMetrics(Win32.SM_CYDRAG));
-        _window = new WheelWindow { AppMessageHandler = OnAppMessage, TimerHandler = OnTimer, HotkeyHandler = OnHotkey };
+        _window = new WheelWindow { AppMessageHandler = OnAppMessage, TimerHandler = OnTimer, HotkeyHandler = OnHotkey, PathRequestHandler = OnPathRequested };
         _dropTarget = new DropTarget(this);
         _hook = new GlobalInputHook(_tracker, PostGesture);
     }
@@ -224,6 +232,52 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
             return;
         }
 
+        OpenForClick(files);
+    }
+
+    /// <summary>Abre la rueda en modo clic con estos archivos (menú contextual, atajo).</summary>
+    public void OpenForFiles(IReadOnlyList<string> files)
+    {
+        ArgumentNullException.ThrowIfNull(files);
+        foreach (var file in files)
+        {
+            OnPathRequested(file);
+        }
+    }
+
+    private void OnPathRequested(string path)
+    {
+        if (_window.IsShown || (!File.Exists(path) && !Directory.Exists(path)))
+        {
+            return;
+        }
+
+        _requested.Add(path);
+        _window.StartTimer(RequestTimerId, RequestGatherMilliseconds);
+    }
+
+    /// <summary>
+    /// Fin de la recolección. Si los pedidos son parte de la selección del Explorador se usa la
+    /// selección completa (el Explorador lanza como mucho 15 procesos); si no, lo pedido.
+    /// </summary>
+    private void OpenRequested()
+    {
+        _window.StopTimer(RequestTimerId);
+        var requested = _requested.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        _requested.Clear();
+        if (requested.Count == 0 || _window.IsShown)
+        {
+            return;
+        }
+
+        var selection = ExplorerSelection.Get();
+        var files = selection.Count >= requested.Count && requested.All(r => selection.Contains(r, StringComparer.OrdinalIgnoreCase)) ? selection : requested;
+        Trace?.Invoke($"Menú contextual: {requested.Count} pedido(s), {files.Count} archivo(s).");
+        OpenForClick(files);
+    }
+
+    private void OpenForClick(IReadOnlyList<string> files)
+    {
         var rings = _ringsForFiles(files).Where(r => r.Items.Count > 0).ToList();
         _state = rings.Count == 0
             ? new WheelVisualState([], WheelHit.Center, "Nada que hacer con este archivo")
@@ -282,6 +336,12 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
 
     private void OnTimer(nuint id)
     {
+        if (id == RequestTimerId)
+        {
+            OpenRequested();
+            return;
+        }
+
         if (id == CloseTimerId)
         {
             Trace?.Invoke("Sin drop tras soltar: rueda cerrada.");

@@ -15,6 +15,9 @@ internal sealed record AppSettings
     /// <summary>Atajo global (Ctrl+Alt+K) para abrir la rueda sobre la selección del Explorador.</summary>
     public bool HotkeyEnabled { get; init; } = true;
 
+    /// <summary>Entrada "Kumquat…" en el menú del clic derecho del Explorador.</summary>
+    public bool ContextMenuEnabled { get; init; } = true;
+
     /// <summary>Carga desde disco; ante cualquier problema devuelve los valores por defecto.</summary>
     public static AppSettings Load(string path)
     {
