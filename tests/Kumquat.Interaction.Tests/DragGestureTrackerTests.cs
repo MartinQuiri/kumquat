@@ -91,4 +91,26 @@ public sealed class DragGestureTrackerTests
         _tracker.Move(110, 100);
         _tracker.IsDragging.ShouldBeTrue();
     }
+
+    [Fact]
+    public void ModoClic_InformaMovimientoYElClicCierra()
+    {
+        _tracker.Move(10, 10).ShouldBe(GestureSignal.None); // sin rueda: el hook no publica nada
+        _tracker.WheelOpen = true;
+        _tracker.ClickMode = true;
+
+        _tracker.Move(20, 20).ShouldBe(GestureSignal.PointerMoved);
+        _tracker.LeftDown(20, 20).ShouldBe(GestureSignal.None);
+        _tracker.LeftUp().ShouldBe(GestureSignal.DragEnded);
+        _tracker.KeyDown(DragGestureTracker.VkEscape).ShouldBe(GestureSignal.Cancel);
+    }
+
+    [Fact]
+    public void ModoArrastre_NoInformaMovimiento()
+    {
+        StartDrag();
+        _tracker.WheelOpen = true;
+
+        _tracker.Move(500, 500).ShouldBe(GestureSignal.None);
+    }
 }

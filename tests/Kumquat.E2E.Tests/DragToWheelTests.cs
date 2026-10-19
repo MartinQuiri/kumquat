@@ -15,7 +15,8 @@ namespace Kumquat.E2E.Tests;
 [Trait("Category", "E2E")]
 public sealed class DragToWheelTests : IDisposable
 {
-    private const float LabelRadiusDip = (38 + 140) / 2f;
+    /// <summary>Mitad del anillo de conversión: centro de 34 DIP + medio anillo de 56 (WheelRenderer).</summary>
+    private const float LabelRadiusDip = 34 + (56 / 2f);
 
     private readonly string _dir = Path.Combine(Path.GetTempPath(), "kumquat-e2e", Guid.NewGuid().ToString("N"));
     private Process? _app;

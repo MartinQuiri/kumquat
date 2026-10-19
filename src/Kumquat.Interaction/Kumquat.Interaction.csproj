@@ -7,5 +7,6 @@
     <ProjectReference Include="..\Kumquat.Design\Kumquat.Design.csproj" />
     <PackageReference Include="System.Drawing.Common" />
     <InternalsVisibleTo Include="Kumquat.Interaction.Tests" />
+    <InternalsVisibleTo Include="Kumquat.E2E.Tests" />
   </ItemGroup>
 </Project>

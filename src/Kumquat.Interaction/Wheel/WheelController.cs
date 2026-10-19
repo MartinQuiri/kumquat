@@ -6,6 +6,7 @@ using System.Runtime.InteropServices.Marshalling;
 using Kumquat.Interaction.DragDrop;
 using Kumquat.Interaction.Input;
 using Kumquat.Interaction.Native;
+using Kumquat.Interaction.Shell;
 
 namespace Kumquat.Interaction.Wheel;
 
@@ -24,6 +25,7 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
     /// </summary>
     private const uint DropGraceMilliseconds = 600;
     private const nuint CloseTimerId = 1;
+    private const int HotkeyId = 1;
 
     private readonly Func<IReadOnlyList<string>, IReadOnlyList<WheelRing>> _ringsForFiles;
     private readonly Action<IReadOnlyList<string>, WheelItem> _onChosen;
@@ -33,6 +35,8 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
     private readonly GlobalInputHook _hook;
     private WheelVisualState _state = WheelVisualState.Waiting;
     private bool _registered;
+    private bool _hotkeyRegistered;
+    private IReadOnlyList<string>? _clickFiles;
 
     /// <summary>Crea el controlador. Debe llamarse en el hilo de UI tras crear <see cref="UiThread"/>.</summary>
     /// <param name="ringsForFiles">Anillos para los archivos arrastrados (vacío si no se puede hacer nada).</param>
@@ -43,7 +47,7 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
         _ringsForFiles = ringsForFiles ?? throw new ArgumentNullException(nameof(ringsForFiles));
         _onChosen = onChosen ?? throw new ArgumentNullException(nameof(onChosen));
         _tracker = new DragGestureTracker(trigger, Win32.GetSystemMetrics(Win32.SM_CXDRAG), Win32.GetSystemMetrics(Win32.SM_CYDRAG));
-        _window = new WheelWindow { AppMessageHandler = OnAppMessage, TimerHandler = OnTimer };
+        _window = new WheelWindow { AppMessageHandler = OnAppMessage, TimerHandler = OnTimer, HotkeyHandler = OnHotkey };
         _dropTarget = new DropTarget(this);
         _hook = new GlobalInputHook(_tracker, PostGesture);
     }
@@ -56,6 +60,31 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
     {
         get => _tracker.Trigger;
         set => _tracker.Trigger = value;
+    }
+
+    /// <summary>
+    /// Se invoca si el atajo se presiona sin archivos seleccionados en el Explorador (para
+    /// avisar al usuario). Recibe <c>true</c> si el Explorador estaba en primer plano.
+    /// </summary>
+    public Action<bool>? NothingSelected { get; set; }
+
+    /// <summary>Activa (o desactiva, con <c>null</c>) el atajo global. <c>false</c> si otra app ya lo usa.</summary>
+    public bool SetHotkey(Hotkey? hotkey)
+    {
+        if (_hotkeyRegistered)
+        {
+            Win32.UnregisterHotKey(_window.Handle, HotkeyId);
+            _hotkeyRegistered = false;
+        }
+
+        if (hotkey is null)
+        {
+            return true;
+        }
+
+        _hotkeyRegistered = Win32.RegisterHotKey(_window.Handle, HotkeyId, hotkey.Modifiers | Win32.MOD_NOREPEAT, hotkey.VirtualKey);
+        Trace?.Invoke(_hotkeyRegistered ? $"Atajo {hotkey.Display} activo." : $"El atajo {hotkey.Display} ya lo usa otra app.");
+        return _hotkeyRegistered;
     }
 
     /// <summary>Registra el destino OLE e instala los hooks.</summary>
@@ -82,6 +111,7 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
     /// <inheritdoc />
     public void Dispose()
     {
+        SetHotkey(null);
         _hook.Dispose();
         if (_registered)
         {
@@ -137,12 +167,19 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
 
     private bool OnAppMessage(uint message, nint wParam, nint lParam)
     {
-        if (message < WmGesture || message > WmGesture + (uint)GestureSignal.DragStarted)
+        if (message < WmGesture || message > WmGesture + (uint)GestureSignal.PointerMoved)
         {
             return false;
         }
 
         var signal = (GestureSignal)(message - WmGesture);
+        var point = new POINT((int)wParam, (int)lParam);
+        if (_clickFiles is not null)
+        {
+            OnClickModeSignal(signal, point);
+            return true;
+        }
+
         Trace?.Invoke($"Señal {signal} en ({(int)wParam}, {(int)lParam}); rueda {(_window.IsShown ? "visible" : "oculta")}.");
         switch (signal)
         {
@@ -166,6 +203,62 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Atajo de teclado: la rueda aparece bajo el cursor con lo seleccionado en el Explorador y
+    /// se elige con un clic (no hay arrastre ni OLE).
+    /// </summary>
+    private void OnHotkey(int id)
+    {
+        if (id != HotkeyId || _window.IsShown)
+        {
+            return;
+        }
+
+        var files = ExplorerSelection.Get();
+        Trace?.Invoke($"Atajo: {files.Count} archivo(s) seleccionado(s).");
+        if (files.Count == 0)
+        {
+            NothingSelected?.Invoke(ExplorerSelection.Foreground(out _) != ExplorerSelection.Source.Other);
+            return;
+        }
+
+        var rings = _ringsForFiles(files).Where(r => r.Items.Count > 0).ToList();
+        _state = rings.Count == 0
+            ? new WheelVisualState([], WheelHit.Center, "Nada que hacer con este archivo")
+            : new WheelVisualState(rings, WheelHit.Center, null);
+        Win32.GetCursorPos(out var cursor);
+        _clickFiles = files;
+        _tracker.ClickMode = true;
+        _tracker.WheelOpen = true;
+        _window.ShowAt(cursor, _state);
+        UpdateHighlight(cursor);
+    }
+
+    private void OnClickModeSignal(GestureSignal signal, POINT point)
+    {
+        switch (signal)
+        {
+            case GestureSignal.PointerMoved:
+                UpdateHighlight(point);
+                break;
+            case GestureSignal.DragEnded:
+                // Clic: sobre un sector lo aplica; en el centro o fuera, cierra.
+                var files = _clickFiles!;
+                var item = _state.ItemAt(HitTest(point));
+                Trace?.Invoke($"Clic -> {(item is null ? "(nada)" : $"{item.Ring}:{item.Id}")}.");
+                Close();
+                if (item is not null)
+                {
+                    _onChosen(files, item);
+                }
+
+                break;
+            case GestureSignal.Cancel:
+                Close();
+                break;
+        }
     }
 
     private bool UpdateHighlight(POINT screenPoint)
@@ -200,6 +293,8 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
     {
         _window.StopTimer(CloseTimerId);
         _tracker.WheelOpen = false;
+        _tracker.ClickMode = false;
+        _clickFiles = null;
         _state = WheelVisualState.Waiting;
         _window.Park();
     }
