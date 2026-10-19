@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      dotnet-extensions:
+        patterns: ["Microsoft.Extensions.*", "System.*"]
+      test-tooling:
+        patterns: ["xunit*", "Shouldly", "CsCheck", "Microsoft.Testing.*"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

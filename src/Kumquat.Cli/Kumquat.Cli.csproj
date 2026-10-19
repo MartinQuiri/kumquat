@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>kumquat</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Kumquat.Hosting\Kumquat.Hosting.csproj" />
+    <InternalsVisibleTo Include="Kumquat.Cli.Tests" />
+  </ItemGroup>
+</Project>

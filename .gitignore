@@ -16,3 +16,5 @@ engines/*
 
 # Corpus generado
 corpus/generated/
+TestResults/
+coverage*.xml

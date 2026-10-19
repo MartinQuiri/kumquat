@@ -12,8 +12,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Kumquat.Infrastructure\Kumquat.Infrastructure.csproj" />
-    <!-- Solo para compilarlo antes que los tests; se localiza por ruta en ProbePath. -->
-    <ProjectReference Include="..\Kumquat.TestTools.ProcessProbe\Kumquat.TestTools.ProcessProbe.csproj" ReferenceOutputAssembly="false" />
+    <!-- Al referenciar un Exe, el SDK copia su apphost junto a los tests. -->
+    <ProjectReference Include="..\Kumquat.TestTools.ProcessProbe\Kumquat.TestTools.ProcessProbe.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Shouldly" />
