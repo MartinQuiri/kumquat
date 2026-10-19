@@ -1,0 +1,6 @@
+{
+  "$schema": "https://xunit.net/schema/current/xunit.runner.schema.json",
+  "$comment": "Los E2E comparten el mouse, el teclado y la instancia única de Kumquat: nunca en paralelo.",
+  "parallelizeTestCollections": false,
+  "parallelizeAssembly": false
+}

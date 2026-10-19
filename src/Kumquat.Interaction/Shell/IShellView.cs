@@ -44,8 +44,9 @@ internal partial interface IShellView
     [PreserveSig]
     int SaveViewState();
 
+    /// <summary>Selecciona un elemento (identificador relativo a la carpeta) con banderas <c>SVSI_*</c>.</summary>
     [PreserveSig]
-    int SelectItem();
+    int SelectItem(nint childItem, uint flags);
 
     /// <summary>Con <c>SVGIO_SELECTION</c> e IID_IDataObject: los elementos seleccionados.</summary>
     [PreserveSig]
