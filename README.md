@@ -17,9 +17,9 @@ Kumquat es una alternativa libre (GPL-3.0) para Windows inspirada en la interacc
 3. Sin soltar, toca **Shift**. Aparece la rueda bajo el cursor.
 4. Suelta sobre un formato. La copia convertida aparece junto al original (el original nunca se toca).
 
-Soltar en el centro (el logo) o presionar **Esc** cancela.
+Soltar en el centro (el logo) o presionar **Esc** cancela. El gesto se puede cambiar a Ctrl, Bloq Mayús o clic derecho desde el menú del ícono.
 
-**Sin arrastrar:** selecciona uno o más archivos en el Explorador (o en el escritorio) y presiona **Ctrl+Alt+K**: la rueda aparece bajo el cursor y eliges con un clic. Se puede desactivar desde el menú del ícono. El gesto se puede cambiar a Ctrl, Bloq Mayús o clic derecho desde el menú del ícono.
+**Sin arrastrar:** selecciona uno o más archivos en el Explorador (o en el escritorio) y presiona **Ctrl+Alt+K**: la rueda aparece bajo el cursor y eliges con un clic. Se puede desactivar desde el menú del ícono.
 
 También hay una CLI:
 

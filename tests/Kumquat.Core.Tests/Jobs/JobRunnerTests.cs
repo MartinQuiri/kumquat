@@ -42,6 +42,42 @@ public sealed class JobRunnerTests
     }
 
     [Fact]
+    public async Task TrabajosInstantaneos_EnColaSiempreLlegaPrimero()
+    {
+        // Regresión: con workers libres, un trabajo instantáneo podía notificar "terminado" antes que "en cola".
+        // El suscriptor demora la notificación "en cola" para ensanchar la ventana de la carrera.
+        var events = new ConcurrentQueue<JobSnapshot>();
+        var finished = 0;
+        var done = new TaskCompletionSource();
+        const int count = 20;
+        await using var runner = new JobRunner(maxConcurrency: 4);
+        runner.JobChanged += (_, e) =>
+        {
+            if (e.Snapshot.State == JobState.Queued)
+            {
+                Thread.Sleep(5);
+            }
+
+            events.Enqueue(e.Snapshot);
+            if (e.Snapshot.State == JobState.Succeeded && Interlocked.Increment(ref finished) == count)
+            {
+                done.TrySetResult();
+            }
+        };
+
+        for (var i = 0; i < count; i++)
+        {
+            runner.Enqueue(Job($"{i}.txt", (_, _) => Task.FromResult(Result<string>.Success("ok"))));
+        }
+
+        await done.Task.WaitAsync(Timeout, TestContext.Current.CancellationToken);
+        foreach (var job in events.GroupBy(e => e.Id))
+        {
+            job.First().State.ShouldBe(JobState.Queued);
+        }
+    }
+
+    [Fact]
     public async Task Concurrencia_NoSuperaElMaximo()
     {
         var active = 0;

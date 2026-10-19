@@ -43,6 +43,9 @@ public sealed class FilePreview : IDisposable
     /// <summary>Total de páginas de un PDF.</summary>
     public int PageCount { get; init; }
 
+    /// <summary>Reproducción y fotogramas exactos (audio y video), si el motor está disponible.</summary>
+    public IMediaPlayback? Playback { get; init; }
+
     /// <summary>Duración de un audio o video.</summary>
     public TimeSpan Duration { get; init; }
 
