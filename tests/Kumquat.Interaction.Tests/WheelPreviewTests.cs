@@ -18,7 +18,7 @@ public sealed class WheelPreviewTests
     [
         new(WheelRingKind.Convert, WheelItemOrdering.Arrange(FormatCategory.Image, [KnownFormats.Jpg, KnownFormats.WebP, KnownFormats.Avif, KnownFormats.Gif, KnownFormats.Tiff, KnownFormats.Bmp])),
         new(WheelRingKind.Tools, [WheelItem.Tool("image.compress", "Comprimir"), WheelItem.Tool("image.rotate", "Rotar 90°"), WheelItem.Tool("image.metadata", "Metadatos"), WheelItem.Tool("image.strip", "Sin metadatos")]),
-        new(WheelRingKind.Actions, [WheelItem.Action("a", "Copiar ruta"), WheelItem.Action("b", "Ver en carpeta"), WheelItem.Action("c", "Terminal aquí")]),
+        new(WheelRingKind.Actions, [WheelItem.Action("action.copy-path", "Copiar ruta"), WheelItem.Action("action.copy-to", "Copiar a…"), WheelItem.Action("action.move-to", "Mover a…"), WheelItem.Action("action.show-in-folder", "Ver en carpeta"), WheelItem.Action("action.terminal", "Terminal aquí")]),
     ];
 
     [Fact]
@@ -26,11 +26,15 @@ public sealed class WheelPreviewTests
     {
         const float scale = 2f;
         var size = WheelRenderer.CanvasSize(scale);
-        string[] tools = ["Unir PDF", "Comprimir", "Rotar 90°", "Dividir páginas", "Páginas a JPG", "Extraer páginas", "Proteger", "Desbloquear", "Metadatos", "Comprimir en ZIP"];
+        (string Id, string Label)[] tools =
+        [
+            ("pdf.merge", "Unir PDF"), ("pdf.compress", "Comprimir"), ("pdf.rotate", "Rotar 90°"), ("pdf.split", "Dividir páginas"), ("pdf.to-jpg", "Páginas a JPG"),
+            ("pdf.extract", "Extraer páginas"), ("pdf.protect", "Proteger"), ("pdf.unlock", "Desbloquear"), ("pdf.metadata", "Metadatos"), ("archive.zip", "Comprimir en ZIP"),
+        ];
         var state = new WheelVisualState(
         [
             new(WheelRingKind.Convert, [WheelItem.Convert(KnownFormats.Txt)]),
-            new(WheelRingKind.Tools, [.. tools.Select((t, i) => WheelItem.Tool($"t{i}", t))]),
+            new(WheelRingKind.Tools, [.. tools.Select(t => WheelItem.Tool(t.Id, t.Label))]),
             Rings[2],
         ], WheelHit.At(1, 8), null);
 

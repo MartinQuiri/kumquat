@@ -23,6 +23,13 @@ Cada instalación del motor incluye un `SOURCE.txt` con su versión, licencia y 
 | SharpCompress | MIT | https://github.com/adamhathcock/sharpcompress |
 | Microsoft.Extensions.* , System.Drawing.Common | MIT | https://github.com/dotnet/runtime |
 
+## Diseño (en `assets/`, distribuidos con la aplicación)
+
+| Recurso | Licencia | Proyecto |
+|---|---|---|
+| Tipografía Inter 4.1 | OFL-1.1 (`assets/fonts/Inter-LICENSE.txt`) | https://github.com/rsms/inter |
+| Íconos Phosphor 2.1.1 (regular; trazados en `src/Kumquat.Design/IconPaths.g.cs`) | MIT (`assets/Phosphor-LICENSE.txt`) | https://github.com/phosphor-icons/core |
+
 ## Solo para desarrollo (no se distribuyen)
 
 xunit.v3 (Apache-2.0), Shouldly (BSD-3-Clause), CsCheck (Apache-2.0), Meziantou.Analyzer (MIT), Microsoft.CodeAnalysis.BannedApiAnalyzers (MIT), Microsoft.Testing.Extensions.CodeCoverage (licencia de Microsoft para herramientas de desarrollo).

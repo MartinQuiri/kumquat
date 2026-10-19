@@ -1,19 +1,23 @@
-# Kumquat 🍊
+<p align="center"><img src="assets/logo/kumquat.png" width="96" alt="Logo de Kumquat"></p>
+
+# Kumquat
 
 **Convierte archivos sin abrir nada.** Arrastra un archivo, presiona **Shift** y suéltalo sobre el formato que quieras en la rueda que aparece junto al cursor. Todo ocurre en tu PC: nada se sube a internet.
 
 Kumquat es una alternativa libre (GPL-3.0) para Windows inspirada en la interacción de [Tangerine para Mac](https://tangerineformac.com). No está afiliado a Tangerine ni a Leap Studio.
 
-> **Estado: pre-alfa (0.1).** La rueda de conversión con imágenes, audio y video funciona; PDF, documentos, herramientas y acciones vienen en las fases siguientes (ver [hoja de ruta](#hoja-de-ruta)).
+> **Estado: pre-alfa (0.1).** Ver [hoja de ruta](#hoja-de-ruta).
+
+<p align="center"><img src="docs/images/rueda-pdf.png" width="420" alt="La rueda de Kumquat con las herramientas de PDF"></p>
 
 ## Cómo se usa
 
-1. Ejecuta `Kumquat.exe`: aparece un 🍊 en el área de notificación.
+1. Ejecuta `Kumquat.exe`: aparece el kumquat en el área de notificación.
 2. Empieza a arrastrar un archivo desde el Explorador (o cualquier app).
 3. Sin soltar, toca **Shift**. Aparece la rueda bajo el cursor.
 4. Suelta sobre un formato. La copia convertida aparece junto al original (el original nunca se toca).
 
-Soltar en el centro (✕) o presionar **Esc** cancela. El gesto se puede cambiar a Ctrl, Bloq Mayús o clic derecho desde el menú del ícono.
+Soltar en el centro (el logo) o presionar **Esc** cancela. El gesto se puede cambiar a Ctrl, Bloq Mayús o clic derecho desde el menú del ícono.
 
 También hay una CLI:
 
@@ -31,7 +35,7 @@ kumquat-cli targets video.mkv      # a qué formatos se puede convertir
 | **Medio** (verde azulado) | Herramientas |
 | **Exterior** (violeta) | Acciones sobre el archivo |
 
-Los anillos vacíos no se muestran; soltar en el centro (✕) cancela.
+Cada herramienta tiene su ícono y el color de su familia (PDF rojo, imagen verde, video índigo, audio rosa). Los anillos vacíos no se muestran.
 
 ### Conversiones
 
@@ -56,7 +60,15 @@ Las conversiones de varios pasos se planifican solas (p. ej. HEIC → JPG → PD
 | Comprimidos | Extraer (ZIP, RAR, 7z, TAR, GZIP) |
 | Todo, incluidas carpetas | Comprimir en ZIP |
 
-Las herramientas en **negrita** abren una ventana de opciones (rango a recortar, páginas, contraseña o metadatos, con los valores actuales del archivo ya cargados).
+Las herramientas en **negrita** abren una ventana de opciones (vidrio acrílico de Windows 11) con los valores actuales del archivo ya cargados y **vista previa**:
+
+- **PDF:** miniaturas de las páginas; en *Extraer páginas* se eligen con un clic (sincronizado con el campo de texto).
+- **Video:** reproductor y tira de fotogramas con asas para elegir el tramo a recortar; al mover un asa se ve ese fotograma.
+- **Audio:** forma de onda con el tramo elegido y reproducción.
+- **Fotos:** la imagen.
+
+<p align="center"><img src="docs/images/opciones-paginas.png" width="640" alt="Extraer páginas con miniaturas"></p>
+<p align="center"><img src="docs/images/opciones-recortar.png" width="640" alt="Recortar un video eligiendo el tramo"></p>
 
 **Metadatos:** autor, título, asunto, palabras clave, etc., con campos personalizados en PDF, audio y video. Al editar varios archivos a la vez solo se cambian los campos que modificas. En fotos el autor se escribe en XMP y en los campos de Windows (Unicode: "María Pérez" se ve bien en el Explorador), y en JPEG la imagen no se recomprime: los píxeles quedan idénticos.
 
@@ -101,12 +113,13 @@ Detalles en [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) y [CONTRIBUTING.md](CON
 - [x] Fase 0–1: rueda de conversión, imágenes/audio/video, bandeja, CLI.
 - [x] Fase 2a: rueda de 3 anillos, herramientas de PDF, imagen, audio, video y comprimidos; acciones copiar/mover.
 - [x] Fase 2b: ventana de opciones (Fluent), recortar audio/video, extraer páginas, proteger/desbloquear PDF, metadatos de fotos, PDF, audio, video y Office.
+- [x] Rediseño: rueda de vidrio con íconos, tipografía Inter, ventanas acrílicas con vista previa de PDF, fotos, audio y video.
 - [ ] Fase 2c: OCR, atajo de teclado sobre la selección del Explorador, menú contextual de Windows 11.
 - [ ] Fase 3: Office (LibreOffice), ebooks (Calibre), rueda de acciones (copiar ruta, mover, compartir, terminal), instalador firmado (SignPath), winget y Microsoft Store.
 - [ ] Fase 4: sandbox de motores (baja integridad / AppContainer), fuzzing continuo.
 
 ## Licencia
 
-[GPL-3.0-or-later](LICENSE). Kumquat incluye o descarga componentes de terceros con sus propias licencias: ver [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+[GPL-3.0-or-later](LICENSE). Tipografía [Inter](https://rsms.me/inter/) (OFL-1.1) e íconos [Phosphor](https://phosphoricons.com) (MIT). Kumquat incluye o descarga componentes de terceros con sus propias licencias: ver [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
 **Patentes:** los códecs H.264, HEVC y AAC pueden estar sujetos a patentes en algunos países. Kumquat se distribuye como software libre sin licencias de patentes; revisa la situación en tu jurisdicción si lo redistribuyes comercialmente.

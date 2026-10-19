@@ -3,7 +3,9 @@
 
 using System.Diagnostics;
 using Kumquat.Core.Conversion;
+using Kumquat.Core.Formats;
 using Kumquat.Core.Jobs;
+using Kumquat.Core.Previews;
 using Kumquat.Core.Tools;
 using Kumquat.Dialogs;
 using Kumquat.Hosting;
@@ -30,6 +32,7 @@ internal sealed partial class TrayApplication : IDisposable
     private readonly WheelTargets _targets;
     private readonly ConversionService _conversions;
     private readonly ToolService _tools;
+    private readonly IPreviewService _previews;
     private readonly BatchNotifier _notifier;
     private AppSettings _settings;
     private WheelController? _wheel;
@@ -43,6 +46,7 @@ internal sealed partial class TrayApplication : IDisposable
         _jobs = services.GetRequiredService<JobRunner>();
         _conversions = services.GetRequiredService<ConversionService>();
         _tools = services.GetRequiredService<ToolService>();
+        _previews = services.GetRequiredService<IPreviewService>();
         _targets = new WheelTargets(services.GetRequiredService<ConversionGraph>(), _tools);
         _notifier = new BatchNotifier((title, message, isError) => _tray?.Notify(title, message, isError));
         _settings = AppSettings.Load(SettingsPath);
@@ -116,7 +120,10 @@ internal sealed partial class TrayApplication : IDisposable
         if (parameters.Result.Count > 0)
         {
             var subtitle = files.Count == 1 ? Path.GetFileName(files[0]) : $"{files.Count} archivos";
-            options = ToolOptionsDialog.Ask(item.Label, subtitle, parameters.Result, chosen => _tools.Validate(item.Id, chosen));
+            options = ToolOptionsDialog.Ask(new ToolDialogRequest(item.Id, item.Label, subtitle, parameters.Result, chosen => _tools.Validate(item.Id, chosen))
+            {
+                Preview = HasPreview(files) ? ct => _previews.CreateAsync(files[0], ct) : null,
+            });
             if (options is null)
             {
                 return; // Cancelado.
@@ -124,6 +131,28 @@ internal sealed partial class TrayApplication : IDisposable
         }
 
         Enqueue(_tools.CreateJobs(files, item.Id, options), "listo", $"({item.Label})", item.Id);
+    }
+
+    /// <summary>Vista previa solo para un archivo de una familia que la tiene (PDF, foto, audio, video).</summary>
+    private static bool HasPreview(IReadOnlyList<string> files)
+    {
+        if (files.Count != 1)
+        {
+            return false;
+        }
+
+        try
+        {
+            return FormatSniffer.DetectFile(files[0])?.Category is FormatCategory.Pdf or FormatCategory.Image or FormatCategory.Video or FormatCategory.Audio;
+        }
+        catch (IOException)
+        {
+            return false;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return false;
+        }
     }
 
     private void TransferTo(IReadOnlyList<string> files, bool move)

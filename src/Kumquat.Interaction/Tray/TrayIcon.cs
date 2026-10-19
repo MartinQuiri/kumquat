@@ -3,6 +3,7 @@
 
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using Kumquat.Design;
 using Kumquat.Interaction.Native;
 using Kumquat.Interaction.Wheel;
 
@@ -24,6 +25,7 @@ public sealed unsafe class TrayIcon : IDisposable
     private const uint NiifError = 0x03;
     private const uint NotifyIconVersion4 = 4;
     private const uint WmTray = Win32.WM_APP + 50;
+    private const int SmCxSmIcon = 49;
 
     private readonly TrayWindow _window;
     private readonly nint _icon;
@@ -83,7 +85,15 @@ public sealed unsafe class TrayIcon : IDisposable
         text.AsSpan(0, Math.Min(text.Length, capacity - 1)).CopyTo(span);
     }
 
-    private static nint CreateKumquatIcon()
+    /// <summary>Logo de Kumquat al tamaño de ícono pequeño del sistema; si falta el archivo, uno dibujado.</summary>
+    internal static nint CreateKumquatIcon()
+    {
+        var side = Win32.GetSystemMetrics(SmCxSmIcon);
+        var icon = File.Exists(DesignAssets.LogoIco) ? Win32.LoadImage(0, DesignAssets.LogoIco, Win32.IMAGE_ICON, side, side, Win32.LR_LOADFROMFILE) : 0;
+        return icon != 0 ? icon : CreateFallbackIcon();
+    }
+
+    private static nint CreateFallbackIcon()
     {
         using var bitmap = new Bitmap(32, 32);
         using (var g = Graphics.FromImage(bitmap))

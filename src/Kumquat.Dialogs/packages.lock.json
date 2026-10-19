@@ -25,6 +25,12 @@
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.13, )"
         }
       },
+      "kumquat.design": {
+        "type": "Project",
+        "dependencies": {
+          "Kumquat.Core": "[0.1.0, )"
+        }
+      },
       "Microsoft.Extensions.Logging.Abstractions": {
         "type": "CentralTransitive",
         "requested": "[10.0.13, )",
