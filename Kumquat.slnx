@@ -1,5 +1,8 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/Kumquat.App/Kumquat.App.csproj">
+      <Platform Project="x64" />
+    </Project>
     <Project Path="src/Kumquat.Core/Kumquat.Core.csproj" />
     <Project Path="src/Kumquat.Engines.FFmpeg/Kumquat.Engines.FFmpeg.csproj">
       <Platform Project="x64" />
@@ -7,7 +10,13 @@
     <Project Path="src/Kumquat.Engines.Vips/Kumquat.Engines.Vips.csproj">
       <Platform Project="x64" />
     </Project>
+    <Project Path="src/Kumquat.Hosting/Kumquat.Hosting.csproj">
+      <Platform Project="x64" />
+    </Project>
     <Project Path="src/Kumquat.Infrastructure/Kumquat.Infrastructure.csproj">
+      <Platform Project="x64" />
+    </Project>
+    <Project Path="src/Kumquat.Interaction/Kumquat.Interaction.csproj">
       <Platform Project="x64" />
     </Project>
   </Folder>
@@ -15,10 +24,16 @@
     <Project Path="tests/Kumquat.Core.Tests/Kumquat.Core.Tests.csproj">
       <Platform Project="x64" />
     </Project>
+    <Project Path="tests/Kumquat.E2E.Tests/Kumquat.E2E.Tests.csproj">
+      <Platform Project="x64" />
+    </Project>
     <Project Path="tests/Kumquat.Engines.Tests/Kumquat.Engines.Tests.csproj">
       <Platform Project="x64" />
     </Project>
     <Project Path="tests/Kumquat.Infrastructure.Tests/Kumquat.Infrastructure.Tests.csproj">
+      <Platform Project="x64" />
+    </Project>
+    <Project Path="tests/Kumquat.Interaction.Tests/Kumquat.Interaction.Tests.csproj">
       <Platform Project="x64" />
     </Project>
     <Project Path="tests/Kumquat.TestTools.ProcessProbe/Kumquat.TestTools.ProcessProbe.csproj">
