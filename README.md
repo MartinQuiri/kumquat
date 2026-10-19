@@ -48,12 +48,17 @@ Las conversiones de varios pasos se planifican solas (p. ej. HEIC → JPG → PD
 
 | Para | Herramientas |
 |---|---|
-| Imágenes | Comprimir · Rotar 90° · Voltear · Máx. 1920 px · Blanco y negro · Sin metadatos · Unir en PDF (varias) |
-| PDF | Comprimir · Rotar 90° · Dividir páginas · Páginas a JPG · Unir PDF (varios) |
-| Video | Comprimir · Quitar audio · Rotar 90° · Fotograma · Unir videos (varios) |
-| Audio | Normalizar · Unir audios (varios) |
+| Imágenes | Comprimir · Rotar 90° · Voltear · Máx. 1920 px · Blanco y negro · **Metadatos** · Sin metadatos · Unir en PDF (varias) |
+| PDF | Comprimir · Rotar 90° · Dividir páginas · Páginas a JPG · **Extraer páginas** · **Proteger** · **Desbloquear** · **Metadatos** · Unir PDF (varios) |
+| Video | Comprimir · Quitar audio · Rotar 90° · Fotograma · **Recortar** · **Metadatos** · Unir videos (varios) |
+| Audio | Normalizar · **Recortar** · **Metadatos** · Unir audios (varios) |
+| Word, Excel, PowerPoint | **Metadatos** |
 | Comprimidos | Extraer (ZIP, RAR, 7z, TAR, GZIP) |
 | Todo, incluidas carpetas | Comprimir en ZIP |
+
+Las herramientas en **negrita** abren una ventana de opciones (rango a recortar, páginas, contraseña o metadatos, con los valores actuales del archivo ya cargados).
+
+**Metadatos:** autor, título, asunto, palabras clave, etc., con campos personalizados en PDF, audio y video. Al editar varios archivos a la vez solo se cambian los campos que modificas. En fotos el autor se escribe en XMP y en los campos de Windows (Unicode: "María Pérez" se ve bien en el Explorador), y en JPEG la imagen no se recomprime: los píxeles quedan idénticos.
 
 Al unir, el orden es el natural de los nombres (`foto2` antes que `foto10`). El resultado aparece junto al original (`foto (comprimido).jpg`); nunca se sobrescribe nada.
 
@@ -95,7 +100,8 @@ Detalles en [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) y [CONTRIBUTING.md](CON
 
 - [x] Fase 0–1: rueda de conversión, imágenes/audio/video, bandeja, CLI.
 - [x] Fase 2a: rueda de 3 anillos, herramientas de PDF, imagen, audio, video y comprimidos; acciones copiar/mover.
-- [ ] Fase 2b: ventana de opciones (recortar video/audio, rangos de páginas, proteger/desbloquear PDF), OCR, atajo de teclado sobre la selección del Explorador, menú contextual de Windows 11.
+- [x] Fase 2b: ventana de opciones (Fluent), recortar audio/video, extraer páginas, proteger/desbloquear PDF, metadatos de fotos, PDF, audio, video y Office.
+- [ ] Fase 2c: OCR, atajo de teclado sobre la selección del Explorador, menú contextual de Windows 11.
 - [ ] Fase 3: Office (LibreOffice), ebooks (Calibre), rueda de acciones (copiar ruta, mover, compartir, terminal), instalador firmado (SignPath), winget y Microsoft Store.
 - [ ] Fase 4: sandbox de motores (baja integridad / AppContainer), fuzzing continuo.
 

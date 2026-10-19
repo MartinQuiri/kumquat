@@ -3,6 +3,7 @@
 
 using Kumquat.Core.Formats;
 using Kumquat.Core.Results;
+using Kumquat.Core.Text;
 using Kumquat.Core.Tools;
 
 namespace Kumquat.Engines.FFmpeg;
@@ -81,6 +82,20 @@ public sealed class FfmpegTool : ITool
             Simple(ffmpeg, "audio.normalize", "Normalizar", "normalizado", FfmpegProfiles.Audio, f => f, f => [.. FfmpegProfiles.For(f)!, "-af", "loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000"]),
 
             new FfmpegTool(ffmpeg, "audio.merge", "Unir audios", "unido", FfmpegProfiles.Audio, f => f, (step, progress, ct) => MergeAudioAsync(ffmpeg, step, progress, ct), ToolMode.Combine, minInputs: 2),
+
+            // Recortar: se recodifica para cortar exacto (copiar cortaría en el fotograma clave más cercano).
+            new FfmpegTool(ffmpeg, "media.trim", "Recortar", "recortado", [.. FfmpegProfiles.Video, .. FfmpegProfiles.Audio], TrimOutput, (step, progress, ct) => TrimAsync(ffmpeg, step, progress, ct))
+            {
+                ParameterSource = (inputs, ct) => TrimParametersAsync(ffmpeg, inputs, ct),
+                Validator = ValidateTrim,
+            },
+
+            // Metadatos: sin recodificar; los campos vacíos se borran.
+            new FfmpegTool(ffmpeg, "media.metadata", "Metadatos", "metadatos", [.. FfmpegProfiles.Video, .. FfmpegProfiles.Audio], f => f, (step, progress, ct) => ffmpeg.RunAsync(step.InputPath, MediaMetadata.Arguments(step.InputFormat, step.Options), step.OutputPath, progress, ct))
+            {
+                ParameterSource = async (inputs, ct) => MediaMetadata.Parameters(await ffmpeg.ProbeTagsAsync(inputs[0].Path, ct), inputs[0].Format!),
+                Validator = MediaMetadata.Validate,
+            },
         ];
     }
 
@@ -89,6 +104,19 @@ public sealed class FfmpegTool : ITool
 
     /// <inheritdoc />
     public FileFormat? OutputFormat(FileFormat? input) => _outputFormat(input ?? throw new ArgumentNullException(nameof(input)));
+
+    /// <summary>Origen de los parámetros a pedir (si la herramienta los necesita).</summary>
+    private Func<IReadOnlyList<ToolInput>, CancellationToken, Task<IReadOnlyList<ToolParameter>>>? ParameterSource { get; init; }
+
+    /// <summary>Validación de las opciones elegidas.</summary>
+    private Func<IReadOnlyDictionary<string, string>, string?>? Validator { get; init; }
+
+    /// <inheritdoc />
+    public Task<IReadOnlyList<ToolParameter>> GetParametersAsync(IReadOnlyList<ToolInput> inputs, CancellationToken cancellationToken)
+        => ParameterSource?.Invoke(inputs, cancellationToken) ?? Task.FromResult<IReadOnlyList<ToolParameter>>([]);
+
+    /// <inheritdoc />
+    public string? Validate(IReadOnlyDictionary<string, string> options) => Validator?.Invoke(options);
 
     /// <inheritdoc />
     public Task<Result> ApplyAsync(ToolStep step, IProgress<double>? progress, CancellationToken cancellationToken)
@@ -99,6 +127,46 @@ public sealed class FfmpegTool : ITool
 
     private static FfmpegTool Simple(FfmpegRunner ffmpeg, string id, string label, string suffix, FileFormat[] appliesTo, Func<FileFormat, FileFormat> output, Func<FileFormat, IReadOnlyList<string>> arguments)
         => new(ffmpeg, id, label, suffix, appliesTo, output, (step, progress, ct) => ffmpeg.RunAsync(step.InputPath, arguments(step.InputFormat), step.OutputPath, progress, ct));
+
+    private static FileFormat TrimOutput(FileFormat input) => input.Category == FormatCategory.Audio ? input : KeepContainerOrMp4(input);
+
+    private static async Task<IReadOnlyList<ToolParameter>> TrimParametersAsync(FfmpegRunner ffmpeg, IReadOnlyList<ToolInput> inputs, CancellationToken cancellationToken)
+    {
+        var info = await ffmpeg.ProbeAsync(inputs[0].Path, cancellationToken);
+        var duration = info?.Duration is { } d ? TimeText.Format(d) : string.Empty;
+        return
+        [
+            new ToolParameter("start", "Desde", ToolParameterKind.Time, "0:00", "Minutos:segundos, p. ej. 0:15", Required: true),
+            new ToolParameter("end", "Hasta", ToolParameterKind.Time, duration, duration.Length > 0 ? $"Duración total: {duration}" : null, Required: true),
+        ];
+    }
+
+    private static string? ValidateTrim(IReadOnlyDictionary<string, string> options)
+    {
+        if (!TimeText.TryParse(options.GetValueOrDefault("start"), out var start))
+        {
+            return "El inicio no es un tiempo válido (usa minutos:segundos, p. ej. 1:05).";
+        }
+
+        if (!TimeText.TryParse(options.GetValueOrDefault("end"), out var end))
+        {
+            return "El final no es un tiempo válido (usa minutos:segundos, p. ej. 2:30).";
+        }
+
+        return end > start ? null : "El final tiene que ser después del inicio.";
+    }
+
+    private static Task<Result> TrimAsync(FfmpegRunner ffmpeg, ToolStep step, IProgress<double>? progress, CancellationToken cancellationToken)
+    {
+        // Las opciones ya pasaron por ValidateTrim (ToolService valida antes de ejecutar).
+        if (!TimeText.TryParse(step.Option("start"), out var start) || !TimeText.TryParse(step.Option("end"), out var end) || end <= start)
+        {
+            return Task.FromResult(Result.Failure(new Error("invalid-options", "Rango de tiempo inválido.")));
+        }
+
+        var profile = FfmpegProfiles.For(step.OutputFormat!)!;
+        return ffmpeg.RunAsync(step.InputPath, ["-ss", TimeText.ToSeconds(start), "-t", TimeText.ToSeconds(end - start), .. profile], step.OutputPath, progress, cancellationToken);
+    }
 
     /// <summary>AVI y WMV salen como MP4: sus códecs heredados no comprimen bien.</summary>
     private static FileFormat KeepContainerOrMp4(FileFormat input)

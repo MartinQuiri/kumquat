@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Kumquat.Core.Conversion;
 using Kumquat.Core.Jobs;
 using Kumquat.Core.Tools;
+using Kumquat.Dialogs;
 using Kumquat.Hosting;
 using Kumquat.Infrastructure.Files;
 using Kumquat.Interaction;
@@ -74,7 +75,8 @@ internal sealed partial class TrayApplication : IDisposable
                 Enqueue(files.Select(f => _conversions.CreateJob(new ConversionRequest(f, item.Target!))), "convertido", $"a {item.Label}", item.Id);
                 break;
             case WheelRingKind.Tools:
-                Enqueue(_tools.CreateJobs(files, item.Id), "listo", $"({item.Label})", item.Id);
+                // Fuera del Drop: puede abrir la ventana de opciones.
+                _ui.Post(() => StartTool(files, item));
                 break;
             case WheelRingKind.Actions when item.Id is FileActions.CopyTo or FileActions.MoveTo:
                 // Fuera del Drop: un diálogo modal dentro del Drop congelaría el arrastre del Explorador.
@@ -89,6 +91,39 @@ internal sealed partial class TrayApplication : IDisposable
                 LogEnqueued(files.Count, item.Id);
                 break;
         }
+    }
+
+    /// <summary>
+    /// Lee los parámetros en segundo plano (duración, metadatos actuales: lanza procesos) y vuelve
+    /// al hilo de UI para mostrar la ventana de opciones, si la herramienta la necesita.
+    /// </summary>
+    private void StartTool(IReadOnlyList<string> files, WheelItem item)
+    {
+        _ = Task.Run(() => _tools.GetParametersAsync(files, item.Id, CancellationToken.None))
+            .ContinueWith(task => _ui.Post(() => AskAndEnqueue(files, item, task)), TaskScheduler.Default);
+    }
+
+    private void AskAndEnqueue(IReadOnlyList<string> files, WheelItem item, Task<IReadOnlyList<ToolParameter>> parameters)
+    {
+        if (!parameters.IsCompletedSuccessfully)
+        {
+            LogToolFailed(item.Id, parameters.Exception);
+            _tray?.Notify("No se pudo abrir la herramienta", item.Label, isError: true);
+            return;
+        }
+
+        IReadOnlyDictionary<string, string>? options = null;
+        if (parameters.Result.Count > 0)
+        {
+            var subtitle = files.Count == 1 ? Path.GetFileName(files[0]) : $"{files.Count} archivos";
+            options = ToolOptionsDialog.Ask(item.Label, subtitle, parameters.Result, chosen => _tools.Validate(item.Id, chosen));
+            if (options is null)
+            {
+                return; // Cancelado.
+            }
+        }
+
+        Enqueue(_tools.CreateJobs(files, item.Id, options), "listo", $"({item.Label})", item.Id);
     }
 
     private void TransferTo(IReadOnlyList<string> files, bool move)
@@ -161,6 +196,9 @@ internal sealed partial class TrayApplication : IDisposable
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Rueda activa con el gesto {Trigger}")]
     private partial void LogStarted(TriggerKey trigger);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "No se pudieron leer los parámetros de {Tool}")]
+    private partial void LogToolFailed(string tool, Exception? exception);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Interacción: {Step}")]
     private partial void LogInteraction(string step);

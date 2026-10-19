@@ -26,13 +26,15 @@ if (string.Equals(command.Name, "help", StringComparison.Ordinal))
           kumquat-cli convert <archivo>... --to <formato> [--out <carpeta>]
           kumquat-cli targets <archivo>...     formatos a los que se puede convertir
           kumquat-cli tools <archivo>...       herramientas disponibles para el archivo
-          kumquat-cli apply <herramienta> <archivo>...
+          kumquat-cli apply <herramienta> <archivo>... [--set clave=valor]...
           kumquat-cli formats                  formatos conocidos
           kumquat-cli engines                  estado de los motores
 
         Ejemplos:
           kumquat-cli convert foto.heic --to jpg
           kumquat-cli convert *.wav --to mp3 --out D:\musica
+          kumquat-cli apply media.trim video.mp4 --set start=0:10 --set end=0:45
+          kumquat-cli apply office.metadata informe.docx --set creator="María Pérez"
         """);
     return 0;
 }
@@ -77,7 +79,7 @@ switch (command.Name)
         return 0;
 
     case "apply":
-        return await ApplyToolAsync(services.GetRequiredService<ToolService>(), command.Files[0], command.Files.Skip(1).ToList());
+        return await ApplyToolAsync(services.GetRequiredService<ToolService>(), command.Files[0], command.Files.Skip(1).ToList(), command.Options);
 }
 
 var target = KnownFormats.FindById(command.Target!) ?? KnownFormats.FindByExtension(command.Target!);
@@ -119,15 +121,23 @@ foreach (var file in command.Files)
 
 return failures == 0 ? 0 : 1;
 
-static async Task<int> ApplyToolAsync(ToolService tools, string toolId, IReadOnlyList<string> files)
+static async Task<int> ApplyToolAsync(ToolService tools, string toolId, IReadOnlyList<string> files, IReadOnlyDictionary<string, string>? set)
 {
+    // Opciones = valores iniciales que propone la herramienta (de los textos solo se cambian los indicados) + --set.
+    var parameters = await tools.GetParametersAsync(files, toolId, CancellationToken.None);
+    var options = parameters.Where(p => p.Kind is not (ToolParameterKind.Text or ToolParameterKind.CustomFields)).ToDictionary(p => p.Key, p => p.DefaultValue ?? string.Empty, StringComparer.Ordinal);
+    foreach (var (key, value) in set ?? new Dictionary<string, string>(StringComparer.Ordinal))
+    {
+        options[key] = value;
+    }
+
     // Las herramientas que combinan (unir, ZIP) reciben todos los archivos juntos; el resto, uno a uno.
     var batches = tools.Find(toolId)?.Mode == ToolMode.Combine ? [files] : files.Select(f => (IReadOnlyList<string>)[f]).ToList();
     var failed = 0;
     foreach (var batch in batches)
     {
         var file = batch[0];
-        var result = await tools.ApplyAsync(batch, toolId, new ConsoleProgress(Path.GetFileName(file)), CancellationToken.None);
+        var result = await tools.ApplyAsync(batch, toolId, options, new ConsoleProgress(Path.GetFileName(file)), CancellationToken.None);
         await Console.Error.WriteAsync("\r" + new string(' ', 60) + "\r");
         if (result.IsSuccess)
         {

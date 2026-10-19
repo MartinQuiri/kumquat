@@ -13,7 +13,7 @@ namespace Kumquat.Engines.Archives;
 public static class ArchiveTools
 {
     /// <summary>Herramientas en el orden de la rueda.</summary>
-    public static IReadOnlyList<ITool> CreateAll() => [new ZipTool(), new ExtractTool()];
+    public static IReadOnlyList<ITool> CreateAll() => [new ZipTool(), new ExtractTool(), new OfficeMetadataTool()];
 
     /// <summary>Comprime archivos y carpetas (juntos) en un ZIP.</summary>
     private sealed class ZipTool : ITool

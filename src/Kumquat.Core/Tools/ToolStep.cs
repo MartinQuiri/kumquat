@@ -9,8 +9,12 @@ namespace Kumquat.Core.Tools;
 /// <param name="Inputs">Entradas (una en modo <see cref="ToolMode.EachFile"/>; ordenadas en modo combinar).</param>
 /// <param name="OutputPath">Dónde escribir: un archivo, o una carpeta ya creada y vacía si la salida es carpeta.</param>
 /// <param name="OutputFormat">Formato del resultado, o <c>null</c> si es una carpeta.</param>
-public sealed record ToolStep(IReadOnlyList<ToolInput> Inputs, string OutputPath, FileFormat? OutputFormat)
+/// <param name="Options">Opciones elegidas por el usuario (vacío si la herramienta no tiene parámetros).</param>
+public sealed record ToolStep(IReadOnlyList<ToolInput> Inputs, string OutputPath, FileFormat? OutputFormat, IReadOnlyDictionary<string, string>? Options = null)
 {
+    /// <summary>Valor de una opción, o <c>null</c> si no se indicó.</summary>
+    public string? Option(string key) => Options is not null && Options.TryGetValue(key, out var value) ? value : null;
+
     /// <summary>Primera (o única) entrada.</summary>
     public string InputPath => Inputs[0].Path;
 

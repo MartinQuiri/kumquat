@@ -50,6 +50,7 @@ public sealed class VipsTool : ITool
         // Lado mayor a 1920 px como máximo (nunca agranda): el tamaño típico para web y chat.
         new VipsTool("image.fit", "Máx. 1920 px", "1920", image => Math.Max(image.Width, image.Height) > 1920 ? image.Resize(1920.0 / Math.Max(image.Width, image.Height), kernel: Enums.Kernel.Lanczos3) : image.Copy(), QualityOptions),
         new VipsTool("image.gray", "Blanco y negro", "byn", image => image.Colourspace(Enums.Interpretation.Bw), QualityOptions),
+        new ImageMetadataTool(),
         new VipsTool("image.strip", "Sin metadatos", "sin metadatos", image => image.Copy(), StripOptions),
     ];
 

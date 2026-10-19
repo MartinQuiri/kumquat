@@ -39,6 +39,16 @@ public interface ITool
     /// <summary>Formato del resultado para la (primera) entrada; <c>null</c> = la salida es una carpeta.</summary>
     FileFormat? OutputFormat(FileFormat? input);
 
+    /// <summary>
+    /// Datos a pedir antes de ejecutar (rango a recortar, contraseña, metadatos...), con valores
+    /// iniciales leídos de la primera entrada. Lista vacía = se ejecuta directamente.
+    /// </summary>
+    Task<IReadOnlyList<ToolParameter>> GetParametersAsync(IReadOnlyList<ToolInput> inputs, CancellationToken cancellationToken)
+        => Task.FromResult<IReadOnlyList<ToolParameter>>([]);
+
+    /// <summary>Valida las opciones elegidas; devuelve un mensaje para el usuario o <c>null</c> si son válidas.</summary>
+    string? Validate(IReadOnlyDictionary<string, string> options) => null;
+
     /// <summary>Aplica la herramienta.</summary>
     Task<Result> ApplyAsync(ToolStep step, IProgress<double>? progress, CancellationToken cancellationToken);
 }

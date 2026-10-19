@@ -9,7 +9,8 @@ namespace Kumquat.Cli;
 /// <param name="Target">Valor de <c>--to</c>.</param>
 /// <param name="OutputDirectory">Valor de <c>--out</c>.</param>
 /// <param name="Error">Error de sintaxis, si lo hubo.</param>
-internal sealed record CliCommand(string Name, IReadOnlyList<string> Files, string? Target, string? OutputDirectory, string? Error)
+/// <param name="Options">Opciones de herramienta (<c>--set clave=valor</c>).</param>
+internal sealed record CliCommand(string Name, IReadOnlyList<string> Files, string? Target, string? OutputDirectory, string? Error, IReadOnlyDictionary<string, string>? Options = null)
 {
     /// <summary>Interpreta los argumentos. Nunca lanza: los errores van en <see cref="Error"/>.</summary>
     public static CliCommand Parse(IReadOnlyList<string> args)
@@ -24,6 +25,7 @@ internal sealed record CliCommand(string Name, IReadOnlyList<string> Files, stri
         var files = new List<string>();
         string? target = null;
         string? output = null;
+        var options = new Dictionary<string, string>(StringComparer.Ordinal);
         for (var i = 1; i < args.Count; i++)
         {
             switch (args[i])
@@ -34,6 +36,13 @@ internal sealed record CliCommand(string Name, IReadOnlyList<string> Files, stri
                 case "--out" or "-o" when i + 1 < args.Count:
                     output = args[++i];
                     break;
+                case "--set" or "-s" when i + 1 < args.Count && args[i + 1].IndexOf('=', StringComparison.Ordinal) > 0:
+                    var pair = args[++i];
+                    var eq = pair.IndexOf('=', StringComparison.Ordinal);
+                    options[pair[..eq]] = pair[(eq + 1)..];
+                    break;
+                case "--set" or "-s":
+                    return new CliCommand(name, files, target, output, "Usa --set clave=valor.");
                 case "--to" or "-t" or "--out" or "-o":
                     return new CliCommand(name, files, target, output, $"Falta el valor de {args[i]}.");
                 case "--":
@@ -57,6 +66,6 @@ internal sealed record CliCommand(string Name, IReadOnlyList<string> Files, stri
             "convert" or "targets" or "tools" or "apply" or "formats" or "engines" => null,
             _ => $"Comando desconocido: {name}",
         };
-        return new CliCommand(name, files, target, output, error);
+        return new CliCommand(name, files, target, output, error, options);
     }
 }

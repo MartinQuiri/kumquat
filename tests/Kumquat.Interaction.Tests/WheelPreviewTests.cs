@@ -17,9 +17,31 @@ public sealed class WheelPreviewTests
     private static readonly WheelRing[] Rings =
     [
         new(WheelRingKind.Convert, WheelItemOrdering.Arrange(FormatCategory.Image, [KnownFormats.Jpg, KnownFormats.WebP, KnownFormats.Avif, KnownFormats.Gif, KnownFormats.Tiff, KnownFormats.Bmp])),
-        new(WheelRingKind.Tools, [WheelItem.Tool("image.compress", "Comprimir"), WheelItem.Tool("image.rotate", "Rotar 90°"), WheelItem.Tool("image.half", "Reducir 50%"), WheelItem.Tool("image.strip", "Sin metadatos")]),
+        new(WheelRingKind.Tools, [WheelItem.Tool("image.compress", "Comprimir"), WheelItem.Tool("image.rotate", "Rotar 90°"), WheelItem.Tool("image.metadata", "Metadatos"), WheelItem.Tool("image.strip", "Sin metadatos")]),
         new(WheelRingKind.Actions, [WheelItem.Action("a", "Copiar ruta"), WheelItem.Action("b", "Ver en carpeta"), WheelItem.Action("c", "Terminal aquí")]),
     ];
+
+    [Fact]
+    public void Render_PdfConDiezHerramientas()
+    {
+        const float scale = 2f;
+        var size = WheelRenderer.CanvasSize(scale);
+        string[] tools = ["Unir PDF", "Comprimir", "Rotar 90°", "Dividir páginas", "Páginas a JPG", "Extraer páginas", "Proteger", "Desbloquear", "Metadatos", "Comprimir en ZIP"];
+        var state = new WheelVisualState(
+        [
+            new(WheelRingKind.Convert, [WheelItem.Convert(KnownFormats.Txt)]),
+            new(WheelRingKind.Tools, [.. tools.Select((t, i) => WheelItem.Tool($"t{i}", t))]),
+            Rings[2],
+        ], WheelHit.At(1, 8), null);
+
+        using var bitmap = new Bitmap(size, size, PixelFormat.Format32bppPArgb);
+        using (var g = Graphics.FromImage(bitmap))
+        {
+            WheelRenderer.Render(g, size, scale, state, WheelTheme.Dark);
+        }
+
+        bitmap.Save(Path.Combine(RepoRoot(), "docs", "images", "rueda-pdf.png"), ImageFormat.Png);
+    }
 
     [Theory]
     [InlineData("rueda-oscura", false, 1, 0)]

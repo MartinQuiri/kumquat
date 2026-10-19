@@ -65,6 +65,10 @@ internal static class FfmpegArguments
             "-of", "json", ToFileUrl(input),
         ];
 
+    /// <summary>Argumentos de ffprobe para leer las etiquetas (título, artista...) en JSON.</summary>
+    public static IReadOnlyList<string> ProbeTags(string input)
+        => ["-v", "error", "-protocol_whitelist", "file", "-show_entries", "format_tags:stream_tags", "-select_streams", "a:0", "-of", "json", ToFileUrl(input)];
+
     /// <summary>Argumentos de ffprobe para leer la duración.</summary>
     public static IReadOnlyList<string> ProbeDuration(string input)
         =>

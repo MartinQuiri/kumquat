@@ -3,6 +3,8 @@
     <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <!-- La ventana de opciones es WPF: el host de pruebas necesita el framework de escritorio. -->
+    <UseWPF>true</UseWPF>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="xunit.v3" />
@@ -13,9 +15,11 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Kumquat.Interaction\Kumquat.Interaction.csproj" />
     <ProjectReference Include="..\..\src\Kumquat.App\Kumquat.App.csproj" />
+    <ProjectReference Include="..\..\src\Kumquat.Dialogs\Kumquat.Dialogs.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Shouldly" />
     <Using Include="Xunit" />
+    <Using Include="System.IO" />
   </ItemGroup>
 </Project>

@@ -11,6 +11,9 @@
     <!-- Una sola carpeta de salida (bin/<config>/<tfm>) para cualquier plataforma: evita binarios
          desactualizados al mezclar compilaciones por solución y por proyecto. -->
     <AppendPlatformToOutputPath>false</AppendPlatformToOutputPath>
+    <!-- Sin plataforma explícita se compila x64 (si no, la solución elige ARM64 por orden alfabético
+         y un binario ARM64 pisa al x64 en la carpeta compartida). La CI pasa -p:Platform=ARM64. -->
+    <Platform Condition="'$(Platform)' == '' Or '$(Platform)' == 'AnyCPU'">x64</Platform>
 
     <!-- Calidad: toda advertencia es un error. -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>

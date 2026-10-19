@@ -58,6 +58,9 @@ internal static class Corpus
             case "epub":
                 MinimalEpub(path);
                 return path;
+            case "docx" or "xlsx" or "pptx":
+                await OfficeSkeletonAsync(format, path);
+                return path;
             case "zip" or "tar" or "gz":
                 return await ArchiveAsync(format, path);
         }
@@ -122,6 +125,32 @@ internal static class Corpus
         Add("META-INF/container.xml", "<?xml version=\"1.0\"?><container version=\"1.0\" xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\"><rootfiles><rootfile full-path=\"content.opf\" media-type=\"application/oebps-package+xml\"/></rootfiles></container>");
         Add("content.opf", "<?xml version=\"1.0\"?><package xmlns=\"http://www.idpf.org/2007/opf\" version=\"3.0\" unique-identifier=\"id\"><metadata xmlns:dc=\"http://purl.org/dc/elements/1.1/\"><dc:identifier id=\"id\">kumquat-test</dc:identifier><dc:title>Muestra</dc:title><dc:language>es</dc:language></metadata><manifest><item id=\"c1\" href=\"c1.xhtml\" media-type=\"application/xhtml+xml\"/></manifest><spine><itemref idref=\"c1\"/></spine></package>");
         Add("c1.xhtml", "<?xml version=\"1.0\"?><html xmlns=\"http://www.w3.org/1999/xhtml\"><head><title>Capítulo</title></head><body><h1>Capítulo uno</h1><p>Kumquat convierte libros.</p></body></html>");
+    }
+
+    /// <summary>
+    /// Paquete Office mínimo (tipos de contenido, relaciones, una parte principal y core.xml con
+    /// autor). DOCX es un documento válido; XLSX/PPTX solo tienen la estructura de paquete que
+    /// usa la herramienta de metadatos.
+    /// </summary>
+    private static async Task OfficeSkeletonAsync(FileFormat format, string path)
+    {
+        var (main, type) = format.Id switch
+        {
+            "docx" => ("word/document.xml", "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"),
+            "xlsx" => ("xl/workbook.xml", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"),
+            _ => ("ppt/presentation.xml", "application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"),
+        };
+        await using var zip = await System.IO.Compression.ZipFile.OpenAsync(path, System.IO.Compression.ZipArchiveMode.Create);
+        async Task AddAsync(string name, string content)
+        {
+            await using var writer = new StreamWriter(await zip.CreateEntry(name).OpenAsync());
+            await writer.WriteAsync(content);
+        }
+
+        await AddAsync("[Content_Types].xml", $"<?xml version=\"1.0\" encoding=\"UTF-8\"?><Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Override PartName=\"/{main}\" ContentType=\"{type}\"/><Override PartName=\"/docProps/core.xml\" ContentType=\"application/vnd.openxmlformats-package.core-properties+xml\"/></Types>");
+        await AddAsync("_rels/.rels", $"<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"{main}\"/><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties\" Target=\"docProps/core.xml\"/></Relationships>");
+        await AddAsync(main, "<?xml version=\"1.0\" encoding=\"UTF-8\"?><w:document xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:body><w:p><w:r><w:t>Kumquat</w:t></w:r></w:p></w:body></w:document>");
+        await AddAsync("docProps/core.xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><cp:coreProperties xmlns:cp=\"http://schemas.openxmlformats.org/package/2006/metadata/core-properties\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\"><dc:creator>Autor original</dc:creator></cp:coreProperties>");
     }
 
     /// <summary>ZIP/TAR con dos archivos de texto, o GZIP de un TAR (.tar.gz).</summary>
