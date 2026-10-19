@@ -22,11 +22,36 @@ Ejecuta `dotnet run --project src/Kumquat.App` y anota ✅/❌ y la versión de 
 |---|---|---|
 | 8 | Shift sin arrastrar | Nada |
 | 9 | Mantener Shift (auto-repetición) | La rueda aparece una sola vez |
-| 10 | Soltar en el centro ✕ | No se crea nada |
+| 10 | Soltar en el centro (el logo) | No se crea nada |
 | 11 | Esc con la rueda abierta | La rueda desaparece; el arrastre sigue normal en el origen |
 | 12 | Soltar fuera de la rueda | El drop va a lo que esté debajo (comportamiento normal de Windows) |
 | 13 | Mover una ventana por su barra + Shift | La rueda aparece pero no recibe nada; desaparece al soltar |
 | 14 | Cambiar el gesto a clic derecho en el menú | Shift deja de abrir la rueda; clic derecho durante el arrastre la abre |
+
+## Sin arrastrar: atajo y menú contextual
+
+| # | Caso | Esperado |
+|---|---|---|
+| 21 | Seleccionar 3 fotos en el Explorador y presionar Ctrl+Alt+K | La rueda aparece bajo el cursor con "3 JPG · …"; un clic en un formato convierte las 3 |
+| 22 | Ctrl+Alt+K con una pestaña de Windows 11 que no es la primera | Usa la selección de la pestaña activa |
+| 23 | Ctrl+Alt+K en el escritorio con un archivo seleccionado | Funciona igual |
+| 24 | Ctrl+Alt+K sin nada seleccionado | Aviso "Nada seleccionado"; no aparece la rueda |
+| 25 | Clic derecho → Mostrar más opciones → Kumquat… con 5 archivos | Una sola rueda con los 5 |
+| 26 | Igual con Kumquat cerrado | Kumquat arranca y abre la rueda |
+| 27 | Mover la carpeta de Kumquat y abrirlo | El menú apunta a la ruta nueva |
+| 28 | Desactivar el menú desde el ícono; `Kumquat.exe --unregister` | La entrada desaparece del Explorador |
+
+## Ventana de opciones
+
+| # | Caso | Esperado |
+|---|---|---|
+| 29 | Recortar un MP4, MKV y WebM: ▶ | Se ve y se oye; el cabezal avanza; para al final del tramo |
+| 30 | Mover las asas del tramo | El video muestra el fotograma exacto; "Desde/Hasta" se actualizan |
+| 31 | Recortar un MP3, OGG y FLAC: ▶ | Se oye; la onda se colorea dentro del tramo |
+| 32 | Fotograma: clic en la línea, arrastrar, o ▶ y pausar | "Instante" sigue al cabezal; el resultado es ese fotograma |
+| 33 | Extraer páginas: clic en miniaturas, "Todas", "Ninguna", escribir "2-4" | Miniaturas y campo siempre coinciden |
+| 34 | Cerrar la ventana durante la reproducción | El sonido para al instante; no quedan `ffmpeg.exe` |
+| 35 | Sin parlantes conectados | El video se reproduce igual, sin sonido |
 
 ## Pantallas
 
@@ -34,7 +59,8 @@ Ejecuta `dotnet run --project src/Kumquat.App` y anota ✅/❌ y la versión de 
 |---|---|---|
 | 15 | Monitor al 100 % y otro al 150 % | La rueda tiene el mismo tamaño físico relativo en ambos y el sector bajo el cursor es el resaltado |
 | 16 | Monitor a la izquierda del principal (coordenadas negativas) | Igual |
-| 17 | Tema claro / oscuro de Windows | La rueda sigue el tema |
+| 17 | Tema claro / oscuro de Windows | La rueda y las ventanas siguen el tema |
+| 17b | Windows 11 | Las ventanas de opciones dejan ver el fondo desenfocado (acrílico) |
 
 ## Robustez
 
