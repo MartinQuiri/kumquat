@@ -48,6 +48,9 @@ internal sealed partial class TrayApplication : IDisposable
         _wheel = new WheelController(_targets.For, OnChosen, _settings.Trigger);
         _wheel.Start();
         LogStarted(_settings.Trigger);
+
+        // Kumquat no tiene ventana: sin este aviso, abrir el .exe parece no hacer nada.
+        _tray.Notify("Kumquat está activo 🍊", $"Arrastra un archivo y, sin soltarlo, presiona {TriggerName(_settings.Trigger)}. El ícono está en la bandeja (junto al reloj).");
     }
 
     public void Dispose()
@@ -91,6 +94,14 @@ internal sealed partial class TrayApplication : IDisposable
         _wheel!.Trigger = key;
         LogStarted(key);
     }
+
+    private static string TriggerName(TriggerKey key) => key switch
+    {
+        TriggerKey.Control => "Ctrl",
+        TriggerKey.CapsLock => "Bloq Mayús",
+        TriggerKey.RightClick => "el clic derecho",
+        _ => "Shift",
+    };
 
     private static void OpenFolder(string path)
     {
