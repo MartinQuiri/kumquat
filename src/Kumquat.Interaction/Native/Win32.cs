@@ -162,6 +162,16 @@ internal static unsafe partial class Win32
     [return: MarshalAs(UnmanagedType.Bool)]
     public static partial bool DestroyIcon(nint icon);
 
+    public const uint IMAGE_ICON = 1;
+    public const uint LR_LOADFROMFILE = 0x10;
+
+    /// <summary>
+    /// Carga un .ico eligiendo la imagen más cercana al tamaño pedido. (LoadIconWithScaleDown
+    /// necesitaría Common Controls 6 activado por manifiesto.)
+    /// </summary>
+    [LibraryImport("user32.dll", EntryPoint = "LoadImageW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
+    public static partial nint LoadImage(nint instance, string name, uint type, int width, int height, uint flags);
+
     [LibraryImport("shcore.dll")]
     public static partial int GetDpiForMonitor(nint monitor, int dpiType, out uint dpiX, out uint dpiY);
 

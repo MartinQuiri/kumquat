@@ -7,6 +7,10 @@
     <Project Path="src/Kumquat.App/Kumquat.App.csproj" />
     <Project Path="src/Kumquat.Cli/Kumquat.Cli.csproj" />
     <Project Path="src/Kumquat.Core/Kumquat.Core.csproj" />
+    <Project Path="src/Kumquat.Design/Kumquat.Design.csproj">
+      <Platform Solution="*|ARM64" Project="ARM64" />
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
     <Project Path="src/Kumquat.Dialogs/Kumquat.Dialogs.csproj">
       <Platform Solution="*|ARM64" Project="ARM64" />
       <Platform Solution="*|x64" Project="x64" />

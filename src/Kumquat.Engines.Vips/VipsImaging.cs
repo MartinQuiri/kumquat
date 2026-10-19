@@ -38,4 +38,11 @@ public static class VipsImaging
         using var flat = image.HasAlpha() ? image.Flatten(background: [255, 255, 255]) : image.Copy();
         flat.Jpegsave(destination, q: quality, optimizeCoding: true);
     }
+
+    /// <summary>Miniatura PNG con la orientación aplicada (primer fotograma si es animada).</summary>
+    public static void Thumbnail(string source, string destination, int size)
+    {
+        using var image = Image.Thumbnail(source, size, height: size, size: Enums.Size.Down);
+        image.Pngsave(destination);
+    }
 }

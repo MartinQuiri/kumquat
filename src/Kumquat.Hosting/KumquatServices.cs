@@ -3,6 +3,7 @@
 
 using Kumquat.Core.Conversion;
 using Kumquat.Core.Jobs;
+using Kumquat.Core.Previews;
 using Kumquat.Core.Tools;
 using Kumquat.Engines.Archives;
 using Kumquat.Engines.FFmpeg;
@@ -72,6 +73,7 @@ public static class KumquatServices
         ])));
         services.AddSingleton(sp => ConversionGraph.FromConverters(sp.GetServices<IConverter>()));
         services.AddSingleton<ConversionService>();
+        services.AddSingleton<IPreviewService, PreviewService>();
         services.AddSingleton(_ => new JobRunner(maxConcurrency: Math.Clamp(Environment.ProcessorCount / 2, 1, 4)));
         return services;
     }

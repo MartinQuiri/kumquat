@@ -9,6 +9,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Kumquat.Core\Kumquat.Core.csproj" />
+    <ProjectReference Include="..\Kumquat.Design\Kumquat.Design.csproj" />
     <InternalsVisibleTo Include="Kumquat.Interaction.Tests" />
     <Using Include="System.IO" />
   </ItemGroup>

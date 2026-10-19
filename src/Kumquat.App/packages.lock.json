@@ -39,10 +39,17 @@
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.13, )"
         }
       },
-      "kumquat.dialogs": {
+      "kumquat.design": {
         "type": "Project",
         "dependencies": {
           "Kumquat.Core": "[0.1.0, )"
+        }
+      },
+      "kumquat.dialogs": {
+        "type": "Project",
+        "dependencies": {
+          "Kumquat.Core": "[0.1.0, )",
+          "Kumquat.Design": "[0.1.0, )"
         }
       },
       "kumquat.engines.archives": {
@@ -103,7 +110,8 @@
       "kumquat.interaction": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )"
+          "Kumquat.Core": "[0.1.0, )",
+          "Kumquat.Design": "[0.1.0, )"
         }
       },
       "Microsoft.Extensions.DependencyInjection": {

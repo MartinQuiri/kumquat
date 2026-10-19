@@ -1,61 +1,79 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Kumquat contributors
 
-using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Automation;
 using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shell;
 using Kumquat.Core.Tools;
+using Kumquat.Design;
+using Kumquat.Dialogs.Look;
 
 namespace Kumquat.Dialogs;
 
 /// <summary>
-/// Ventana de opciones de una herramienta, construida a partir de sus parámetros. Valida en
-/// vivo con la propia herramienta: el error se muestra sin cerrar la ventana.
+/// Ventana de opciones de una herramienta, construida a partir de sus parámetros: vidrio
+/// acrílico, encabezado con el ícono de la herramienta y, si corresponde, una vista previa
+/// interactiva (páginas para elegir, tramo de audio o video). Valida en vivo con la propia
+/// herramienta: el error se muestra sin cerrar la ventana.
 /// </summary>
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1001", Justification = "Una ventana no es IDisposable: lo descartable se libera en Closed.")]
 public sealed partial class ToolOptionsDialog : Window
 {
+    private const double CaptionHeight = 44;
+
+    private readonly ToolDialogRequest _request;
     private readonly IReadOnlyList<ToolParameter> _parameters;
-    private readonly Func<IReadOnlyDictionary<string, string>, string?> _validate;
+    private readonly DialogLook _look;
     private readonly Dictionary<string, Func<string>> _readers = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, TextBox> _boxes = new(StringComparer.Ordinal);
     private readonly StackPanel _customRows = new();
     private readonly TextBlock _error;
+    private readonly Border? _previewHost;
 
-    private ToolOptionsDialog(string title, string subtitle, IReadOnlyList<ToolParameter> parameters, Func<IReadOnlyDictionary<string, string>, string?> validate)
+    private ToolOptionsDialog(ToolDialogRequest request, bool dark)
     {
-        _parameters = parameters;
-        _validate = validate;
-        Title = $"Kumquat · {title}";
-        ThemeMode = ThemeMode.System;
-        Width = 460;
-        SizeToContent = SizeToContent.Height;
-        MaxHeight = SystemParameters.WorkArea.Height * 0.9;
-        ResizeMode = ResizeMode.NoResize;
+        _request = request;
+        _parameters = request.Parameters;
+        _look = new DialogLook(dark, Palette.ForItem(request.ToolId));
+        Title = $"Kumquat · {request.Title}";
+        ThemeMode = dark ? ThemeMode.Dark : ThemeMode.Light;
+        FontFamily = DialogLook.Font;
+        Resources["ContentControlThemeFontFamily"] = DialogLook.Font;
+        Foreground = _look.Text;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
         ShowInTaskbar = true;
+        TrySetIcon();
 
-        var panel = new StackPanel { Margin = new Thickness(24) };
-        panel.Children.Add(new TextBlock { Text = title, FontSize = 20, FontWeight = FontWeights.SemiBold });
-        panel.Children.Add(new TextBlock { Text = subtitle, Opacity = 0.7, Margin = new Thickness(0, 2, 0, 16), TextTrimming = TextTrimming.CharacterEllipsis });
-        if (parameters.Any(p => p.Kind == ToolParameterKind.Text))
+        _error = new TextBlock { Foreground = DialogLook.Brush(Color.FromRgb(0xFF, 0x45, 0x3A)), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 10), Visibility = Visibility.Collapsed };
+        var sidebar = BuildSidebar();
+        if (request.Preview is null)
         {
-            panel.Children.Add(new TextBlock { Text = "Deja un campo vacío para borrarlo.", Opacity = 0.7, Margin = new Thickness(0, 0, 0, 12), FontSize = 12 });
+            Width = 440;
+            SizeToContent = SizeToContent.Height;
+            MaxHeight = SystemParameters.WorkArea.Height * 0.9;
+            ResizeMode = ResizeMode.NoResize;
+            sidebar.Margin = new Thickness(24, CaptionHeight, 24, 22);
+            Content = Root(sidebar);
+        }
+        else
+        {
+            Width = Math.Min(1040, SystemParameters.WorkArea.Width * 0.92);
+            Height = Math.Min(690, SystemParameters.WorkArea.Height * 0.92);
+            MinWidth = 820;
+            MinHeight = 520;
+            ResizeMode = ResizeMode.CanResize;
+            _previewHost = new Border { CornerRadius = new CornerRadius(18), Background = _look.Platter, BorderBrush = _look.PlatterBorder, BorderThickness = new Thickness(1), Margin = new Thickness(16, CaptionHeight, 8, 16) };
+            sidebar.Margin = new Thickness(16, CaptionHeight, 24, 22);
+            Content = Root(WithPreview(_previewHost, sidebar));
         }
 
-        foreach (var parameter in parameters)
-        {
-            panel.Children.Add(BuildField(parameter));
-        }
-
-        _error = new TextBlock { Foreground = Brushes.IndianRed, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0), Visibility = Visibility.Collapsed };
-        panel.Children.Add(_error);
-        panel.Children.Add(BuildButtons());
-
-        Content = new ScrollViewer { Content = panel, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
-        Loaded += (_, _) => BringToFront();
+        // Contenido hasta arriba (la franja superior sigue sirviendo para arrastrar) y botón cerrar del sistema.
+        WindowChrome.SetWindowChrome(this, new WindowChrome { CaptionHeight = CaptionHeight - 8, GlassFrameThickness = new Thickness(-1), UseAeroCaptionButtons = true, ResizeBorderThickness = SystemParameters.WindowResizeBorderThickness });
+        SourceInitialized += (_, _) => WindowBackdrop.TryApply(this, dark);
+        Loaded += (_, _) => OnLoaded();
+        Closed += (_, _) => OnClosed();
     }
 
     /// <summary>Opciones elegidas (null si se canceló).</summary>
@@ -66,51 +84,16 @@ public sealed partial class ToolOptionsDialog : Window
     /// Devuelve todos los valores; los de texto solo si cambiaron respecto del valor inicial (así,
     /// al editar metadatos de varios archivos, solo se tocan los campos que el usuario modificó).
     /// </summary>
-    public static IReadOnlyDictionary<string, string>? Ask(string title, string subtitle, IReadOnlyList<ToolParameter> parameters, Func<IReadOnlyDictionary<string, string>, string?> validate)
+    public static IReadOnlyDictionary<string, string>? Ask(ToolDialogRequest request)
     {
-        ArgumentNullException.ThrowIfNull(parameters);
-        ArgumentNullException.ThrowIfNull(validate);
-        var dialog = new ToolOptionsDialog(title, subtitle, parameters, validate);
+        ArgumentNullException.ThrowIfNull(request);
+        var dialog = new ToolOptionsDialog(request, SystemTheme.AppsUseDark());
         return dialog.ShowDialog() == true ? dialog.Result : null;
     }
 
     /// <summary>Crea la ventana sin mostrarla (pruebas).</summary>
-    internal static ToolOptionsDialog CreateForTests(IReadOnlyList<ToolParameter> parameters) => new("Prueba", "archivo", parameters, _ => null);
-
-    /// <summary>Renderiza la ventana fuera de pantalla a un PNG (vista previa para la documentación).</summary>
-    internal static void RenderPreview(string title, string subtitle, IReadOnlyList<ToolParameter> parameters, string pngPath, bool dark)
-    {
-        var dialog = new ToolOptionsDialog(title, subtitle, parameters, _ => null)
-        {
-            ThemeMode = dark ? ThemeMode.Dark : ThemeMode.Light,
-            Left = -20000,
-            Top = -20000,
-            ShowActivated = false,
-        };
-        dialog.Show();
-        dialog.UpdateLayout();
-        var content = (FrameworkElement)dialog.Content;
-        var scale = 2.0;
-        var bitmap = new System.Windows.Media.Imaging.RenderTargetBitmap((int)(content.ActualWidth * scale), (int)(content.ActualHeight * scale), 96 * scale, 96 * scale, PixelFormats.Pbgra32);
-        var visual = new DrawingVisual();
-        using (var context = visual.RenderOpen())
-        {
-            // Con el tema Fluent el fondo real es el material Mica del sistema (transparente aquí): se simula.
-            var background = new SolidColorBrush(dark ? Color.FromRgb(0x20, 0x20, 0x20) : Color.FromRgb(0xF3, 0xF3, 0xF3));
-            context.DrawRectangle(background, null, new Rect(0, 0, content.ActualWidth, content.ActualHeight));
-            context.DrawRectangle(new VisualBrush(content), null, new Rect(0, 0, content.ActualWidth, content.ActualHeight));
-        }
-
-        bitmap.Render(visual);
-        var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
-        encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bitmap));
-        using (var file = File.Create(pngPath))
-        {
-            encoder.Save(file);
-        }
-
-        dialog.Close();
-    }
+    internal static ToolOptionsDialog CreateForTests(IReadOnlyList<ToolParameter> parameters)
+        => new(new ToolDialogRequest("test", "Prueba", "archivo", parameters, _ => null), dark: true);
 
     /// <summary>Lee los valores actuales de la ventana (útil para pruebas).</summary>
     internal Dictionary<string, string> Collect()
@@ -139,78 +122,58 @@ public sealed partial class ToolOptionsDialog : Window
         return values;
     }
 
-    private StackPanel BuildField(ToolParameter parameter)
+    private static Grid WithPreview(Border preview, FrameworkElement sidebar)
     {
-        if (parameter.Kind == ToolParameterKind.CustomFields)
-        {
-            var section = new StackPanel { Margin = new Thickness(0, 8, 0, 0) };
-            section.Children.Add(new TextBlock { Text = parameter.Label, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 6) });
-            section.Children.Add(_customRows);
-            var add = new Button { Content = "+ Agregar campo", HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 4, 0, 0) };
-            add.Click += (_, _) => AddCustomRow();
-            section.Children.Add(add);
-            return section;
-        }
-
-        var field = new StackPanel { Margin = new Thickness(0, 0, 0, 12) };
-        var label = new Label { Content = parameter.Label + (parameter.Required ? " *" : string.Empty), Padding = new Thickness(0, 0, 0, 4) };
-        field.Children.Add(label);
-        Control input;
-        if (parameter.Kind == ToolParameterKind.Password)
-        {
-            var box = new PasswordBox { Password = parameter.DefaultValue ?? string.Empty };
-            _readers[parameter.Key] = () => box.Password;
-            input = box;
-        }
-        else
-        {
-            var box = new TextBox { Text = parameter.DefaultValue ?? string.Empty };
-            _readers[parameter.Key] = () => box.Text;
-            input = box;
-        }
-
-        label.Target = input;
-        AutomationProperties.SetName(input, parameter.Label);
-        field.Children.Add(input);
-        if (parameter.Hint is not null)
-        {
-            field.Children.Add(new TextBlock { Text = parameter.Hint, Opacity = 0.7, FontSize = 12, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0) });
-        }
-
-        return field;
+        var grid = new Grid();
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(360) });
+        grid.Children.Add(preview);
+        Grid.SetColumn(sidebar, 1);
+        grid.Children.Add(sidebar);
+        return grid;
     }
 
-    private void AddCustomRow()
+    /// <summary>Capa raíz: un velo tenue sobre el acrílico (da cuerpo al vidrio) y el nombre de la app arriba.</summary>
+    private Grid Root(UIElement content)
     {
-        var row = new Grid { Margin = new Thickness(0, 0, 0, 6) };
-        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1.6, GridUnitType.Star) });
-        row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        var name = new TextBox { Margin = new Thickness(0, 0, 6, 0) };
-        var value = new TextBox { Margin = new Thickness(0, 0, 6, 0) };
-        AutomationProperties.SetName(name, "Nombre del campo");
-        AutomationProperties.SetName(value, "Valor del campo");
-        var remove = new Button { Content = "✕", ToolTip = "Quitar" };
-        remove.Click += (_, _) => _customRows.Children.Remove(row);
-        Grid.SetColumn(value, 1);
-        Grid.SetColumn(remove, 2);
-        row.Children.Add(name);
-        row.Children.Add(value);
-        row.Children.Add(remove);
-        _customRows.Children.Add(row);
-        name.Focus();
+        var root = new Grid
+        {
+            Background = new LinearGradientBrush(
+                _look.IsDark ? Color.FromArgb(0x30, 0x2A, 0x2A, 0x33) : Color.FromArgb(0x55, 0xFF, 0xFF, 0xFF),
+                _look.IsDark ? Color.FromArgb(0x50, 0x12, 0x12, 0x16) : Color.FromArgb(0x30, 0xF2, 0xF2, 0xF7),
+                90),
+        };
+        var caption = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(16, 12, 0, 0), VerticalAlignment = VerticalAlignment.Top, HorizontalAlignment = HorizontalAlignment.Left, IsHitTestVisible = false };
+        if (File.Exists(DesignAssets.LogoPng))
+        {
+            var logo = new BitmapImage();
+            logo.BeginInit();
+            logo.CacheOption = BitmapCacheOption.OnLoad;
+            logo.DecodePixelWidth = 64;
+            logo.UriSource = new Uri(DesignAssets.LogoPng);
+            logo.EndInit();
+            caption.Children.Add(new Image { Source = logo, Width = 18, Height = 18, Margin = new Thickness(0, 0, 8, 0) });
+        }
+
+        caption.Children.Add(new TextBlock { Text = "Kumquat", Foreground = _look.Muted, FontSize = 12.5, FontWeight = FontWeights.Medium, VerticalAlignment = VerticalAlignment.Center });
+        root.Children.Add(content);
+        root.Children.Add(caption);
+        return root;
     }
 
-    private StackPanel BuildButtons()
+    private void TrySetIcon()
     {
-        var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 20, 0, 0) };
-        var cancel = new Button { Content = "Cancelar", IsCancel = true, MinWidth = 96, Margin = new Thickness(0, 0, 8, 0) };
-        var apply = new Button { Content = "Aplicar", IsDefault = true, MinWidth = 96 };
-        apply.SetResourceReference(StyleProperty, "AccentButtonStyle");
-        apply.Click += (_, _) => TryAccept();
-        buttons.Children.Add(cancel);
-        buttons.Children.Add(apply);
-        return buttons;
+        try
+        {
+            if (File.Exists(DesignAssets.LogoIco))
+            {
+                Icon = BitmapFrame.Create(new Uri(DesignAssets.LogoIco));
+            }
+        }
+        catch (Exception ex) when (ex is IOException or NotSupportedException)
+        {
+            // Sin ícono: queda el genérico.
+        }
     }
 
     private void TryAccept()
@@ -225,7 +188,7 @@ public sealed partial class ToolOptionsDialog : Window
         }
 
         var missing = _parameters.FirstOrDefault(p => p.Required && string.IsNullOrWhiteSpace(full.GetValueOrDefault(p.Key)));
-        var error = missing is not null ? $"Completa «{missing.Label}»." : _validate(full);
+        var error = missing is not null ? $"Completa «{missing.Label}»." : _request.Validate(full);
         if (error is not null)
         {
             _error.Text = error;
@@ -236,40 +199,4 @@ public sealed partial class ToolOptionsDialog : Window
         Result = values;
         DialogResult = true;
     }
-
-    /// <summary>
-    /// Tras un drop el que está al frente es el Explorador: sin esto la ventana se abriría detrás.
-    /// </summary>
-    private void BringToFront()
-    {
-        var handle = new WindowInteropHelper(this).Handle;
-        var current = GetCurrentThreadId();
-        var foreground = GetWindowThreadProcessId(GetForegroundWindow(), 0);
-        var attached = foreground != current && AttachThreadInput(current, foreground, attach: true);
-        Activate();
-        SetForegroundWindow(handle);
-        if (attached)
-        {
-            AttachThreadInput(current, foreground, attach: false);
-        }
-
-        MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
-    }
-
-    [LibraryImport("user32.dll")]
-    private static partial nint GetForegroundWindow();
-
-    [LibraryImport("user32.dll")]
-    private static partial uint GetWindowThreadProcessId(nint hwnd, nint processId);
-
-    [LibraryImport("kernel32.dll")]
-    private static partial uint GetCurrentThreadId();
-
-    [LibraryImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool AttachThreadInput(uint attachFrom, uint attachTo, [MarshalAs(UnmanagedType.Bool)] bool attach);
-
-    [LibraryImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool SetForegroundWindow(nint hwnd);
 }

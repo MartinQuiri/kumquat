@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Identidad visual compartida por la rueda (GDI+) y las ventanas (WPF): íconos, tipografía,
+       paleta y logo. Sin dependencias de UI, para poder probarla sola. -->
+  <PropertyGroup>
+    <NoWarn>$(NoWarn.Replace('CS1591', ''))</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Kumquat.Core\Kumquat.Core.csproj" />
+    <InternalsVisibleTo Include="Kumquat.Interaction.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Recursos junto al ejecutable (los proyectos que referencian a este los heredan). -->
+    <None Include="..\..\assets\fonts\*.ttf;..\..\assets\fonts\Inter-LICENSE.txt" Link="assets\fonts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="..\..\assets\logo\kumquat.png;..\..\assets\logo\kumquat.ico" Link="assets\logo\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="..\..\assets\Phosphor-LICENSE.txt" Link="assets\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

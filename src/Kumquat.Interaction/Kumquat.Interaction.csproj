@@ -4,6 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Kumquat.Core\Kumquat.Core.csproj" />
+    <ProjectReference Include="..\Kumquat.Design\Kumquat.Design.csproj" />
     <PackageReference Include="System.Drawing.Common" />
     <InternalsVisibleTo Include="Kumquat.Interaction.Tests" />
   </ItemGroup>
