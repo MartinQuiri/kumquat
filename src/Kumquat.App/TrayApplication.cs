@@ -57,12 +57,14 @@ internal sealed partial class TrayApplication : IDisposable
         _jobs.JobChanged += (_, e) => _ui.Post(() => _notifier.OnJobChanged(e.Snapshot));
 
         _tray = new TrayIcon("Kumquat: arrastra un archivo y presiona Shift", BuildMenu);
-        _wheel = new WheelController(_targets.For, OnChosen, _settings.Trigger) { Trace = LogInteraction };
+        _wheel = new WheelController(_targets.For, OnChosen, _settings.Trigger) { Trace = LogInteraction, NothingSelected = OnNothingSelected };
         _wheel.Start();
+        var hotkeyActive = _settings.HotkeyEnabled && _wheel.SetHotkey(Hotkey.Default);
         LogStarted(_settings.Trigger);
 
         // Kumquat no tiene ventana: sin este aviso, abrir el .exe parece no hacer nada.
-        _tray.Notify("Kumquat está activo 🍊", $"Arrastra un archivo y, sin soltarlo, presiona {TriggerName(_settings.Trigger)}. El ícono está en la bandeja (junto al reloj).");
+        var hotkeyHint = hotkeyActive ? $" O selecciona archivos y presiona {Hotkey.Default.Display}." : string.Empty;
+        _tray.Notify("Kumquat está activo", $"Arrastra un archivo y, sin soltarlo, presiona {TriggerName(_settings.Trigger)}.{hotkeyHint}");
     }
 
     public void Dispose()
@@ -191,6 +193,8 @@ internal sealed partial class TrayApplication : IDisposable
             TriggerOption(TriggerKey.CapsLock, "Abrir la rueda con Bloq Mayús"),
             TriggerOption(TriggerKey.RightClick, "Abrir la rueda con clic derecho"),
             TrayMenuItem.Separator,
+            new((_settings.HotkeyEnabled ? "✓ " : "    ") + $"{Hotkey.Default.Display} sobre los archivos seleccionados", ToggleHotkey),
+            TrayMenuItem.Separator,
             new("Abrir carpeta de registros", () => OpenFolder(KumquatServices.LogDirectory)),
             new("Licencias de terceros", () => OpenFolder(AppContext.BaseDirectory)),
             TrayMenuItem.Separator,
@@ -205,6 +209,24 @@ internal sealed partial class TrayApplication : IDisposable
         _wheel!.Trigger = key;
         LogStarted(key);
     }
+
+    private void ToggleHotkey()
+    {
+        var enabled = !_settings.HotkeyEnabled;
+        _settings = _settings with { HotkeyEnabled = enabled };
+        _settings.Save(SettingsPath);
+        if (!_wheel!.SetHotkey(enabled ? Hotkey.Default : null))
+        {
+            _tray?.Notify("Atajo no disponible", $"Otra aplicación ya usa {Hotkey.Default.Display}.", isError: true);
+        }
+    }
+
+    private void OnNothingSelected(bool explorerInFront)
+        => _tray?.Notify(
+            "Nada seleccionado",
+            explorerInFront
+                ? "Selecciona uno o más archivos y vuelve a presionar " + Hotkey.Default.Display + "."
+                : "Funciona en el Explorador y el escritorio: selecciona archivos y presiona " + Hotkey.Default.Display + ".");
 
     private static string TriggerName(TriggerKey key) => key switch
     {

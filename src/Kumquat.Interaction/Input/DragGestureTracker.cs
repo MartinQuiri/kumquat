@@ -30,6 +30,7 @@ public sealed class DragGestureTracker
     private bool _dragging;
     private bool _triggerHeld;
     private volatile bool _wheelOpen;
+    private volatile bool _clickMode;
     private int _downX;
     private int _downY;
 
@@ -54,6 +55,16 @@ public sealed class DragGestureTracker
         set => _wheelOpen = value;
     }
 
+    /// <summary>
+    /// Rueda abierta con el atajo de teclado (sin arrastre): se elige con un clic, así que el
+    /// hook también informa el movimiento del puntero. Lo escribe el hilo de UI.
+    /// </summary>
+    public bool ClickMode
+    {
+        get => _clickMode;
+        set => _clickMode = value;
+    }
+
     /// <summary>Botón izquierdo presionado.</summary>
     public GestureSignal LeftDown(int x, int y)
     {
@@ -73,7 +84,7 @@ public sealed class DragGestureTracker
             return GestureSignal.DragStarted;
         }
 
-        return GestureSignal.None;
+        return WheelOpen && ClickMode ? GestureSignal.PointerMoved : GestureSignal.None;
     }
 
     /// <summary>Botón izquierdo liberado.</summary>

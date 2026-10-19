@@ -17,7 +17,9 @@ Kumquat es una alternativa libre (GPL-3.0) para Windows inspirada en la interacc
 3. Sin soltar, toca **Shift**. Aparece la rueda bajo el cursor.
 4. Suelta sobre un formato. La copia convertida aparece junto al original (el original nunca se toca).
 
-Soltar en el centro (el logo) o presionar **Esc** cancela. El gesto se puede cambiar a Ctrl, Bloq Mayús o clic derecho desde el menú del ícono.
+Soltar en el centro (el logo) o presionar **Esc** cancela.
+
+**Sin arrastrar:** selecciona uno o más archivos en el Explorador (o en el escritorio) y presiona **Ctrl+Alt+K**: la rueda aparece bajo el cursor y eliges con un clic. Se puede desactivar desde el menú del ícono. El gesto se puede cambiar a Ctrl, Bloq Mayús o clic derecho desde el menú del ícono.
 
 También hay una CLI:
 
@@ -114,7 +116,8 @@ Detalles en [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) y [CONTRIBUTING.md](CON
 - [x] Fase 2a: rueda de 3 anillos, herramientas de PDF, imagen, audio, video y comprimidos; acciones copiar/mover.
 - [x] Fase 2b: ventana de opciones (Fluent), recortar audio/video, extraer páginas, proteger/desbloquear PDF, metadatos de fotos, PDF, audio, video y Office.
 - [x] Rediseño: rueda de vidrio con íconos, tipografía Inter, ventanas acrílicas con vista previa de PDF, fotos, audio y video.
-- [ ] Fase 2c: OCR, atajo de teclado sobre la selección del Explorador, menú contextual de Windows 11.
+- [x] Atajo Ctrl+Alt+K sobre la selección del Explorador (pestañas de Windows 11 y escritorio incluidos).
+- [ ] Fase 2c: OCR, menú contextual de Windows 11.
 - [ ] Fase 3: Office (LibreOffice), ebooks (Calibre), rueda de acciones (copiar ruta, mover, compartir, terminal), instalador firmado (SignPath), winget y Microsoft Store.
 - [ ] Fase 4: sandbox de motores (baja integridad / AppContainer), fuzzing continuo.
 

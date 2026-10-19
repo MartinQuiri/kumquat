@@ -20,4 +20,7 @@ public enum GestureSignal
 
     /// <summary>Un arrastre candidato superó el umbral (solo diagnóstico).</summary>
     DragStarted,
+
+    /// <summary>El puntero se movió con la rueda abierta en modo clic.</summary>
+    PointerMoved,
 }

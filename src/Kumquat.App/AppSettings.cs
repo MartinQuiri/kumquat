@@ -12,6 +12,9 @@ internal sealed record AppSettings
     /// <summary>Gesto que abre la rueda.</summary>
     public TriggerKey Trigger { get; init; } = TriggerKey.Shift;
 
+    /// <summary>Atajo global (Ctrl+Alt+K) para abrir la rueda sobre la selección del Explorador.</summary>
+    public bool HotkeyEnabled { get; init; } = true;
+
     /// <summary>Carga desde disco; ante cualquier problema devuelve los valores por defecto.</summary>
     public static AppSettings Load(string path)
     {

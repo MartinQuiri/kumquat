@@ -24,6 +24,11 @@ internal static unsafe partial class Win32
     public const uint WM_SYSKEYUP = 0x0105;
     public const uint WM_DPICHANGED = 0x02E0;
     public const uint WM_APP = 0x8000;
+    public const uint WM_HOTKEY = 0x0312;
+    public const uint MOD_ALT = 0x1;
+    public const uint MOD_CONTROL = 0x2;
+    public const uint MOD_SHIFT = 0x4;
+    public const uint MOD_NOREPEAT = 0x4000;
 
     public const int WH_KEYBOARD_LL = 13;
     public const int WH_MOUSE_LL = 14;
@@ -161,6 +166,14 @@ internal static unsafe partial class Win32
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static partial bool DestroyIcon(nint icon);
+
+    [LibraryImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool RegisterHotKey(nint window, int id, uint modifiers, uint virtualKey);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool UnregisterHotKey(nint window, int id);
 
     public const uint IMAGE_ICON = 1;
     public const uint LR_LOADFROMFILE = 0x10;
