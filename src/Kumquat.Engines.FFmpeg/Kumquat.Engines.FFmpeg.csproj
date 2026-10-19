@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Kumquat.Core\Kumquat.Core.csproj" />
+    <ProjectReference Include="..\Kumquat.Infrastructure\Kumquat.Infrastructure.csproj" />
+    <InternalsVisibleTo Include="Kumquat.Engines.Tests" />
+  </ItemGroup>
+</Project>

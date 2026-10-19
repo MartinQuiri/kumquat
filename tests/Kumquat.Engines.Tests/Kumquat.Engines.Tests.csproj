@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Kumquat.Engines.FFmpeg\Kumquat.Engines.FFmpeg.csproj" />
+    <ProjectReference Include="..\..\src\Kumquat.Engines.Vips\Kumquat.Engines.Vips.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Shouldly" />
+    <Using Include="Xunit" />
+  </ItemGroup>
+</Project>
