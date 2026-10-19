@@ -17,7 +17,8 @@ namespace Kumquat.Interaction.Wheel;
 /// </summary>
 internal sealed unsafe class WheelWindow : NativeWindow
 {
-    private const string ClassName = "KumquatWheel";
+    /// <summary>Clase de la ventana (la busca <see cref="WheelRequests"/> desde otro proceso).</summary>
+    internal const string ClassName = "KumquatWheel";
 
     private WheelTheme _theme = WheelTheme.FromSystem();
     private float _scale = 1f;
@@ -35,6 +36,9 @@ internal sealed unsafe class WheelWindow : NativeWindow
 
     /// <summary>Recibe los <c>WM_TIMER</c> de la ventana (id del timer).</summary>
     public Action<nuint>? TimerHandler { get; set; }
+
+    /// <summary>Recibe las rutas enviadas por otro proceso (<see cref="WheelRequests"/>).</summary>
+    public Action<string>? PathRequestHandler { get; set; }
 
     /// <summary>Recibe los <c>WM_HOTKEY</c> (id del atajo).</summary>
     public Action<int>? HotkeyHandler { get; set; }
@@ -90,6 +94,12 @@ internal sealed unsafe class WheelWindow : NativeWindow
         {
             TimerHandler((nuint)wParam);
             return 0;
+        }
+
+        if (message == WheelRequests.WmCopyData && PathRequestHandler is not null && WheelRequests.Read(lParam) is { } path)
+        {
+            PathRequestHandler(path);
+            return 1;
         }
 
         if (message == Win32.WM_HOTKEY && HotkeyHandler is not null)

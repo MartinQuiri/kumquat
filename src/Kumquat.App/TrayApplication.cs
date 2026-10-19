@@ -60,12 +60,16 @@ internal sealed partial class TrayApplication : IDisposable
         _wheel = new WheelController(_targets.For, OnChosen, _settings.Trigger) { Trace = LogInteraction, NothingSelected = OnNothingSelected };
         _wheel.Start();
         var hotkeyActive = _settings.HotkeyEnabled && _wheel.SetHotkey(Hotkey.Default);
+        SyncContextMenu();
         LogStarted(_settings.Trigger);
 
         // Kumquat no tiene ventana: sin este aviso, abrir el .exe parece no hacer nada.
         var hotkeyHint = hotkeyActive ? $" O selecciona archivos y presiona {Hotkey.Default.Display}." : string.Empty;
         _tray.Notify("Kumquat está activo", $"Arrastra un archivo y, sin soltarlo, presiona {TriggerName(_settings.Trigger)}.{hotkeyHint}");
     }
+
+    /// <summary>Abre la rueda con estos archivos (Kumquat se abrió desde el menú contextual).</summary>
+    public void OpenWheel(IReadOnlyList<string> files) => _ui.Post(() => _wheel?.OpenForFiles(files));
 
     public void Dispose()
     {
@@ -194,6 +198,7 @@ internal sealed partial class TrayApplication : IDisposable
             TriggerOption(TriggerKey.RightClick, "Abrir la rueda con clic derecho"),
             TrayMenuItem.Separator,
             new((_settings.HotkeyEnabled ? "✓ " : "    ") + $"{Hotkey.Default.Display} sobre los archivos seleccionados", ToggleHotkey),
+            new((_settings.ContextMenuEnabled ? "✓ " : "    ") + "En el menú del clic derecho del Explorador", ToggleContextMenu),
             TrayMenuItem.Separator,
             new("Abrir carpeta de registros", () => OpenFolder(KumquatServices.LogDirectory)),
             new("Licencias de terceros", () => OpenFolder(AppContext.BaseDirectory)),
@@ -218,6 +223,34 @@ internal sealed partial class TrayApplication : IDisposable
         if (!_wheel!.SetHotkey(enabled ? Hotkey.Default : null))
         {
             _tray?.Notify("Atajo no disponible", $"Otra aplicación ya usa {Hotkey.Default.Display}.", isError: true);
+        }
+    }
+
+    private void ToggleContextMenu()
+    {
+        _settings = _settings with { ContextMenuEnabled = !_settings.ContextMenuEnabled };
+        _settings.Save(SettingsPath);
+        SyncContextMenu();
+    }
+
+    /// <summary>Registra (o corrige la ruta si se movió la carpeta) o quita la entrada del menú.</summary>
+    private void SyncContextMenu()
+    {
+        try
+        {
+            var executable = Environment.ProcessPath!;
+            if (!_settings.ContextMenuEnabled)
+            {
+                ExplorerMenu.Unregister();
+            }
+            else if (!ExplorerMenu.IsRegisteredFor(executable))
+            {
+                ExplorerMenu.Register(executable);
+            }
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or IOException or System.Security.SecurityException)
+        {
+            LogContextMenuFailed(ex);
         }
     }
 
@@ -256,4 +289,7 @@ internal sealed partial class TrayApplication : IDisposable
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Encolados {Count} archivos hacia {Target}")]
     private partial void LogEnqueued(int count, string target);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "No se pudo actualizar el menú contextual del Explorador")]
+    private partial void LogContextMenuFailed(Exception exception);
 }

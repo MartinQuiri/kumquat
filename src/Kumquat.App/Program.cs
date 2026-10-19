@@ -16,23 +16,35 @@ internal static partial class Program
     /// </summary>
     private const string SmokeTestFlag = "--smoke-test";
 
+    /// <summary><c>--unregister</c>: quita la entrada del menú contextual y sale (para desinstalar).</summary>
+    private const string UnregisterFlag = "--unregister";
+
     [STAThread]
     private static int Main(string[] args)
     {
         var smokeTest = args.Contains(SmokeTestFlag, StringComparer.OrdinalIgnoreCase);
+        if (args.Contains(UnregisterFlag, StringComparer.OrdinalIgnoreCase))
+        {
+            ExplorerMenu.Unregister();
+            return 0;
+        }
+
+        // Desde el menú contextual: "--wheel archivo". Si Kumquat ya corre, se le pasa y se sale.
+        var wheelFiles = WheelFilesFrom(args);
 
         // Una sola instancia por sesión de usuario: dos hooks y dos ruedas pelearían por el drop.
         var mutexName = smokeTest ? @"Local\Kumquat.SmokeTest" : @"Local\Kumquat.SingleInstance";
         using var mutex = new Mutex(initiallyOwned: true, mutexName, out var isFirst);
         if (!isFirst)
         {
+            ForwardToRunningInstance(wheelFiles);
             return 0;
         }
 
         var services = new ServiceCollection().AddKumquat(logToFile: true).BuildServiceProvider();
         try
         {
-            return Run(services, smokeTest);
+            return Run(services, smokeTest, wheelFiles);
         }
         finally
         {
@@ -45,7 +57,27 @@ internal static partial class Program
         }
     }
 
-    private static int Run(ServiceProvider services, bool smokeTest)
+    private static List<string> WheelFilesFrom(string[] args)
+    {
+        var index = Array.FindIndex(args, a => string.Equals(a, ExplorerMenu.WheelFlag, StringComparison.OrdinalIgnoreCase));
+        return index < 0 ? [] : [.. args.Skip(index + 1).Where(a => !a.StartsWith("--", StringComparison.Ordinal))];
+    }
+
+    /// <summary>La instancia puede estar arrancando: se reintenta un momento antes de rendirse.</summary>
+    private static void ForwardToRunningInstance(List<string> files)
+    {
+        for (var attempt = 0; files.Count > 0 && attempt < 20; attempt++)
+        {
+            if (Interaction.Wheel.WheelRequests.TrySend(files))
+            {
+                return;
+            }
+
+            Thread.Sleep(150);
+        }
+    }
+
+    private static int Run(ServiceProvider services, bool smokeTest, List<string> wheelFiles)
     {
         var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("Kumquat");
         AppDomain.CurrentDomain.UnhandledException += (_, e) => LogFatal(logger, e.ExceptionObject as Exception);
@@ -62,6 +94,11 @@ internal static partial class Program
         using (var app = new TrayApplication(services, ui))
         {
             app.Start();
+            if (wheelFiles.Count > 0)
+            {
+                app.OpenWheel(wheelFiles);
+            }
+
             if (!smokeTest)
             {
                 UiThread.Run();

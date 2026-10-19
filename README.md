@@ -21,6 +21,8 @@ Soltar en el centro (el logo) o presionar **Esc** cancela. El gesto se puede cam
 
 **Sin arrastrar:** selecciona uno o más archivos en el Explorador (o en el escritorio) y presiona **Ctrl+Alt+K**: la rueda aparece bajo el cursor y eliges con un clic. Se puede desactivar desde el menú del ícono.
 
+**Clic derecho:** en el Explorador aparece **Kumquat…** (en Windows 11, dentro de "Mostrar más opciones") y abre la misma rueda junto al cursor con los archivos seleccionados. Se registra solo para tu usuario, sin permisos de administrador; se quita desde el menú del ícono o con `Kumquat.exe --unregister`.
+
 También hay una CLI:
 
 ```powershell
@@ -117,7 +119,8 @@ Detalles en [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) y [CONTRIBUTING.md](CON
 - [x] Fase 2b: ventana de opciones (Fluent), recortar audio/video, extraer páginas, proteger/desbloquear PDF, metadatos de fotos, PDF, audio, video y Office.
 - [x] Rediseño: rueda de vidrio con íconos, tipografía Inter, ventanas acrílicas con vista previa de PDF, fotos, audio y video.
 - [x] Atajo Ctrl+Alt+K sobre la selección del Explorador (pestañas de Windows 11 y escritorio incluidos).
-- [ ] Fase 2c: OCR, menú contextual de Windows 11.
+- [x] Menú del clic derecho del Explorador (menú clásico; el nuevo de Windows 11 llega con el instalador firmado).
+- [ ] Fase 2c: OCR.
 - [ ] Fase 3: Office (LibreOffice), ebooks (Calibre), rueda de acciones (copiar ruta, mover, compartir, terminal), instalador firmado (SignPath), winget y Microsoft Store.
 - [ ] Fase 4: sandbox de motores (baja integridad / AppContainer), fuzzing continuo.
 
