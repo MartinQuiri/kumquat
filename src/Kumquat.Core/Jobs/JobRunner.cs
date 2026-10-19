@@ -36,12 +36,16 @@ public sealed class JobRunner : IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(request);
         var id = Guid.NewGuid();
+
+        // Se anuncia ANTES de encolar: un worker libre puede tomarlo y terminarlo al instante, y
+        // "en cola" no puede llegar después de "terminado" (quien sigue el lote esperaría para siempre).
+        Raise(new JobSnapshot(id, request, JobState.Queued, 0, null, null));
         if (!_channel.Writer.TryWrite((id, request)))
         {
+            Raise(new JobSnapshot(id, request, JobState.Cancelled, 0, null, Error.Cancelled));
             throw new InvalidOperationException("La cola está cerrada.");
         }
 
-        Raise(new JobSnapshot(id, request, JobState.Queued, 0, null, null));
         return id;
     }
 

@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Kumquat contributors
 
+using System.Globalization;
 using Kumquat.Core.Formats;
+using Kumquat.Core.Text;
 
 namespace Kumquat.Engines.FFmpeg;
 
@@ -21,7 +23,11 @@ internal static class FfmpegArguments
     }
 
     /// <summary>Igual que <see cref="Build(string, string, FileFormat)"/> con argumentos de salida explícitos.</summary>
-    public static IReadOnlyList<string> Build(string input, string output, IReadOnlyList<string> profile)
+    /// <param name="input">Archivo de entrada.</param>
+    /// <param name="output">Archivo de salida.</param>
+    /// <param name="profile">Argumentos de salida.</param>
+    /// <param name="inputOptions">Opciones de entrada (antes de <c>-i</c>), p. ej. <c>-ss</c> para saltar rápido y exacto.</param>
+    public static IReadOnlyList<string> Build(string input, string output, IReadOnlyList<string> profile, IReadOnlyList<string>? inputOptions = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(input);
         ArgumentException.ThrowIfNullOrEmpty(output);
@@ -31,15 +37,15 @@ internal static class FfmpegArguments
         [
             "-hide_banner", "-nostdin", "-nostats", "-loglevel", "error", "-y",
             "-protocol_whitelist", "file,pipe",
-            "-i", ToFileUrl(input),
-            "-map_metadata", "0",
         ];
+        args.AddRange(inputOptions ?? []);
+        args.AddRange(["-i", ToFileUrl(input), "-map_metadata", "0"]);
         args.AddRange(profile);
         args.AddRange(["-progress", "pipe:1", ToFileUrl(output)]);
         return args;
     }
 
-    /// <summary>Como <see cref="Build(string, string, IReadOnlyList{string})"/> con varias entradas (para unir).</summary>
+    /// <summary>Como <see cref="Build(string, string, IReadOnlyList{string}, IReadOnlyList{string})"/> con varias entradas (para unir).</summary>
     public static IReadOnlyList<string> BuildMulti(IReadOnlyList<string> inputs, string output, IReadOnlyList<string> profile)
     {
         ArgumentNullException.ThrowIfNull(inputs);
@@ -78,5 +84,46 @@ internal static class FfmpegArguments
         ];
 
     /// <summary>Ruta absoluta con prefijo de protocolo <c>file:</c>.</summary>
+    /// <summary>
+    /// Video sin comprimir (BGRA) a stdout, en un recuadro fijo de <paramref name="width"/>×<paramref name="height"/>
+    /// (se encaja con bandas negras: así el tamaño es conocido aunque el video venga rotado).
+    /// </summary>
+    /// <param name="input">Archivo.</param>
+    /// <param name="from">Instante inicial (búsqueda exacta).</param>
+    /// <param name="duration">Duración a leer, o <c>null</c> para un solo fotograma.</param>
+    /// <param name="width">Ancho del recuadro (par).</param>
+    /// <param name="height">Alto del recuadro (par).</param>
+    /// <param name="fps">Fotogramas por segundo de salida.</param>
+    public static IReadOnlyList<string> RawVideo(string input, TimeSpan from, TimeSpan? duration, int width, int height, int fps)
+    {
+        var size = string.Create(CultureInfo.InvariantCulture, $"{width}:{height}");
+        var filter = (duration is null ? string.Empty : string.Create(CultureInfo.InvariantCulture, $"fps={fps},"))
+            + $"scale={size}:force_original_aspect_ratio=decrease:flags=bicubic,pad={size}:-1:-1:color=black";
+        List<string> args = ["-hide_banner", "-nostdin", "-nostats", "-loglevel", "error", "-ss", TimeText.ToSeconds(from)];
+        if (duration is { } d)
+        {
+            args.AddRange(["-t", TimeText.ToSeconds(d)]);
+        }
+
+        args.AddRange(["-protocol_whitelist", "file,pipe", "-i", ToFileUrl(input), "-an", "-sn", "-vf", filter, "-pix_fmt", "bgra", "-f", "rawvideo"]);
+        if (duration is null)
+        {
+            args.AddRange(["-frames:v", "1"]);
+        }
+
+        args.Add("pipe:1");
+        return args;
+    }
+
+    /// <summary>Audio PCM de 16 bits estéreo a stdout, desde un instante.</summary>
+    public static IReadOnlyList<string> RawAudio(string input, TimeSpan from, TimeSpan duration, int sampleRate)
+        =>
+        [
+            "-hide_banner", "-nostdin", "-nostats", "-loglevel", "error",
+            "-ss", TimeText.ToSeconds(from), "-t", TimeText.ToSeconds(duration),
+            "-protocol_whitelist", "file,pipe", "-i", ToFileUrl(input),
+            "-vn", "-sn", "-ac", "2", "-ar", sampleRate.ToString(CultureInfo.InvariantCulture), "-f", "s16le", "pipe:1",
+        ];
+
     public static string ToFileUrl(string path) => "file:" + Path.GetFullPath(path);
 }

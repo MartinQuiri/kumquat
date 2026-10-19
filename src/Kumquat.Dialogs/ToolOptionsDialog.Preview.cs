@@ -24,6 +24,12 @@ public sealed partial class ToolOptionsDialog
     private MediaPreview? _media;
     private bool _syncing;
 
+    /// <summary>Reproductor de la vista previa, si hay (pruebas).</summary>
+    internal MediaPreview? MediaPreviewForTests => _media;
+
+    /// <summary>Campo de texto de un parámetro (pruebas).</summary>
+    internal TextBox? FieldForTests(string key) => _boxes.GetValueOrDefault(key);
+
     private void OnLoaded()
     {
         BringToFront();
@@ -36,7 +42,7 @@ public sealed partial class ToolOptionsDialog
     private void OnClosed()
     {
         _previewCancel.Cancel();
-        _media?.Close();
+        _media?.Dispose();
         _preview?.Dispose();
         _previewCancel.Dispose();
     }
@@ -118,31 +124,57 @@ public sealed partial class ToolOptionsDialog
     {
         var start = _boxes.GetValueOrDefault("start");
         var end = _boxes.GetValueOrDefault("end");
-        var editable = start is not null && end is not null && _parameters.Any(p => p.Kind == ToolParameterKind.Time);
-        var media = new MediaPreview(preview, _look, editable);
+        var point = _boxes.GetValueOrDefault("time");
+        var mode = start is not null && end is not null ? TimelineMode.Range
+            : point is not null && preview.Kind == PreviewKind.Video ? TimelineMode.Point
+            : TimelineMode.View;
+        var media = new MediaPreview(preview, _look, mode);
         _media = media;
-        if (!editable)
+        if (mode == TimelineMode.Range)
         {
-            return media;
+            BindRange(media, start!, end!);
+        }
+        else if (mode == TimelineMode.Point)
+        {
+            BindPoint(media, point!);
         }
 
+        return media;
+    }
+
+    private void BindRange(MediaPreview media, TextBox start, TextBox end)
+    {
         void FromText()
         {
-            if (!_syncing && TimeText.TryParse(start!.Text, out var from) && TimeText.TryParse(end!.Text, out var to) && to > from)
+            if (!_syncing && TimeText.TryParse(start.Text, out var from) && TimeText.TryParse(end.Text, out var to) && to > from)
             {
                 media.SetRange(from, to);
             }
         }
 
         FromText();
-        start!.TextChanged += (_, _) => FromText();
-        end!.TextChanged += (_, _) => FromText();
+        start.TextChanged += (_, _) => FromText();
+        end.TextChanged += (_, _) => FromText();
         media.RangeChanged += (_, _) => Sync(() =>
         {
             start.Text = TimeText.Format(media.Start);
             end.Text = TimeText.Format(media.End);
         });
-        return media;
+    }
+
+    private void BindPoint(MediaPreview media, TextBox point)
+    {
+        void FromText()
+        {
+            if (!_syncing && TimeText.TryParse(point.Text, out var time))
+            {
+                media.SetPoint(time);
+            }
+        }
+
+        FromText();
+        point.TextChanged += (_, _) => FromText();
+        media.PointChanged += (_, _) => Sync(() => point.Text = TimeText.Format(media.Point));
     }
 
     private static Grid Photo(string path)

@@ -73,7 +73,12 @@ public sealed class FfmpegTool : ITool
             Simple(ffmpeg, "video.rotate", "Rotar 90°", "rotado", FfmpegProfiles.Video, KeepContainerOrMp4, f => ["-vf", "transpose=1", .. FfmpegProfiles.For(KeepContainerOrMp4(f))!]),
 
             // Fotograma representativo (filtro thumbnail: elige el más "típico" de los primeros 100).
-            Simple(ffmpeg, "video.frame", "Fotograma", "fotograma", [.. FfmpegProfiles.Video, KnownFormats.Gif], _ => KnownFormats.Jpg, _ => ["-vf", "thumbnail", "-frames:v", "1", "-update", "1", "-q:v", "2"]),
+            // Fotograma: el instante se elige en la vista previa (por defecto, el medio del video).
+            new FfmpegTool(ffmpeg, "video.frame", "Fotograma", "fotograma", [.. FfmpegProfiles.Video, KnownFormats.Gif], _ => KnownFormats.Jpg, (step, progress, ct) => FrameAsync(ffmpeg, step, progress, ct))
+            {
+                ParameterSource = (inputs, ct) => FrameParametersAsync(ffmpeg, inputs, ct),
+                Validator = options => TimeText.TryParse(options.GetValueOrDefault("time"), out _) ? null : "El instante no es un tiempo válido (usa minutos:segundos, p. ej. 0:12).",
+            },
 
             new FfmpegTool(ffmpeg, "video.merge", "Unir videos", "unido", FfmpegProfiles.Video, KeepContainerOrMp4, (step, progress, ct) => MergeVideosAsync(ffmpeg, step, progress, ct), ToolMode.Combine, minInputs: 2),
 
@@ -141,6 +146,25 @@ public sealed class FfmpegTool : ITool
         ];
     }
 
+    private static async Task<IReadOnlyList<ToolParameter>> FrameParametersAsync(FfmpegRunner ffmpeg, IReadOnlyList<ToolInput> inputs, CancellationToken cancellationToken)
+    {
+        var info = await ffmpeg.ProbeAsync(inputs[0].Path, cancellationToken);
+        var middle = info?.Duration is { } d ? TimeText.Format(d / 2) : "0:00";
+        var hint = info?.Duration is { } total ? $"Duración total: {TimeText.Format(total)}" : "Minutos:segundos, p. ej. 0:12";
+        return [new ToolParameter("time", "Instante", ToolParameterKind.Time, middle, hint, Required: true)];
+    }
+
+    private static Task<Result> FrameAsync(FfmpegRunner ffmpeg, ToolStep step, IProgress<double>? progress, CancellationToken cancellationToken)
+    {
+        // Sin instante (CLI sin --set): el más representativo según FFmpeg, como antes.
+        if (!TimeText.TryParse(step.Option("time"), out var time))
+        {
+            return ffmpeg.RunAsync(step.InputPath, ["-vf", "thumbnail", "-frames:v", "1", "-update", "1", "-q:v", "2"], step.OutputPath, progress, cancellationToken);
+        }
+
+        return ffmpeg.RunSegmentAsync(step.InputPath, time, length: null, ["-frames:v", "1", "-update", "1", "-q:v", "2"], step.OutputPath, progress, cancellationToken);
+    }
+
     private static string? ValidateTrim(IReadOnlyDictionary<string, string> options)
     {
         if (!TimeText.TryParse(options.GetValueOrDefault("start"), out var start))
@@ -165,7 +189,7 @@ public sealed class FfmpegTool : ITool
         }
 
         var profile = FfmpegProfiles.For(step.OutputFormat!)!;
-        return ffmpeg.RunAsync(step.InputPath, ["-ss", TimeText.ToSeconds(start), "-t", TimeText.ToSeconds(end - start), .. profile], step.OutputPath, progress, cancellationToken);
+        return ffmpeg.RunSegmentAsync(step.InputPath, start, end - start, profile, step.OutputPath, progress, cancellationToken);
     }
 
     /// <summary>AVI y WMV salen como MP4: sus códecs heredados no comprimen bien.</summary>

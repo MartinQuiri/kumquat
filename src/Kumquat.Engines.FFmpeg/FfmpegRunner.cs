@@ -3,6 +3,7 @@
 
 using System.Text;
 using Kumquat.Core.Results;
+using Kumquat.Core.Text;
 using Kumquat.Infrastructure.Engines;
 using Kumquat.Infrastructure.Processes;
 
@@ -42,9 +43,41 @@ public sealed class FfmpegRunner
         return await ExecuteAsync(FfmpegArguments.Build(input, output, outputArguments), duration, progress, cancellationToken);
     }
 
+    /// <summary>
+    /// Convierte un tramo: <c>-ss</c> antes de la entrada salta directo al instante (y al
+    /// recodificar el corte es exacto); el progreso se mide sobre la duración del tramo.
+    /// </summary>
+    public Task<Result> RunSegmentAsync(string input, TimeSpan start, TimeSpan? length, IReadOnlyList<string> outputArguments, string output, IProgress<double>? progress, CancellationToken cancellationToken)
+    {
+        List<string> inputOptions = ["-ss", TimeText.ToSeconds(start)];
+        if (length is { } l)
+        {
+            inputOptions.AddRange(["-t", TimeText.ToSeconds(l)]);
+        }
+
+        return ExecuteAsync(FfmpegArguments.Build(input, output, outputArguments, inputOptions), length, progress, cancellationToken);
+    }
+
     /// <summary>Ejecuta con varias entradas (unir); el progreso usa la duración total dada.</summary>
     public Task<Result> RunMultiAsync(IReadOnlyList<string> inputs, IReadOnlyList<string> outputArguments, string output, TimeSpan? totalDuration, IProgress<double>? progress, CancellationToken cancellationToken)
         => ExecuteAsync(FfmpegArguments.BuildMulti(inputs, output, outputArguments), totalDuration, progress, cancellationToken);
+
+    /// <summary>
+    /// Ejecuta FFmpeg leyendo su salida binaria (fotogramas o audio sin comprimir). Con prioridad
+    /// normal: es para reproducir en vivo. <c>false</c> si FFmpeg no está o terminó con error.
+    /// </summary>
+    internal async Task<bool> StreamAsync(IReadOnlyList<string> arguments, Func<Stream, CancellationToken, Task> reader, CancellationToken cancellationToken)
+    {
+        if (_ffmpeg is null)
+        {
+            return false;
+        }
+
+        var outcome = await _runner.RunAsync(
+            new ProcessSpec { FileName = _ffmpeg, Arguments = arguments, MaxMemoryBytes = MaxMemoryBytes, StandardOutputReader = reader, Interactive = true },
+            cancellationToken);
+        return outcome.Succeeded;
+    }
 
     /// <summary>Lee duración, resolución y pistas de un medio.</summary>
     public async Task<MediaInfo?> ProbeAsync(string input, CancellationToken cancellationToken)

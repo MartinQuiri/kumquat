@@ -21,7 +21,7 @@ internal sealed class RangeTimeline : Grid
     private const double HandleWidth = 14;
     private static readonly TimeSpan MinimumRange = TimeSpan.FromMilliseconds(100);
 
-    private readonly bool _editable;
+    private readonly TimelineMode _mode;
     private readonly Canvas _overlay = new() { IsHitTestVisible = false };
     private readonly Rectangle _dimLeft;
     private readonly Rectangle _dimRight;
@@ -32,10 +32,11 @@ internal sealed class RangeTimeline : Grid
     private readonly FrameworkElement? _waveSelected;
     private DragTarget _drag;
 
-    public RangeTimeline(BitmapSource? image, int tiles, bool waveform, DialogLook look, bool editable, TimeSpan duration)
+    public RangeTimeline(BitmapSource? image, int tiles, bool waveform, DialogLook look, TimelineMode mode, TimeSpan duration)
     {
         ArgumentNullException.ThrowIfNull(look);
-        _editable = editable;
+        _mode = mode;
+        var editable = mode == TimelineMode.Range;
         Duration = duration > TimeSpan.Zero ? duration : TimeSpan.FromSeconds(1);
         End = Duration;
         Background = Brushes.Transparent; // recibe clics en toda el área
@@ -64,7 +65,8 @@ internal sealed class RangeTimeline : Grid
         _frame = new Border { BorderBrush = look.AccentBrush, BorderThickness = new Thickness(0, 3, 0, 3) };
         _startHandle = Handle(look, new CornerRadius(8, 0, 0, 8));
         _endHandle = Handle(look, new CornerRadius(0, 8, 8, 0));
-        _playhead = new Rectangle { Width = 3, RadiusX = 1.5, RadiusY = 1.5, Fill = Brushes.White, Effect = new System.Windows.Media.Effects.DropShadowEffect { BlurRadius = 4, ShadowDepth = 0, Opacity = 0.6 } };
+        // En modo instante el cabezal es la elección: más grueso y del color de la herramienta.
+        _playhead = new Rectangle { Width = 3, RadiusX = 1.5, RadiusY = 1.5, Fill = mode == TimelineMode.Point ? look.AccentBrush : Brushes.White, Effect = new System.Windows.Media.Effects.DropShadowEffect { BlurRadius = 4, ShadowDepth = 0, Opacity = 0.6 } };
         if (editable)
         {
             if (!waveform)
@@ -124,7 +126,7 @@ internal sealed class RangeTimeline : Grid
         ArgumentNullException.ThrowIfNull(e);
         base.OnMouseLeftButtonDown(e);
         var x = e.GetPosition(this).X;
-        _drag = !_editable ? DragTarget.Seek
+        _drag = _mode != TimelineMode.Range ? DragTarget.Seek
             : Math.Abs(x - (X(Start) - (HandleWidth / 2))) <= HandleWidth ? DragTarget.Start
             : Math.Abs(x - (X(End) + (HandleWidth / 2))) <= HandleWidth ? DragTarget.End
             : DragTarget.Seek;
@@ -222,12 +224,13 @@ internal sealed class RangeTimeline : Grid
         Place(_frame, left, 0, right - left, height);
         Place(_startHandle, left - HandleWidth, 0, HandleWidth, height);
         Place(_endHandle, right, 0, HandleWidth, height);
-        Place(_playhead, X(Position) - 1.5, -4, 3, height + 8);
+        var thickness = _mode == TimelineMode.Point ? 5 : 3;
+        Place(_playhead, X(Position) - (thickness / 2.0), -5, thickness, height + 10);
         if (_waveSelected is not null)
         {
             // La onda dentro del tramo va en color; fuera, apagada.
             var offset = _waveSelected.Margin.Left + HandleWidth;
-            _waveSelected.Clip = _editable ? new RectangleGeometry(new Rect(Math.Max(0, left - offset), -10, Math.Max(0, right - left), height + 20)) : null;
+            _waveSelected.Clip = _mode == TimelineMode.Range ? new RectangleGeometry(new Rect(Math.Max(0, left - offset), -10, Math.Max(0, right - left), height + 20)) : null;
         }
     }
 

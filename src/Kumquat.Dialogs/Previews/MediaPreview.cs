@@ -13,39 +13,44 @@ using Kumquat.Dialogs.Look;
 namespace Kumquat.Dialogs.Previews;
 
 /// <summary>
-/// Reproductor de audio o video con línea de tiempo. El video muestra el fotograma del instante
-/// elegido al mover las asas; reproducir respeta el tramo elegido. La reproducción usa Media
-/// Foundation de Windows: si un formato no se puede reproducir, la línea de tiempo sigue sirviendo.
+/// Reproductor de audio o video con línea de tiempo. Los fotogramas y el sonido salen del propio
+/// motor de Kumquat (<see cref="IMediaPlayback"/>): se ve y se oye cualquier formato que Kumquat
+/// acepte, y al mover un asa o el cabezal se muestra el fotograma exacto de ese instante.
 /// </summary>
-internal sealed class MediaPreview : Grid
+internal sealed class MediaPreview : Grid, IDisposable
 {
-    private readonly MediaElement _media;
+    private readonly IMediaPlayback? _playback;
+    private readonly TimelineMode _mode;
     private readonly RangeTimeline _timeline;
+    private readonly Image _screen = new() { Stretch = Stretch.Uniform };
     private readonly Button _play;
     private readonly TextBlock _clock;
     private readonly TextBlock _selection;
-    private readonly DispatcherTimer _timer;
-    private readonly DialogLook _look;
-    private readonly bool _editable;
-    private bool _playing;
+    private readonly CancellationTokenSource _life = new();
+    private WriteableBitmap? _bitmap;
+    private CancellationTokenSource? _playing;
+    private TimeSpan? _pendingFrame;
+    private bool _fetching;
+    private VideoFrame? _latest;
+    private int _renderQueued;
 
-    public MediaPreview(FilePreview preview, DialogLook look, bool editable)
+    public MediaPreview(FilePreview preview, DialogLook look, TimelineMode mode)
     {
         ArgumentNullException.ThrowIfNull(preview);
-        _look = look;
-        _editable = editable;
+        ArgumentNullException.ThrowIfNull(look);
+        _playback = preview.Playback;
+        _mode = mode;
         var isVideo = preview.Kind == PreviewKind.Video;
-        var image = Load(preview.Image);
-        _media = new MediaElement { LoadedBehavior = MediaState.Manual, UnloadedBehavior = MediaState.Close, ScrubbingEnabled = true, Stretch = Stretch.Uniform, Source = new Uri(preview.SourcePath) };
-        _media.MediaOpened += (_, _) => Seek(_timeline!.Start);
-        _media.MediaFailed += (_, _) => _play!.Visibility = Visibility.Collapsed;
-        _timeline = new RangeTimeline(image, preview.ImageTiles, waveform: !isVideo, look, editable, preview.Duration);
-        _timeline.SeekRequested = Seek;
+        var strip = Load(preview.Image);
+        _timeline = new RangeTimeline(strip, preview.ImageTiles, waveform: !isVideo, look, mode, preview.Duration)
+        {
+            SeekRequested = OnSeekRequested,
+        };
         _timeline.RangeChanged += (_, _) => OnRangeChanged();
         _clock = new TextBlock { Foreground = look.Text, FontSize = 13, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0) };
         _selection = new TextBlock { Foreground = look.Muted, FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Right };
-        _play = PlayButton();
-        _timer = new DispatcherTimer(TimeSpan.FromMilliseconds(40), DispatcherPriority.Render, (_, _) => Tick(), Dispatcher);
+        _play = PlayButton(look);
+        _play.Visibility = _playback is null ? Visibility.Collapsed : Visibility.Visible;
         System.Windows.Documents.Typography.SetNumeralAlignment(this, FontNumeralAlignment.Tabular);
 
         Margin = new Thickness(18);
@@ -54,7 +59,7 @@ internal sealed class MediaPreview : Grid
         RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         if (isVideo)
         {
-            Add(Screen(image, preview.ImageTiles), 0);
+            Add(Screen(strip, preview.ImageTiles), 0);
             _timeline.Margin = new Thickness(0, 14, 0, 0);
             Add(_timeline, 1);
         }
@@ -62,11 +67,10 @@ internal sealed class MediaPreview : Grid
         {
             _timeline.Margin = new Thickness(0, 20, 0, 20);
             Add(_timeline, 0);
-            Children.Add(new Border { Width = 0, Height = 0, Child = _media }); // solo audio: invisible
         }
 
         Add(Transport(), 2);
-        Loaded += (_, _) => _media.Pause(); // abre el medio y muestra el primer fotograma
+        Loaded += (_, _) => RequestFrame(_timeline.Position);
         Unloaded += (_, _) => Close();
         UpdateLabels();
     }
@@ -74,26 +78,62 @@ internal sealed class MediaPreview : Grid
     /// <summary>El usuario cambió el tramo con las asas.</summary>
     public event EventHandler? RangeChanged;
 
+    /// <summary>El usuario eligió otro instante (modo <see cref="TimelineMode.Point"/>).</summary>
+    public event EventHandler? PointChanged;
+
     public TimeSpan Start => _timeline.Start;
 
     public TimeSpan End => _timeline.End;
 
-    public TimeSpan Duration => _timeline.Duration;
+    /// <summary>Instante elegido o en reproducción.</summary>
+    public TimeSpan Point => _timeline.Position;
+
+    /// <summary>Botón reproducir/pausa (pruebas).</summary>
+    internal Button PlayButtonForTests => _play;
+
+    /// <summary>Imagen que se muestra (pruebas).</summary>
+    internal ImageSource? ScreenForTests => _screen.Source;
+
+    /// <summary>Simula que el usuario eligió un instante en la línea de tiempo (pruebas).</summary>
+    internal void SeekForTests(TimeSpan time)
+    {
+        _timeline.SetPosition(time);
+        OnSeekRequested(_timeline.Position);
+    }
 
     /// <summary>Fija el tramo desde los campos de texto.</summary>
     public void SetRange(TimeSpan start, TimeSpan end)
     {
         _timeline.SetRange(start, end);
-        Seek(_timeline.Start);
+        _timeline.SetPosition(_timeline.Start);
+        RequestFrame(_timeline.Start);
         UpdateLabels();
     }
 
-    /// <summary>Detiene la reproducción y suelta el archivo.</summary>
+    /// <summary>Fija el instante desde el campo de texto.</summary>
+    public void SetPoint(TimeSpan time)
+    {
+        _timeline.SetPosition(time);
+        RequestFrame(_timeline.Position);
+        UpdateLabels();
+    }
+
+    /// <summary>Detiene la reproducción y la lectura de fotogramas.</summary>
     public void Close()
     {
-        _timer.Stop();
-        _media.Stop();
-        _media.Close();
+        if (!_life.IsCancellationRequested)
+        {
+            _life.Cancel();
+        }
+
+        Interlocked.Exchange(ref _latest, null)?.Dispose();
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        Close();
+        _life.Dispose();
     }
 
     private static BitmapImage? Load(string? path)
@@ -127,20 +167,18 @@ internal sealed class MediaPreview : Grid
 
     private Border Screen(BitmapSource? strip, int tiles)
     {
-        var stage = new Grid();
-
-        // Mientras abre el reproductor (o si no puede), el primer fotograma de la tira.
+        // Hasta que llega el primer fotograma exacto, el primero de la tira.
         if (strip is not null && strip.PixelWidth / Math.Max(1, tiles) > 0)
         {
             var first = new CroppedBitmap(strip, new Int32Rect(0, 0, strip.PixelWidth / Math.Max(1, tiles), strip.PixelHeight));
             first.Freeze();
-            stage.Children.Add(new Image { Source = first, Stretch = Stretch.Uniform });
+            _screen.Source = first;
         }
 
-        stage.Children.Add(_media);
-        var screen = new Border { Background = Brushes.Black, CornerRadius = new CornerRadius(14), Child = stage, Effect = PagesPreview.CardShadow() };
+        RenderOptions.SetBitmapScalingMode(_screen, BitmapScalingMode.HighQuality);
+        var stage = new Grid { Children = { _screen } };
         stage.SizeChanged += (_, e) => stage.Clip = new RectangleGeometry(new Rect(e.NewSize), 14, 14);
-        return screen;
+        return new Border { Background = Brushes.Black, CornerRadius = new CornerRadius(14), Child = stage, Effect = PagesPreview.CardShadow() };
     }
 
     private Grid Transport()
@@ -157,9 +195,9 @@ internal sealed class MediaPreview : Grid
         return row;
     }
 
-    private Button PlayButton()
+    private Button PlayButton(DialogLook look)
     {
-        var button = DialogLook.Pill(DialogLook.Icon("play", 16, Brushes.White), _look.AccentGradient, Brushes.White);
+        var button = DialogLook.Pill(DialogLook.Icon("play", 16, Brushes.White), look.AccentGradient, Brushes.White);
         button.Width = 40;
         button.Padding = new Thickness(0);
         System.Windows.Automation.AutomationProperties.SetName(button, "Reproducir");
@@ -169,57 +207,94 @@ internal sealed class MediaPreview : Grid
 
     private void TogglePlay()
     {
-        if (_playing)
+        if (_playing is not null)
         {
-            Pause();
+            _playing.Cancel();
             return;
         }
 
-        // Si el cabezal está fuera del tramo (o al final), empieza desde el inicio del tramo.
-        var position = _media.Position;
-        if (position < _timeline.Start || position >= _timeline.End - TimeSpan.FromMilliseconds(80))
-        {
-            _media.Position = _timeline.Start;
-        }
+        _ = PlayAsync();
+    }
 
-        _media.Play();
-        _playing = true;
+    private async Task PlayAsync()
+    {
+        // Recortar: suena el tramo elegido. Si no, desde el cabezal (o desde el inicio si está al final).
+        var nearEnd = TimeSpan.FromMilliseconds(100);
+        var to = _mode == TimelineMode.Range ? _timeline.End : _timeline.Duration;
+        var from = _mode == TimelineMode.Range
+            ? (_timeline.Position >= _timeline.Start && _timeline.Position < to - nearEnd ? _timeline.Position : _timeline.Start)
+            : (_timeline.Position < to - nearEnd ? _timeline.Position : TimeSpan.Zero);
+        using var playing = CancellationTokenSource.CreateLinkedTokenSource(_life.Token);
+        _playing = playing;
         _play.Content = DialogLook.Icon("pause", 16, Brushes.White);
-        _timer.Start();
-    }
+        System.Windows.Automation.AutomationProperties.SetName(_play, "Pausa");
+        try
+        {
+            await Task.Run(() => _playback!.PlayAsync(from, to, OnFrame, OnPosition, playing.Token), playing.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            // Pausa o ventana cerrada.
+        }
+        finally
+        {
+            _playing = null;
+        }
 
-    private void Pause()
-    {
-        _media.Pause();
-        _playing = false;
+        if (_life.IsCancellationRequested)
+        {
+            return;
+        }
+
         _play.Content = DialogLook.Icon("play", 16, Brushes.White);
-        _timer.Stop();
-        UpdateLabels();
+        System.Windows.Automation.AutomationProperties.SetName(_play, "Reproducir");
+        if (_mode == TimelineMode.Point)
+        {
+            // Pausar en un momento elige ese fotograma.
+            RequestFrame(_timeline.Position);
+            PointChanged?.Invoke(this, EventArgs.Empty);
+        }
     }
 
-    private void Tick()
+    /// <summary>Llega desde el hilo del reproductor: se muestra solo el más reciente.</summary>
+    private void OnFrame(VideoFrame frame)
     {
-        var position = _media.Position;
-        if (_editable && position >= _timeline.End)
+        Interlocked.Exchange(ref _latest, frame)?.Dispose();
+        if (Interlocked.Exchange(ref _renderQueued, 1) == 0)
         {
-            Pause();
-            position = _timeline.End;
+            _ = Dispatcher.BeginInvoke(DispatcherPriority.Render, RenderLatest);
         }
-
-        _timeline.SetPosition(position);
-        UpdateLabels();
     }
 
-    private void Seek(TimeSpan time)
+    private void RenderLatest()
     {
-        if (_playing)
+        Interlocked.Exchange(ref _renderQueued, 0);
+        using var frame = Interlocked.Exchange(ref _latest, null);
+        if (frame is not null && !_life.IsCancellationRequested)
         {
-            Pause();
+            Show(frame);
         }
+    }
 
-        _media.Position = time;
-        _timeline.SetPosition(time);
+    private void OnPosition(TimeSpan position)
+        => _ = Dispatcher.BeginInvoke(DispatcherPriority.Background, () =>
+        {
+            if (_playing is not null)
+            {
+                _timeline.SetPosition(position);
+                UpdateLabels();
+            }
+        });
+
+    private void OnSeekRequested(TimeSpan time)
+    {
+        _playing?.Cancel();
+        RequestFrame(time);
         UpdateLabels();
+        if (_mode == TimelineMode.Point)
+        {
+            PointChanged?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     private void OnRangeChanged()
@@ -228,9 +303,72 @@ internal sealed class MediaPreview : Grid
         RangeChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    /// <summary>
+    /// Pide el fotograma exacto de un instante. Mientras se arrastra llegan muchos pedidos:
+    /// solo se atiende el último (nunca hay más de un FFmpeg a la vez).
+    /// </summary>
+    private void RequestFrame(TimeSpan time)
+    {
+        if (_playback is null || _playback.FrameSize.Width == 0)
+        {
+            return;
+        }
+
+        _pendingFrame = time;
+        if (!_fetching)
+        {
+            _ = FetchFramesAsync();
+        }
+    }
+
+    private async Task FetchFramesAsync()
+    {
+        _fetching = true;
+        var token = _life.Token; // se copia: el token sigue válido aunque la fuente se deseche al cerrar
+        try
+        {
+            while (_pendingFrame is { } time && !token.IsCancellationRequested)
+            {
+                _pendingFrame = null;
+                using var frame = await Task.Run(() => _playback!.FrameAtAsync(time, token), token);
+                if (frame is not null && _playing is null)
+                {
+                    Show(frame);
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Ventana cerrada.
+        }
+        finally
+        {
+            _fetching = false;
+        }
+    }
+
+    private unsafe void Show(VideoFrame frame)
+    {
+        if (_bitmap is null || _bitmap.PixelWidth != frame.Width || _bitmap.PixelHeight != frame.Height)
+        {
+            _bitmap = new WriteableBitmap(frame.Width, frame.Height, 96, 96, PixelFormats.Bgra32, null);
+            _screen.Source = _bitmap;
+        }
+
+        fixed (byte* pixels = frame.Pixels)
+        {
+            _bitmap.WritePixels(new Int32Rect(0, 0, frame.Width, frame.Height), (nint)pixels, frame.Stride * frame.Height, frame.Stride);
+        }
+    }
+
     private void UpdateLabels()
     {
         _clock.Text = $"{TimeText.Format(_timeline.Position)} / {TimeText.Format(_timeline.Duration)}";
-        _selection.Text = _editable ? $"Tramo: {TimeText.Format(_timeline.Start)} – {TimeText.Format(_timeline.End)}  ·  {TimeText.Format(_timeline.End - _timeline.Start)}" : string.Empty;
+        _selection.Text = _mode switch
+        {
+            TimelineMode.Range => $"Tramo: {TimeText.Format(_timeline.Start)} – {TimeText.Format(_timeline.End)}  ·  {TimeText.Format(_timeline.End - _timeline.Start)}",
+            TimelineMode.Point => $"Fotograma en {TimeText.Format(_timeline.Position)}",
+            _ => string.Empty,
+        };
     }
 }

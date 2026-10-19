@@ -29,6 +29,18 @@ public sealed record ProcessSpec
     /// <summary>Callback por cada línea de stdout.</summary>
     public Action<string>? OnStandardOutputLine { get; init; }
 
+    /// <summary>
+    /// Lector binario de stdout (p. ej. fotogramas o audio sin comprimir); reemplaza a
+    /// <see cref="OnStandardOutputLine"/>. Recibe el token de cancelación del proceso.
+    /// </summary>
+    public Func<Stream, CancellationToken, Task>? StandardOutputReader { get; init; }
+
+    /// <summary>
+    /// Proceso interactivo (reproducción): conserva la prioridad normal. Los motores de
+    /// conversión corren con prioridad baja para no trabar el equipo.
+    /// </summary>
+    public bool Interactive { get; init; }
+
     /// <summary>Callback por cada línea de stderr.</summary>
     public Action<string>? OnStandardErrorLine { get; init; }
 }

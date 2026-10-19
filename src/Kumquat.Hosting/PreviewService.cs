@@ -7,6 +7,7 @@ using Kumquat.Core.Conversion;
 using Kumquat.Core.Formats;
 using Kumquat.Core.Previews;
 using Kumquat.Engines.FFmpeg;
+using Kumquat.Engines.FFmpeg.Preview;
 using Kumquat.Engines.Pdf;
 using Kumquat.Engines.Vips;
 using Microsoft.Extensions.Logging;
@@ -148,6 +149,7 @@ public sealed partial class PreviewService(FfmpegRunner ffmpeg, PdfEngines pdf, 
             Duration = duration,
             Image = result.IsSuccess && File.Exists(output) ? output : null,
             ImageTiles = info.HasVideo ? FilmstripFrames : 1,
+            Playback = new FfmpegPlayback(ffmpeg, path, info),
         };
     }
 
