@@ -9,6 +9,7 @@ using Kumquat.Core.Previews;
 using Kumquat.Core.Tools;
 using Kumquat.Dialogs;
 using Kumquat.Dialogs.Search;
+using Kumquat.Dialogs.Settings;
 using Kumquat.Hosting;
 using Kumquat.Infrastructure.Files;
 using Kumquat.Interaction;
@@ -62,8 +63,8 @@ internal sealed partial class TrayApplication : IDisposable
         _wheel = new WheelController(_targets.For, OnChosen, _settings.Trigger) { Trace = LogInteraction, NothingSelected = OnNothingSelected, CaptionForFiles = WheelTargets.Caption };
         _wheel.KeyboardPicker = files => _ui.Post(() => ShowPalette(files));
         _wheel.Start();
-        var hotkeyActive = _settings.HotkeyEnabled && _wheel.SetHotkey(Hotkey.Default);
-        SyncContextMenu();
+        ApplySettings(notifyHotkeyConflict: false);
+        var hotkeyActive = _settings.HotkeyEnabled && _wheel.HasHotkey;
         LogStarted(_settings.Trigger);
 
         // Kumquat no tiene ventana: sin este aviso, abrir el .exe parece no hacer nada.
@@ -186,46 +187,87 @@ internal sealed partial class TrayApplication : IDisposable
         LogEnqueued(ids.Count, id);
     }
 
-    private List<TrayMenuItem> BuildMenu()
-    {
-        TrayMenuItem TriggerOption(TriggerKey key, string label)
-            => new((_settings.Trigger == key ? "✓ " : "    ") + label, () => SetTrigger(key));
+    private List<TrayMenuItem> BuildMenu() =>
+    [
+        new($"Kumquat {typeof(TrayApplication).Assembly.GetName().Version?.ToString(3)}", null),
+        TrayMenuItem.Separator,
+        new("Configuración…", () => _ui.Post(OpenSettings)),
+        TrayMenuItem.Separator,
+        new("Abrir carpeta de registros", () => OpenFolder(KumquatServices.LogDirectory)),
+        new("Licencias de terceros", () => OpenFolder(AppContext.BaseDirectory)),
+        TrayMenuItem.Separator,
+        new("Salir", _ui.Quit),
+    ];
 
-        return
-        [
-            new($"Kumquat {typeof(TrayApplication).Assembly.GetName().Version?.ToString(3)}", null),
-            TrayMenuItem.Separator,
-            TriggerOption(TriggerKey.Shift, "Abrir la rueda con Shift"),
-            TriggerOption(TriggerKey.Control, "Abrir la rueda con Ctrl"),
-            TriggerOption(TriggerKey.CapsLock, "Abrir la rueda con Bloq Mayús"),
-            TriggerOption(TriggerKey.RightClick, "Abrir la rueda con clic derecho"),
-            TrayMenuItem.Separator,
-            new((_settings.HotkeyEnabled ? "✓ " : "    ") + $"{Hotkey.Default.Display} sobre los archivos seleccionados", ToggleHotkey),
-            new((_settings.ContextMenuEnabled ? "✓ " : "    ") + "En el menú del clic derecho del Explorador", ToggleContextMenu),
-            TrayMenuItem.Separator,
-            new("Abrir carpeta de registros", () => OpenFolder(KumquatServices.LogDirectory)),
-            new("Licencias de terceros", () => OpenFolder(AppContext.BaseDirectory)),
-            TrayMenuItem.Separator,
-            new("Salir", _ui.Quit),
-        ];
+    /// <summary>Gestos para la rueda, en el orden de la ventana (el primero es el recomendado).</summary>
+    private static readonly (string Id, string Label)[] TriggerChoices =
+    [
+        (nameof(TriggerKey.Shift), "Shift (recomendado)"),
+        (nameof(TriggerKey.Control), "Ctrl"),
+        (nameof(TriggerKey.CapsLock), "Bloq Mayús"),
+        (nameof(TriggerKey.RightClick), "Clic derecho"),
+    ];
+
+    private void OpenSettings()
+    {
+        var current = new SettingsValues(_settings.Trigger.ToString(), _settings.HotkeyEnabled, _settings.ContextMenuEnabled, _settings.StartWithWindows, _settings.ResolvedOutputFolder);
+        if (SettingsDialog.Ask(current, TriggerChoices, AppSettings.DefaultOutputFolder) is not { } chosen)
+        {
+            return;
+        }
+
+        _settings = _settings with
+        {
+            Trigger = Enum.Parse<TriggerKey>(chosen.Trigger),
+            HotkeyEnabled = chosen.Hotkey,
+            ContextMenuEnabled = chosen.ContextMenu,
+            StartWithWindows = chosen.StartWithWindows,
+            OutputFolder = string.Equals(chosen.OutputFolder, AppSettings.DefaultOutputFolder, StringComparison.OrdinalIgnoreCase) ? null : chosen.OutputFolder,
+        };
+        _settings.Save(SettingsPath);
+        ApplySettings(notifyHotkeyConflict: true);
+        LogStarted(_settings.Trigger);
     }
 
-    private void SetTrigger(TriggerKey key)
+    /// <summary>Aplica la configuración a la rueda, el atajo, el menú contextual y el inicio con Windows.</summary>
+    private void ApplySettings(bool notifyHotkeyConflict)
     {
-        _settings = _settings with { Trigger = key };
-        _settings.Save(SettingsPath);
-        _wheel!.Trigger = key;
-        LogStarted(key);
-    }
-
-    private void ToggleHotkey()
-    {
-        var enabled = !_settings.HotkeyEnabled;
-        _settings = _settings with { HotkeyEnabled = enabled };
-        _settings.Save(SettingsPath);
-        if (!_wheel!.SetHotkey(enabled ? Hotkey.Default : null))
+        _wheel!.Trigger = _settings.Trigger;
+        var hotkeyFree = _wheel.SetHotkey(_settings.HotkeyEnabled ? Hotkey.Default : null);
+        if (!hotkeyFree && notifyHotkeyConflict)
         {
             _tray?.Notify("Atajo no disponible", $"Otra aplicación ya usa {Hotkey.Default.Display}.", isError: true);
+        }
+
+        SyncContextMenu();
+        try
+        {
+            Autostart.Set(_settings.StartWithWindows, Environment.ProcessPath!);
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or IOException or System.Security.SecurityException)
+        {
+            LogContextMenuFailed(ex);
+        }
+    }
+
+    /// <summary>Registra (o corrige la ruta si se movió la carpeta) o quita la entrada del menú.</summary>
+    private void SyncContextMenu()
+    {
+        try
+        {
+            var executable = Environment.ProcessPath!;
+            if (!_settings.ContextMenuEnabled)
+            {
+                ExplorerMenu.Unregister();
+            }
+            else if (!ExplorerMenu.IsRegisteredFor(executable))
+            {
+                ExplorerMenu.Register(executable);
+            }
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or IOException or System.Security.SecurityException)
+        {
+            LogContextMenuFailed(ex);
         }
     }
 
@@ -260,34 +302,6 @@ internal sealed partial class TrayApplication : IDisposable
         catch (UnauthorizedAccessException)
         {
             return null;
-        }
-    }
-
-    private void ToggleContextMenu()
-    {
-        _settings = _settings with { ContextMenuEnabled = !_settings.ContextMenuEnabled };
-        _settings.Save(SettingsPath);
-        SyncContextMenu();
-    }
-
-    /// <summary>Registra (o corrige la ruta si se movió la carpeta) o quita la entrada del menú.</summary>
-    private void SyncContextMenu()
-    {
-        try
-        {
-            var executable = Environment.ProcessPath!;
-            if (!_settings.ContextMenuEnabled)
-            {
-                ExplorerMenu.Unregister();
-            }
-            else if (!ExplorerMenu.IsRegisteredFor(executable))
-            {
-                ExplorerMenu.Register(executable);
-            }
-        }
-        catch (Exception ex) when (ex is UnauthorizedAccessException or IOException or System.Security.SecurityException)
-        {
-            LogContextMenuFailed(ex);
         }
     }
 

@@ -18,6 +18,21 @@ internal sealed record AppSettings
     /// <summary>Entrada "Kumquat…" en el menú del clic derecho del Explorador.</summary>
     public bool ContextMenuEnabled { get; init; } = true;
 
+    /// <summary>Abrir Kumquat al iniciar sesión (desactivado: lo decide la persona).</summary>
+    public bool StartWithWindows { get; init; }
+
+    /// <summary>
+    /// Carpeta para los resultados de archivos sin carpeta (adjuntos de Outlook, archivos de dentro
+    /// de un .zip, imágenes de una web). <c>null</c>: el Escritorio.
+    /// </summary>
+    public string? OutputFolder { get; init; }
+
+    /// <summary>El Escritorio del usuario (la carpeta por defecto).</summary>
+    public static string DefaultOutputFolder => Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+
+    /// <summary>Carpeta efectiva: la elegida si todavía existe; si no, el Escritorio.</summary>
+    public string ResolvedOutputFolder => OutputFolder is { } folder && Directory.Exists(folder) ? folder : DefaultOutputFolder;
+
     /// <summary>Carga desde disco; ante cualquier problema devuelve los valores por defecto.</summary>
     public static AppSettings Load(string path)
     {
