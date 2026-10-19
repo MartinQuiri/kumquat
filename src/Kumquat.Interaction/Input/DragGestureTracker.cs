@@ -70,6 +70,7 @@ public sealed class DragGestureTracker
         if (_leftDown && !_dragging && (Math.Abs(x - _downX) >= _thresholdX || Math.Abs(y - _downY) >= _thresholdY))
         {
             _dragging = true;
+            return GestureSignal.DragStarted;
         }
 
         return GestureSignal.None;

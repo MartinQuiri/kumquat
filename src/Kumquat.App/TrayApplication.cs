@@ -45,7 +45,7 @@ internal sealed partial class TrayApplication : IDisposable
         _jobs.JobChanged += (_, e) => _ui.Post(() => _notifier.OnJobChanged(e.Snapshot));
 
         _tray = new TrayIcon("Kumquat: arrastra un archivo y presiona Shift", BuildMenu);
-        _wheel = new WheelController(_targets.For, OnChosen, _settings.Trigger);
+        _wheel = new WheelController(_targets.For, OnChosen, _settings.Trigger) { Trace = LogInteraction };
         _wheel.Start();
         LogStarted(_settings.Trigger);
 
@@ -114,6 +114,9 @@ internal sealed partial class TrayApplication : IDisposable
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Rueda activa con el gesto {Trigger}")]
     private partial void LogStarted(TriggerKey trigger);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Interacción: {Step}")]
+    private partial void LogInteraction(string step);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Encolados {Count} archivos hacia {Target}")]
     private partial void LogEnqueued(int count, string target);

@@ -17,6 +17,14 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
 {
     private const uint WmGesture = Win32.WM_APP + 1;
 
+    /// <summary>
+    /// El hook global ve el botón soltado ANTES de que el bucle OLE de la fuente entregue el drop.
+    /// Si la rueda se ocultara en ese instante, el drop caería en lo que esté debajo. Se espera
+    /// este margen; si el drop llega, cierra antes.
+    /// </summary>
+    private const uint DropGraceMilliseconds = 600;
+    private const nuint CloseTimerId = 1;
+
     private readonly Func<IReadOnlyList<string>, IReadOnlyList<WheelItem>> _itemsForFiles;
     private readonly Action<IReadOnlyList<string>, WheelItem> _onChosen;
     private readonly DragGestureTracker _tracker;
@@ -35,10 +43,13 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
         _itemsForFiles = itemsForFiles ?? throw new ArgumentNullException(nameof(itemsForFiles));
         _onChosen = onChosen ?? throw new ArgumentNullException(nameof(onChosen));
         _tracker = new DragGestureTracker(trigger, Win32.GetSystemMetrics(Win32.SM_CXDRAG), Win32.GetSystemMetrics(Win32.SM_CYDRAG));
-        _window = new WheelWindow { AppMessageHandler = OnAppMessage };
+        _window = new WheelWindow { AppMessageHandler = OnAppMessage, TimerHandler = OnTimer };
         _dropTarget = new DropTarget(this);
         _hook = new GlobalInputHook(_tracker, PostGesture);
     }
+
+    /// <summary>Recibe una línea por cada paso de la interacción (diagnóstico; nunca incluye teclas).</summary>
+    public Action<string>? Trace { get; set; }
 
     /// <summary>Gesto configurado.</summary>
     public TriggerKey Trigger
@@ -65,6 +76,7 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
         }
 
         _hook.Start();
+        Trace?.Invoke($"Listo: ventana 0x{_window.Handle:X}, destino OLE registrado, hooks instalados, gesto {Trigger}.");
     }
 
     /// <inheritdoc />
@@ -84,10 +96,12 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
     {
         if (!_window.IsShown)
         {
+            Trace?.Invoke("DragEnter con la rueda estacionada: ignorado.");
             return false; // Arrastre que pasó por la zona de estacionamiento: ignorar.
         }
 
         var items = _itemsForFiles(files);
+        Trace?.Invoke($"DragEnter: {files.Count} archivo(s) ({Path.GetExtension(files[0])}), {items.Count} destino(s).");
         _state = items.Count == 0
             ? new WheelVisualState([], -1, "Sin conversiones para este archivo")
             : new WheelVisualState(items, -1, null);
@@ -111,6 +125,7 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
     {
         var hit = HitTest(screenPoint);
         var item = hit.Zone == WheelZone.Sector ? _state.Items[hit.SectorIndex] : null;
+        Trace?.Invoke($"Drop en {hit.Zone} -> {item?.Target.Id ?? "(nada)"}.");
         Close();
         if (item is not null)
         {
@@ -123,19 +138,30 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
 
     private bool OnAppMessage(uint message, nint wParam, nint lParam)
     {
-        if (message < WmGesture || message > WmGesture + (uint)GestureSignal.Cancel)
+        if (message < WmGesture || message > WmGesture + (uint)GestureSignal.DragStarted)
         {
             return false;
         }
 
-        switch ((GestureSignal)(message - WmGesture))
+        var signal = (GestureSignal)(message - WmGesture);
+        Trace?.Invoke($"Señal {signal} en ({(int)wParam}, {(int)lParam}); rueda {(_window.IsShown ? "visible" : "oculta")}.");
+        switch (signal)
         {
             case GestureSignal.Trigger when !_window.IsShown:
                 _state = WheelVisualState.Waiting;
                 _window.ShowAt(new POINT((int)wParam, (int)lParam), _state);
                 _tracker.WheelOpen = true;
+                Trace?.Invoke($"Rueda mostrada en ({_window.Center.X}, {_window.Center.Y}), escala {_window.Scale:0.##}.");
                 break;
-            case GestureSignal.DragEnded or GestureSignal.Cancel when _window.IsShown:
+            case GestureSignal.DragEnded when _window.IsShown && _state.Highlighted >= 0:
+                // Sobre un sector: OLE entregará el drop en unos milisegundos; esperarlo.
+                _window.StartTimer(CloseTimerId, DropGraceMilliseconds);
+                break;
+            case GestureSignal.DragEnded when _window.IsShown:
+                // Centro, fuera o sin destinos: OLE nunca llamará a Drop. Cerrar ya, sin demora.
+                Close();
+                break;
+            case GestureSignal.Cancel when _window.IsShown:
                 Close();
                 break;
         }
@@ -162,8 +188,18 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
         return _window.LayoutFor(_state.Items.Count).HitTest(screenPoint.X - center.X, screenPoint.Y - center.Y);
     }
 
+    private void OnTimer(nuint id)
+    {
+        if (id == CloseTimerId)
+        {
+            Trace?.Invoke("Sin drop tras soltar: rueda cerrada.");
+            Close();
+        }
+    }
+
     private void Close()
     {
+        _window.StopTimer(CloseTimerId);
         _tracker.WheelOpen = false;
         _state = WheelVisualState.Waiting;
         _window.Park();
