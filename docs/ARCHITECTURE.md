@@ -70,8 +70,12 @@ lógica se prueba con una superficie falsa y la geometría real (`WheelSessionTe
   primer plano con las interfaces documentadas del shell — `IShellWindows` → `IShellBrowser` de la
   pestaña activa (`ShellTabWindowClass` en Windows 11) → `IShellView.GetItemObject(SVGIO_SELECTION)`
   → `IDataObject`, que lee el mismo `DataObjectReader` del drop. También el escritorio.
-- **Modo clic:** con la rueda abierta así, el hook informa el movimiento (`PointerMoved`) y soltar el
-  botón es el clic. El modo arrastre no cambia.
+- **Buscador** (`CommandPalette`): el atajo y el menú contextual lo abren en vez de la rueda (que queda
+  para el arrastre). Filtra con `CommandSearch` (sin tildes, prefijos, inicio de palabra, palabras
+  clave, letras en orden) y devuelve el mismo id que un sector de la rueda. Si no hay buscador, la
+  rueda se abre en **modo clic** (el hook informa `PointerMoved` y soltar el botón es el clic).
+- **Primer plano:** el proceso que lanza el Explorador desde el menú contextual le cede el permiso
+  (`AllowSetForegroundWindow`) a la instancia, para que el buscador aparezca adelante y reciba el teclado.
 - **Menú contextual** (clásico, HKCU, sin administrador): el Explorador lanza `Kumquat.exe --wheel
   archivo`, uno por archivo seleccionado. El proceso nuevo pasa la ruta a la instancia en ejecución
   por `WM_COPYDATA` (con firma propia) y sale; la instancia junta los pedidos 250 ms y, si son parte

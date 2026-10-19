@@ -32,12 +32,13 @@ Ejecuta `dotnet run --project src/Kumquat.App` y anota ✅/❌ y la versión de 
 
 | # | Caso | Esperado |
 |---|---|---|
-| 21 | Seleccionar 3 fotos en el Explorador y presionar Ctrl+Alt+K | La rueda aparece bajo el cursor con "3 JPG · …"; un clic en un formato convierte las 3 |
+| 21 | Seleccionar 3 fotos en el Explorador y presionar Ctrl+Alt+K | Aparece el buscador con "3 JPG · …", ya listo para escribir; "png" + Enter convierte las 3 |
+| 21b | En el buscador: "achicar", "cancion" (sin tilde), "ext pag", flechas, Esc, clic afuera | Encuentra Comprimir / lo que tenga "Canción" / Extraer páginas; las flechas dan la vuelta; Esc y el clic afuera cierran sin hacer nada |
 | 22 | Ctrl+Alt+K con una pestaña de Windows 11 que no es la primera | Usa la selección de la pestaña activa |
 | 23 | Ctrl+Alt+K en el escritorio con un archivo seleccionado | Funciona igual |
 | 24 | Ctrl+Alt+K sin nada seleccionado | Aviso "Nada seleccionado"; no aparece la rueda |
-| 25 | Clic derecho → Mostrar más opciones → Kumquat… con 5 archivos | Una sola rueda con los 5 |
-| 26 | Igual con Kumquat cerrado | Kumquat arranca y abre la rueda |
+| 25 | Clic derecho → Mostrar más opciones → Kumquat… con 5 archivos | Un solo buscador con los 5, al frente y recibiendo lo que se escribe |
+| 26 | Igual con Kumquat cerrado | Kumquat arranca y abre el buscador |
 | 27 | Mover la carpeta de Kumquat y abrirlo | El menú apunta a la ruta nueva |
 | 28 | Desactivar el menú desde el ícono; `Kumquat.exe --unregister` | La entrada desaparece del Explorador |
 

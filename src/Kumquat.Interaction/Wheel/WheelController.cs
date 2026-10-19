@@ -81,6 +81,13 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
         set => _session.NothingSelected = value;
     }
 
+    /// <summary>Buscador: lo abren el atajo y el menú contextual (la rueda queda para arrastrar).</summary>
+    public Action<IReadOnlyList<string>>? KeyboardPicker
+    {
+        get => _session.KeyboardPicker;
+        set => _session.KeyboardPicker = value;
+    }
+
     /// <summary>Gesto configurado.</summary>
     public TriggerKey Trigger
     {

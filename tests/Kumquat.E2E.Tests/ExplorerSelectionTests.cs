@@ -36,7 +36,7 @@ public sealed class ExplorerSelectionTests : IDisposable
         IReadOnlyList<string> selection = [];
         for (var i = 0; i < 20 && selection.Count == 0; i++)
         {
-            explorer.BringToFront();
+            explorer.Activate(); // otro test pudo dejar el foco en otra ventana
             selection = await OnStaAsync(Kumquat.Interaction.Shell.ExplorerSelection.Get);
             await Task.Delay(250, TestContext.Current.CancellationToken);
         }

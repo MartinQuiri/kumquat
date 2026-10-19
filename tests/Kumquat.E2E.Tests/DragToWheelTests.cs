@@ -100,17 +100,25 @@ public sealed class DragToWheelTests : IDisposable
                 Size = new Size(260, 260),
                 BackColor = Color.SteelBlue,
             };
+            using var dragStarted = new ManualResetEventSlim();
             form.MouseDown += (_, _) =>
+            {
+                dragStarted.Set(); // el arrastre OLE empieza de verdad (DoDragDrop no vuelve hasta soltar)
                 form.DoDragDrop(new DataObject(DataFormats.FileDrop, new[] { file }), DragDropEffects.Copy | DragDropEffects.Move | DragDropEffects.Link);
+            };
             form.Shown += (_, _) =>
             {
-                form.Activate();
-                var center = form.PointToScreen(new Point(form.ClientSize.Width / 2, form.ClientSize.Height / 2));
                 var driver = new Thread(() =>
                 {
                     try
                     {
-                        Drive(center.X, center.Y, northSector);
+                        // El centro se calcula recién ahora: en Shown la ventana puede no estar en su lugar final.
+                        var center = (Point)form.Invoke(() =>
+                        {
+                            form.Activate();
+                            return form.PointToScreen(new Point(form.ClientSize.Width / 2, form.ClientSize.Height / 2));
+                        });
+                        Drive(center.X, center.Y, northSector, dragStarted);
                     }
 #pragma warning disable CA1031 // Se reporta en el hilo del test.
                     catch (Exception ex)
@@ -130,18 +138,35 @@ public sealed class DragToWheelTests : IDisposable
         });
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
-        thread.Join(TimeSpan.FromSeconds(30)).ShouldBeTrue("El escenario de arrastre no terminó.");
+        thread.Join(TimeSpan.FromSeconds(45)).ShouldBeTrue("El escenario de arrastre no terminó.");
         if (failure is not null)
         {
             throw new InvalidOperationException("Falló el escenario de arrastre.", failure);
         }
     }
 
-    private static void Drive(int x, int y, bool northSector)
+    private static void Drive(int x, int y, bool northSector, ManualResetEventSlim dragStarted)
     {
-        SyntheticInput.MoveTo(x, y);
-        Thread.Sleep(250);
-        SyntheticInput.LeftDown();
+        // Si el clic sintético no llega a la ventana de origen (pasa a veces con la primera ventana
+        // del proceso), no hay arrastre OLE y la rueda nunca recibiría DragEnter: se reintenta. Es
+        // un problema del arnés, no de Kumquat, y así lo dice el mensaje si persiste.
+        for (var attempt = 1; !dragStarted.IsSet; attempt++)
+        {
+            if (attempt > 3)
+            {
+                throw new InvalidOperationException("Arnés: el clic sintético nunca llegó a la ventana de origen, así que no hubo arrastre OLE.");
+            }
+
+            SyntheticInput.MoveTo(x, y);
+            Thread.Sleep(250);
+            SyntheticInput.LeftDown();
+            if (!dragStarted.Wait(TimeSpan.FromMilliseconds(600)))
+            {
+                SyntheticInput.LeftUp();
+                Thread.Sleep(400);
+            }
+        }
+
         Thread.Sleep(200);
 
         // Supera el umbral de arrastre del sistema para que el hook lo vea como arrastre.

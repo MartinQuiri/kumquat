@@ -8,6 +8,7 @@ using Kumquat.Core.Jobs;
 using Kumquat.Core.Previews;
 using Kumquat.Core.Tools;
 using Kumquat.Dialogs;
+using Kumquat.Dialogs.Search;
 using Kumquat.Hosting;
 using Kumquat.Infrastructure.Files;
 using Kumquat.Interaction;
@@ -59,6 +60,7 @@ internal sealed partial class TrayApplication : IDisposable
         DialogDiagnostics.Error = (activity, ex) => LogDialogError(activity, ex);
         _tray = new TrayIcon("Kumquat: arrastra un archivo y presiona Shift", BuildMenu);
         _wheel = new WheelController(_targets.For, OnChosen, _settings.Trigger) { Trace = LogInteraction, NothingSelected = OnNothingSelected, CaptionForFiles = WheelTargets.Caption };
+        _wheel.KeyboardPicker = files => _ui.Post(() => ShowPalette(files));
         _wheel.Start();
         var hotkeyActive = _settings.HotkeyEnabled && _wheel.SetHotkey(Hotkey.Default);
         SyncContextMenu();
@@ -224,6 +226,40 @@ internal sealed partial class TrayApplication : IDisposable
         if (!_wheel!.SetHotkey(enabled ? Hotkey.Default : null))
         {
             _tray?.Notify("Atajo no disponible", $"Otra aplicación ya usa {Hotkey.Default.Display}.", isError: true);
+        }
+    }
+
+    /// <summary>Buscador con todo lo que se puede hacer con estos archivos (atajo y menú contextual).</summary>
+    private void ShowPalette(IReadOnlyList<string> files)
+    {
+        var rings = _targets.For(files);
+        var items = rings.SelectMany(r => r.Items).ToList();
+        var request = new PaletteRequest(
+            files.Count == 1 ? Path.GetFileName(files[0]) : $"{files.Count} archivos",
+            SafeCaption(files),
+            WheelTargets.CategoryIcon(files),
+            [.. items.Select(PaletteItems.From)]);
+        var chosen = CommandPalette.Ask(request);
+        LogInteraction($"Buscador -> {chosen ?? "(nada)"}.");
+        if (chosen is not null && items.FirstOrDefault(i => string.Equals(i.Id, chosen, StringComparison.Ordinal)) is { } item)
+        {
+            OnChosen(files, item);
+        }
+    }
+
+    private static string? SafeCaption(IReadOnlyList<string> files)
+    {
+        try
+        {
+            return WheelTargets.Caption(files);
+        }
+        catch (IOException)
+        {
+            return null;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return null;
         }
     }
 
