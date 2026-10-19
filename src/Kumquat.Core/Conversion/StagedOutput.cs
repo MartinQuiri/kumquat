@@ -22,13 +22,19 @@ internal static class StagedOutput
     /// <param name="suffix">Sufijo opcional del nombre (p. ej. "comprimido").</param>
     /// <param name="produce">Escribe la salida en la ruta temporal recibida.</param>
     /// <param name="cancellationToken">Token de cancelación.</param>
+    /// <param name="exists">
+    /// Cómo saber si un nombre está ocupado (por defecto <see cref="File.Exists(string?)"/>). Los
+    /// tests lo reemplazan para provocar la carrera "otro proceso tomó el nombre": aun así,
+    /// <c>File.Move</c> sin sobrescribir es lo que garantiza que nada se pise.
+    /// </param>
     public static async Task<Result<string>> RunAsync(
         string inputPath,
         FileFormat target,
         string directory,
         string? suffix,
         Func<string, Task<Result>> produce,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        Func<string, bool>? exists = null)
     {
         var stagingPath = Path.Combine(directory, string.Create(CultureInfo.InvariantCulture, $".kumquat-{Guid.NewGuid():N}{target.DefaultExtension}"));
         try
@@ -44,7 +50,7 @@ internal static class StagedOutput
                 return new Error("no-output", "El motor terminó sin producir archivo.");
             }
 
-            return Publish(stagingPath, inputPath, target, directory, suffix);
+            return Publish(stagingPath, inputPath, target, directory, suffix, exists ?? File.Exists);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -141,13 +147,13 @@ internal static class StagedOutput
         }
     }
 
-    private static string Publish(string stagingPath, string inputPath, FileFormat target, string directory, string? suffix)
+    private static string Publish(string stagingPath, string inputPath, FileFormat target, string directory, string? suffix, Func<string, bool> exists)
     {
         // Mover dentro del mismo volumen es atómico; si otro proceso tomó el nombre entre
         // la elección y el movimiento, se elige el siguiente libre.
         for (var attempt = 0; ; attempt++)
         {
-            var finalPath = OutputNaming.ChooseOutputPath(inputPath, target, File.Exists, directory, suffix);
+            var finalPath = OutputNaming.ChooseOutputPath(inputPath, target, exists, directory, suffix);
             try
             {
                 File.Move(stagingPath, finalPath, overwrite: false);

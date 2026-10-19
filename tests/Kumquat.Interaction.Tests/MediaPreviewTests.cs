@@ -93,6 +93,30 @@ public sealed class MediaPreviewTests
         log.ShouldContain("bitmap=True");
     }
 
+    [Fact]
+    public void VistaPreviaQueFalla_SeRegistraYLaVentanaSigueUsable()
+    {
+        var reported = new System.Collections.Concurrent.ConcurrentQueue<string>();
+        var previous = DialogDiagnostics.Error;
+        DialogDiagnostics.Error = (activity, ex) => reported.Enqueue($"{activity}: {ex.Message}");
+        try
+        {
+            var request = new ToolDialogRequest("media.trim", "Recortar", "roto.mp4", [new ToolParameter("start", "Desde", ToolParameterKind.Time, "0:00")], _ => null)
+            {
+                Preview = _ => throw new IOException("archivo dañado de prueba"),
+            };
+
+            var log = RunDialog(request, (dialog, step) => step == 5 ? $"campo={dialog.FieldForTests("start")!.IsEnabled};fin" : null);
+
+            log.ShouldContain("campo=True");
+            reported.ShouldContain(r => r.Contains("archivo dañado de prueba", StringComparison.Ordinal));
+        }
+        finally
+        {
+            DialogDiagnostics.Error = previous;
+        }
+    }
+
     private static IPreviewService Previews()
         => new ServiceCollection().AddKumquat(logToFile: false).BuildServiceProvider().GetRequiredService<IPreviewService>();
 

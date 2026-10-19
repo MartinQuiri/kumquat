@@ -60,6 +60,14 @@ public sealed partial class ToolOptionsDialog
         {
             return;
         }
+#pragma warning disable CA1031 // Límite de una tarea de UI: la ventana sigue sirviendo sin vista previa.
+        catch (Exception ex) when (DialogDiagnostics.IsRecoverable(ex))
+#pragma warning restore CA1031
+        {
+            DialogDiagnostics.Report("generar la vista previa", ex);
+            ShowStatus(loading: false);
+            return;
+        }
 
         if (token.IsCancellationRequested)
         {

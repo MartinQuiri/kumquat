@@ -15,7 +15,7 @@ namespace Kumquat.Interaction.Wheel;
 /// así su destino OLE ya está registrado cuando el arrastre llega (una ventana mostrada
 /// por primera vez a mitad de un arrastre no recibe el drop).
 /// </summary>
-internal sealed unsafe class WheelWindow : NativeWindow
+internal sealed unsafe class WheelWindow : NativeWindow, IWheelSurface
 {
     /// <summary>Clase de la ventana (la busca <see cref="WheelRequests"/> desde otro proceso).</summary>
     internal const string ClassName = "KumquatWheel";

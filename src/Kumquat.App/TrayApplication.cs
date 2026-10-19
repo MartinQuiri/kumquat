@@ -56,6 +56,7 @@ internal sealed partial class TrayApplication : IDisposable
     {
         _jobs.JobChanged += (_, e) => _ui.Post(() => _notifier.OnJobChanged(e.Snapshot));
 
+        DialogDiagnostics.Error = (activity, ex) => LogDialogError(activity, ex);
         _tray = new TrayIcon("Kumquat: arrastra un archivo y presiona Shift", BuildMenu);
         _wheel = new WheelController(_targets.For, OnChosen, _settings.Trigger) { Trace = LogInteraction, NothingSelected = OnNothingSelected, CaptionForFiles = WheelTargets.Caption };
         _wheel.Start();
@@ -289,6 +290,9 @@ internal sealed partial class TrayApplication : IDisposable
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Encolados {Count} archivos hacia {Target}")]
     private partial void LogEnqueued(int count, string target);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error en la ventana de opciones al {Activity}")]
+    private partial void LogDialogError(string activity, Exception exception);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "No se pudo actualizar el menú contextual del Explorador")]
     private partial void LogContextMenuFailed(Exception exception);
