@@ -53,12 +53,21 @@ public sealed class EngineLocator
 
         yield return Path.Combine(_appBase, "engines", engineId);
 
-        for (var dir = new DirectoryInfo(_appBase); dir is not null; dir = dir.Parent)
+        // Subiendo: paquete instalado (<pkg>\engines\<id>, p. ej. desde <pkg>\cli\) o repo de desarrollo
+        // (<repo>\engines\<id>\<rid>).
+        for (var dir = new DirectoryInfo(_appBase).Parent; dir is not null; dir = dir.Parent)
         {
-            var candidate = Path.Combine(dir.FullName, "engines", engineId, RuntimeIdentifier);
-            if (Directory.Exists(candidate))
+            var installed = Path.Combine(dir.FullName, "engines", engineId);
+            var development = Path.Combine(installed, RuntimeIdentifier);
+            if (Directory.Exists(development))
             {
-                yield return candidate;
+                yield return development;
+                yield break;
+            }
+
+            if (Directory.Exists(installed))
+            {
+                yield return installed;
                 yield break;
             }
         }

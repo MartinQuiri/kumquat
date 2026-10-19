@@ -20,26 +20,32 @@ $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
 $platform = if ($Runtime -eq 'win-arm64') { 'ARM64' } else { 'x64' }
 $out = Join-Path $repo "artifacts/publish/$Runtime"
+# La CLI va en su propia carpeta: cada ejecutable recortado (trimming) lleva su propia versión
+# reducida del runtime de .NET; compartir carpeta hace que uno pise los ensamblados del otro.
+$cliOut = Join-Path $out 'cli'
 $zip = Join-Path $repo "artifacts/Kumquat-$Version-$Runtime.zip"
 
 & (Join-Path $PSScriptRoot 'fetch-engines.ps1') -Runtime $Runtime
 
 if (Test-Path $out) { Remove-Item -Recurse -Force $out }
-foreach ($project in 'src/Kumquat.App', 'src/Kumquat.Cli') {
-    dotnet publish (Join-Path $repo $project) -c Release -r $Runtime --self-contained `
-        -p:Platform=$platform -p:Version=$Version -o $out -nologo
-    if ($LASTEXITCODE -ne 0) { throw "Falló la publicación de $project" }
+foreach ($target in @(@{ Project = 'src/Kumquat.App'; Out = $out }, @{ Project = 'src/Kumquat.Cli'; Out = $cliOut })) {
+    dotnet publish (Join-Path $repo $target.Project) -c Release -r $Runtime --self-contained `
+        -p:Platform=$platform -p:Version=$Version -o $target.Out -nologo
+    if ($LASTEXITCODE -ne 0) { throw "Falló la publicación de $($target.Project)" }
 }
 
 foreach ($doc in 'LICENSE', 'THIRD-PARTY-NOTICES.md', 'README.md') {
     Copy-Item (Join-Path $repo $doc) $out
 }
 
-# Smoke test: el ejecutable de la app debe ser la app (no la CLI) y los motores deben cargar.
-$appInfo = (Get-Item (Join-Path $out 'Kumquat.exe')).VersionInfo
-if ($appInfo.InternalName -notmatch '^Kumquat\.dll$') { throw "Kumquat.exe no es la app de bandeja (InternalName=$($appInfo.InternalName))." }
+# Smoke tests (solo si el RID coincide con la máquina): la app debe ARRANCAR de verdad
+# (motores, hooks, rueda, bandeja) y la CLI debe ver los motores.
 if ($Runtime -eq "win-$($env:PROCESSOR_ARCHITECTURE.ToLowerInvariant() -replace 'amd64','x64')") {
-    $engines = & (Join-Path $out 'kumquat-cli.exe') engines
+    $app = Start-Process -FilePath (Join-Path $out 'Kumquat.exe') -ArgumentList '--smoke-test' -PassThru -Wait
+    if ($app.ExitCode -ne 0) { throw "Kumquat.exe --smoke-test falló con código $($app.ExitCode) (ver visor de eventos / logs)." }
+    Write-Host "[ok] Kumquat.exe arranca"
+
+    $engines = & (Join-Path $cliOut 'kumquat-cli.exe') engines
     if ($engines -notmatch 'ffmpeg=ok' -or $engines -notmatch 'vips=ok') { throw "Motores no disponibles en la publicación: $engines" }
     Write-Host "[ok] $engines"
 }
