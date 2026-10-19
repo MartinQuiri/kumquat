@@ -3,9 +3,6 @@
        paleta y logo. Sin dependencias de UI, para poder probarla sola. -->
   <PropertyGroup>
     <NoWarn>$(NoWarn.Replace('CS1591', ''))</NoWarn>
-    <!-- IL puro: sin esto, compilar la solución sin plataforma (elige ARM64) lo marcaba ARM64 y un
-         proceso x64 no podía cargarlo. Lo vigila ArquitecturaTests. -->
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Kumquat.Core\Kumquat.Core.csproj" />
