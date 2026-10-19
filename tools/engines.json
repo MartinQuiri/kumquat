@@ -20,6 +20,47 @@
           "stripPrefix": "ffmpeg-n8.1.3-18-g46d899d7a0-winarm64-gpl-shared-8.1"
         }
       }
+    },
+    {
+      "id": "qpdf",
+      "version": "12.4.2",
+      "license": "Apache-2.0",
+      "homepage": "https://qpdf.sourceforge.io",
+      "source": "https://github.com/qpdf/qpdf/tree/v12.4.2",
+      "buildScripts": "https://github.com/qpdf/qpdf/releases/tag/v12.4.2",
+      "artifacts": {
+        "win-x64": {
+          "url": "https://github.com/qpdf/qpdf/releases/download/v12.4.2/qpdf-12.4.2-msvc64.zip",
+          "sha256": "db87077e683630c1217e0e8f9a20a9749d952ab676e881c3689187763a5de25d",
+          "stripPrefix": "qpdf-12.4.2-msvc64"
+        },
+        "win-arm64": {
+          "url": "https://github.com/qpdf/qpdf/releases/download/v12.4.2/qpdf-12.4.2-msvc-arm64.zip",
+          "sha256": "2b5d7740a2513d8a841116692dc2cf7efe83f35262386ebab18bed35fbf15ab1",
+          "stripPrefix": "qpdf-12.4.2-msvc-arm64"
+        }
+      }
+    },
+    {
+      "id": "mupdf",
+      "version": "1.28.5",
+      "license": "AGPL-3.0-or-later",
+      "homepage": "https://mupdf.com",
+      "source": "https://mupdf.com/downloads/archive/mupdf-1.28.5-source.tar.gz",
+      "buildScripts": "https://github.com/ArtifexSoftware/mupdf/tree/1.28.5",
+      "$comment": "MuPDF no publica binarios ARM64 para Windows: en ARM64 se usa el x64 bajo emulación (Windows 11 ARM la incluye).",
+      "artifacts": {
+        "win-x64": {
+          "url": "https://mupdf.com/downloads/archive/mupdf-1.28.5-windows.zip",
+          "sha256": "13476a53e84f5527983158acb6442c7853b3cdc022f3b24880780dcfba1fcc99",
+          "stripPrefix": "mupdf-1.28.5-windows"
+        },
+        "win-arm64": {
+          "url": "https://mupdf.com/downloads/archive/mupdf-1.28.5-windows.zip",
+          "sha256": "13476a53e84f5527983158acb6442c7853b3cdc022f3b24880780dcfba1fcc99",
+          "stripPrefix": "mupdf-1.28.5-windows"
+        }
+      }
     }
   ]
 }

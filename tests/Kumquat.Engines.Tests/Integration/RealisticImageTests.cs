@@ -39,7 +39,9 @@ public sealed class RealisticImageTests : IDisposable
 
     [Theory]
     [InlineData("image.rotate", Height, Width)]
-    [InlineData("image.half", Width / 2, Height / 2)]
+    [InlineData("image.fit", 1920, 1280)]
+    [InlineData("image.flip", Width, Height)]
+    [InlineData("image.gray", Width, Height)]
     [InlineData("image.compress", Width, Height)]
     [InlineData("image.strip", Width, Height)]
     public async Task Herramientas_FotoGrande(string toolId, int expectedWidth, int expectedHeight)

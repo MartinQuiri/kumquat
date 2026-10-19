@@ -8,6 +8,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Platforms>x64;ARM64</Platforms>
     <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+    <!-- Una sola carpeta de salida (bin/<config>/<tfm>) para cualquier plataforma: evita binarios
+         desactualizados al mezclar compilaciones por solución y por proyecto. -->
+    <AppendPlatformToOutputPath>false</AppendPlatformToOutputPath>
 
     <!-- Calidad: toda advertencia es un error. -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>

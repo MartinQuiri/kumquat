@@ -38,19 +38,50 @@ public sealed class FfmpegRunner
     /// <summary>Convierte <paramref name="input"/> en <paramref name="output"/> con los argumentos de salida dados.</summary>
     public async Task<Result> RunAsync(string input, IReadOnlyList<string> outputArguments, string output, IProgress<double>? progress, CancellationToken cancellationToken)
     {
+        var duration = progress is null || _ffmpeg is null ? null : await ProbeDurationAsync(input, cancellationToken);
+        return await ExecuteAsync(FfmpegArguments.Build(input, output, outputArguments), duration, progress, cancellationToken);
+    }
+
+    /// <summary>Ejecuta con varias entradas (unir); el progreso usa la duración total dada.</summary>
+    public Task<Result> RunMultiAsync(IReadOnlyList<string> inputs, IReadOnlyList<string> outputArguments, string output, TimeSpan? totalDuration, IProgress<double>? progress, CancellationToken cancellationToken)
+        => ExecuteAsync(FfmpegArguments.BuildMulti(inputs, output, outputArguments), totalDuration, progress, cancellationToken);
+
+    /// <summary>Lee duración, resolución y pistas de un medio.</summary>
+    public async Task<MediaInfo?> ProbeAsync(string input, CancellationToken cancellationToken)
+    {
+        if (_ffprobe is null)
+        {
+            return null;
+        }
+
+        var output = new StringBuilder();
+        var outcome = await _runner.RunAsync(
+            new ProcessSpec
+            {
+                FileName = _ffprobe,
+                Arguments = FfmpegArguments.ProbeStreams(input),
+                Timeout = ProbeTimeout,
+                MaxMemoryBytes = MaxMemoryBytes,
+                OnStandardOutputLine = line => output.AppendLine(line),
+            },
+            cancellationToken);
+        return outcome.Succeeded ? MediaInfo.Parse(output.ToString()) : null;
+    }
+
+    private async Task<Result> ExecuteAsync(IReadOnlyList<string> arguments, TimeSpan? duration, IProgress<double>? progress, CancellationToken cancellationToken)
+    {
         if (_ffmpeg is null)
         {
             return new Error("engine-missing", "FFmpeg no está instalado.");
         }
 
-        var duration = progress is null ? null : await ProbeDurationAsync(input, cancellationToken);
         var parser = new FfmpegProgressParser(duration, p => progress?.Report(p));
 
         var outcome = await _runner.RunAsync(
             new ProcessSpec
             {
                 FileName = _ffmpeg,
-                Arguments = FfmpegArguments.Build(input, output, outputArguments),
+                Arguments = arguments,
                 Timeout = RunTimeout,
                 MaxMemoryBytes = MaxMemoryBytes,
                 OnStandardOutputLine = parser.OnLine,

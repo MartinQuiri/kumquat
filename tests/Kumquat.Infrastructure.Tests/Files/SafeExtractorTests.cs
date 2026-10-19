@@ -71,6 +71,37 @@ public sealed class SafeExtractorTests : IDisposable
         result.Error.ShouldNotBeNull().Code.ShouldBe("archive-too-large");
     }
 
+    [Theory]
+    [InlineData("roto.zip", new byte[] { 0x50, 0x4B, 0x03, 0x04, 0xFF, 0xFF, 0x00 })]
+    [InlineData("roto.gz", new byte[] { 0x1F, 0x8B, 0x08, 0x00, 0xDE, 0xAD })]
+    [InlineData("nada.7z", new byte[] { 0x01, 0x02, 0x03 })]
+    public async Task ArchivoDanado_DevuelveErrorSinLanzar(string name, byte[] content)
+    {
+        var path = Path.Combine(_root, name);
+        await File.WriteAllBytesAsync(path, content, TestContext.Current.CancellationToken);
+
+        var result = await SafeExtractor.ExtractAsync(path, Path.Combine(_root, "out"), null, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task Gzip_DeUnArchivoSuelto_ConservaSuNombre()
+    {
+        var path = Path.Combine(_root, "notas.txt.gz");
+        await using (var file = File.Create(path))
+        await using (var gzip = new GZipStream(file, CompressionLevel.Optimal))
+        await using (var writer = new StreamWriter(gzip))
+        {
+            await writer.WriteAsync("hola gzip");
+        }
+
+        var result = await SafeExtractor.ExtractAsync(path, Path.Combine(_root, "out"), null, TestContext.Current.CancellationToken);
+
+        result.Value.ShouldHaveSingleItem().ShouldEndWith("notas.txt");
+        (await File.ReadAllTextAsync(result.Value![0], TestContext.Current.CancellationToken)).ShouldBe("hola gzip");
+    }
+
     private string CreateZip(params (string Name, string Content)[] entries)
     {
         var path = Path.Combine(_root, Guid.NewGuid().ToString("N") + ".zip");

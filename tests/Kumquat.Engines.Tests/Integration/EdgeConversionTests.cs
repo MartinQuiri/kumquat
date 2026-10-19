@@ -67,6 +67,20 @@ public sealed class EdgeConversionTests
 
     private static async Task AssertContentAsync(FileFormat from, FileFormat to, string output)
     {
+        if (to == KnownFormats.Txt)
+        {
+            var text = await File.ReadAllTextAsync(output, TestContext.Current.CancellationToken);
+            text.ShouldContain(from == KnownFormats.Epub ? "Kumquat convierte libros" : "Kumquat pagina 2");
+
+            return;
+        }
+
+        if (to == KnownFormats.Pdf)
+        {
+            new FileInfo(output).Length.ShouldBeGreaterThan(200);
+            return;
+        }
+
         if (to.Category is FormatCategory.Audio)
         {
             var info = await MediaProbe.ProbeAsync(output, TestContext.Current.CancellationToken);

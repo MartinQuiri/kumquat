@@ -22,9 +22,9 @@ public sealed class ToolServiceTests : IDisposable
             new FakeTool("ausente", [KnownFormats.Txt], available: false),
         ]);
 
-        service.ToolsFor([KnownFormats.Txt]).Select(t => t.Id).ShouldBe(["solo-txt", "texto"]);
-        service.ToolsFor([KnownFormats.Txt, KnownFormats.Markdown]).Select(t => t.Id).ShouldBe(["texto"]);
-        service.ToolsFor([]).ShouldBeEmpty();
+        service.ToolsForFormats([KnownFormats.Txt]).Select(t => t.Id).ShouldBe(["solo-txt", "texto"]);
+        service.ToolsForFormats([KnownFormats.Txt, KnownFormats.Markdown]).Select(t => t.Id).ShouldBe(["texto"]);
+        service.ToolsForFormats([]).ShouldBeEmpty();
     }
 
     [Fact]
@@ -104,7 +104,7 @@ public sealed class ToolServiceTests : IDisposable
 
         public bool AppliesTo(FileFormat format) => formats.Contains(format);
 
-        public FileFormat OutputFormat(FileFormat input) => input;
+        public FileFormat? OutputFormat(FileFormat? input) => input;
 
         public async Task<Result> ApplyAsync(ToolStep step, IProgress<double>? progress, CancellationToken cancellationToken)
         {

@@ -1,22 +1,28 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Kumquat contributors
 
-using System.IO.Compression;
 using Kumquat.Core.Results;
+using SharpCompress.Archives;
+using SharpCompress.Common;
+using SharpCompress.Readers;
 
 namespace Kumquat.Infrastructure.Files;
 
 /// <summary>
-/// Extrae ZIP sin Zip Slip (rutas que escapan de la carpeta destino) ni bombas de
-/// descompresión. Es el único extractor permitido (ver BannedSymbols.txt).
+/// Extrae ZIP, RAR, 7z, TAR y GZIP sin Zip Slip (rutas que escapan de la carpeta destino) ni
+/// bombas de descompresión. Es el único extractor permitido (ver BannedSymbols.txt).
 /// </summary>
 public static class SafeExtractor
 {
     /// <summary>Extrae un ZIP a una carpeta nueva o vacía.</summary>
-    /// <returns>Lista de archivos extraídos, o un error si el archivo es peligroso.</returns>
-    public static async Task<Result<IReadOnlyList<string>>> ExtractZipAsync(string zipPath, string destination, ExtractionLimits? limits, CancellationToken cancellationToken)
+    public static Task<Result<IReadOnlyList<string>>> ExtractZipAsync(string zipPath, string destination, ExtractionLimits? limits, CancellationToken cancellationToken)
+        => ExtractAsync(zipPath, destination, limits, cancellationToken);
+
+    /// <summary>Extrae cualquier archivo comprimido soportado a una carpeta nueva o vacía.</summary>
+    /// <returns>Lista de archivos extraídos, o un error si el archivo es peligroso o está dañado.</returns>
+    public static async Task<Result<IReadOnlyList<string>>> ExtractAsync(string archivePath, string destination, ExtractionLimits? limits, CancellationToken cancellationToken)
     {
-        ArgumentException.ThrowIfNullOrEmpty(zipPath);
+        ArgumentException.ThrowIfNullOrEmpty(archivePath);
         ArgumentException.ThrowIfNullOrEmpty(destination);
         limits ??= ExtractionLimits.Default;
 
@@ -24,29 +30,96 @@ public static class SafeExtractor
         var rootWithSeparator = Path.EndsInDirectorySeparator(root) ? root : root + Path.DirectorySeparatorChar;
         Directory.CreateDirectory(root);
 
-        using var archive = await ZipFile.OpenReadAsync(zipPath, cancellationToken);
-        var check = Validate(archive, rootWithSeparator, limits);
-        if (!check.IsSuccess)
+        try
         {
-            return check.Error;
+            if (!IsGzip(archivePath))
+            {
+                return await ExtractArchiveAsync(archivePath, rootWithSeparator, limits, cancellationToken);
+            }
+
+            // GZIP comprime un solo archivo; si es un TAR (.tar.gz / .tgz) se desempaqueta también.
+            // Se reconoce el TAR por su firma "ustar": GZipStream de .NET no guarda el nombre.
+            var single = await GunzipAsync(archivePath, rootWithSeparator, limits, cancellationToken);
+            if (!single.IsSuccess || !IsTar(single.Value))
+            {
+                return single.IsSuccess ? new[] { single.Value } : single.Error;
+            }
+
+            var inner = await ExtractArchiveAsync(single.Value, rootWithSeparator, limits, cancellationToken);
+            File.Delete(single.Value);
+            return inner;
+        }
+        catch (ArchiveOperationException)
+        {
+            return new Error("archive-invalid", "El archivo comprimido está dañado o no es de un formato soportado.");
+        }
+        catch (InvalidDataException)
+        {
+            return new Error("archive-invalid", "El archivo comprimido está dañado.");
+        }
+        catch (InvalidFormatException)
+        {
+            return new Error("archive-invalid", "El archivo comprimido está dañado o no es de un formato soportado.");
+        }
+        catch (CryptographicException)
+        {
+            return new Error("archive-encrypted", "El archivo comprimido está protegido con contraseña.");
+        }
+    }
+
+    /// <summary>Descomprime un GZIP a un único archivo (nombre: el del .gz sin extensión), contando bytes reales.</summary>
+    private static async Task<Result<string>> GunzipAsync(string archivePath, string rootWithSeparator, ExtractionLimits limits, CancellationToken cancellationToken)
+    {
+        var name = Path.GetFileNameWithoutExtension(archivePath);
+        var target = Path.Combine(rootWithSeparator, string.IsNullOrEmpty(name) ? "archivo" : name);
+        var compressedLength = Math.Max(1, new FileInfo(archivePath).Length);
+
+        await using var input = new FileStream(archivePath, FileMode.Open, FileAccess.Read, FileShare.Read, 81920, useAsync: true);
+        await using var gzip = new System.IO.Compression.GZipStream(input, System.IO.Compression.CompressionMode.Decompress);
+        await using var output = new FileStream(target, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, useAsync: true);
+        var buffer = new byte[81920];
+        long total = 0;
+        int read;
+        while ((read = await gzip.ReadAsync(buffer, cancellationToken)) > 0)
+        {
+            total += read;
+            if (total > limits.MaxTotalBytes || (total > 64 * 1024 * 1024 && (double)total / compressedLength > limits.MaxCompressionRatio))
+            {
+                return new Error(total > limits.MaxTotalBytes ? "archive-too-large" : "archive-bomb", "El archivo comprimido se expande de forma sospechosa.");
+            }
+
+            await output.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
+        }
+
+        // Un GZIP truncado puede "terminar" sin datos en vez de fallar.
+        return total == 0 ? new Error("archive-invalid", "El archivo comprimido está vacío o dañado.") : target;
+    }
+
+    private static async Task<Result<IReadOnlyList<string>>> ExtractArchiveAsync(string archivePath, string rootWithSeparator, ExtractionLimits limits, CancellationToken cancellationToken)
+    {
+        using var archive = ArchiveFactory.OpenArchive(archivePath, new ReaderOptions());
+        var plan = Validate([.. archive.Entries], rootWithSeparator, limits, Path.GetFileNameWithoutExtension(archivePath));
+        if (!plan.IsSuccess)
+        {
+            return plan.Error;
         }
 
         var written = new List<string>();
         long total = 0;
-        foreach (var (entry, target) in check.Value)
+        var buffer = new byte[81920];
+        foreach (var (entry, target) in plan.Value)
         {
-            if (target.EndsWith(Path.DirectorySeparatorChar))
+            if (entry.IsDirectory)
             {
                 Directory.CreateDirectory(target);
                 continue;
             }
 
             Directory.CreateDirectory(Path.GetDirectoryName(target)!);
-            await using var input = await entry.OpenAsync(cancellationToken);
+            await using var input = await entry.OpenEntryStreamAsync(cancellationToken);
             await using var output = new FileStream(target, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, useAsync: true);
 
             // El tamaño declarado en la cabecera puede mentir: se cuenta lo realmente escrito.
-            var buffer = new byte[81920];
             int read;
             while ((read = await input.ReadAsync(buffer, cancellationToken)) > 0)
             {
@@ -65,37 +138,54 @@ public static class SafeExtractor
         return written;
     }
 
-    private static Result<List<(ZipArchiveEntry Entry, string Target)>> Validate(ZipArchive archive, string rootWithSeparator, ExtractionLimits limits)
+    private static Result<List<(IArchiveEntry Entry, string Target)>> Validate(IReadOnlyList<IArchiveEntry> entries, string rootWithSeparator, ExtractionLimits limits, string fallbackName)
     {
-        if (archive.Entries.Count > limits.MaxEntries)
+        if (entries.Count > limits.MaxEntries)
         {
             return new Error("archive-too-many-entries", $"El archivo tiene más de {limits.MaxEntries} entradas.");
         }
 
-        var plan = new List<(ZipArchiveEntry, string)>(archive.Entries.Count);
+        var plan = new List<(IArchiveEntry, string)>(entries.Count);
         long declaredTotal = 0;
-        foreach (var entry in archive.Entries)
+        foreach (var entry in entries)
         {
-            var target = Path.GetFullPath(Path.Combine(rootWithSeparator, entry.FullName.Replace('/', Path.DirectorySeparatorChar)));
+            // GZIP simple no guarda nombre: se usa el del archivo sin ".gz".
+            var key = string.IsNullOrEmpty(entry.Key) ? fallbackName : entry.Key;
+            var target = Path.GetFullPath(Path.Combine(rootWithSeparator, key.Replace('/', Path.DirectorySeparatorChar)));
             if (!target.StartsWith(rootWithSeparator, StringComparison.OrdinalIgnoreCase))
             {
-                return new Error("archive-path-traversal", $"La entrada '{entry.FullName}' intenta escribir fuera de la carpeta destino.");
+                return new Error("archive-path-traversal", $"La entrada '{key}' intenta escribir fuera de la carpeta destino.");
             }
 
-            declaredTotal += entry.Length;
+            declaredTotal += Math.Max(0, entry.Size);
             if (declaredTotal > limits.MaxTotalBytes)
             {
                 return new Error("archive-too-large", "El archivo comprimido supera el tamaño máximo permitido.");
             }
 
-            if (entry.CompressedLength > 0 && (double)entry.Length / entry.CompressedLength > limits.MaxCompressionRatio)
+            // En archivos sólidos (7z) el tamaño comprimido por entrada no existe (0): no se puede medir la razón.
+            if (entry.CompressedSize > 0 && (double)entry.Size / entry.CompressedSize > limits.MaxCompressionRatio)
             {
-                return new Error("archive-bomb", $"La entrada '{entry.FullName}' tiene una razón de compresión sospechosa.");
+                return new Error("archive-bomb", $"La entrada '{key}' tiene una razón de compresión sospechosa.");
             }
 
             plan.Add((entry, target));
         }
 
         return plan;
+    }
+
+    private static bool IsTar(string path)
+    {
+        Span<byte> header = stackalloc byte[262];
+        using var stream = File.OpenRead(path);
+        return stream.ReadAtLeast(header, header.Length, throwOnEndOfStream: false) == header.Length && header[257..262].SequenceEqual("ustar"u8);
+    }
+
+    private static bool IsGzip(string path)
+    {
+        Span<byte> magic = stackalloc byte[2];
+        using var stream = File.OpenRead(path);
+        return stream.Read(magic) == 2 && magic[0] == 0x1F && magic[1] == 0x8B;
     }
 }

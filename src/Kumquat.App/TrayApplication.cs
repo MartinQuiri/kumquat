@@ -6,8 +6,10 @@ using Kumquat.Core.Conversion;
 using Kumquat.Core.Jobs;
 using Kumquat.Core.Tools;
 using Kumquat.Hosting;
+using Kumquat.Infrastructure.Files;
 using Kumquat.Interaction;
 using Kumquat.Interaction.Input;
+using Kumquat.Interaction.Native;
 using Kumquat.Interaction.Tray;
 using Kumquat.Interaction.Wheel;
 using Microsoft.Extensions.DependencyInjection;
@@ -72,7 +74,11 @@ internal sealed partial class TrayApplication : IDisposable
                 Enqueue(files.Select(f => _conversions.CreateJob(new ConversionRequest(f, item.Target!))), "convertido", $"a {item.Label}", item.Id);
                 break;
             case WheelRingKind.Tools:
-                Enqueue(files.Select(f => _tools.CreateJob(f, item.Id)), "listo", $"({item.Label})", item.Id);
+                Enqueue(_tools.CreateJobs(files, item.Id), "listo", $"({item.Label})", item.Id);
+                break;
+            case WheelRingKind.Actions when item.Id is FileActions.CopyTo or FileActions.MoveTo:
+                // Fuera del Drop: un diálogo modal dentro del Drop congelaría el arrastre del Explorador.
+                _ui.Post(() => TransferTo(files, move: string.Equals(item.Id, FileActions.MoveTo, StringComparison.Ordinal)));
                 break;
             case WheelRingKind.Actions:
                 if (FileActions.Execute(item.Id, files) is { } message)
@@ -83,6 +89,21 @@ internal sealed partial class TrayApplication : IDisposable
                 LogEnqueued(files.Count, item.Id);
                 break;
         }
+    }
+
+    private void TransferTo(IReadOnlyList<string> files, bool move)
+    {
+        var folder = FolderPicker.PickFolder(move ? "Mover a…" : "Copiar a…", move ? "Mover aquí" : "Copiar aquí");
+        if (folder is null)
+        {
+            return;
+        }
+
+        var jobs = files.Select(f => new JobRequest(
+            f,
+            move ? "Mover" : "Copiar",
+            (_, ct) => move ? FileTransfer.MoveAsync(f, folder, ct) : FileTransfer.CopyAsync(f, folder, ct)));
+        Enqueue(jobs, move ? "movido" : "copiado", $"a {Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar))}", move ? FileActions.MoveTo : FileActions.CopyTo);
     }
 
     private void Enqueue(IEnumerable<JobRequest> jobs, string verb, string detail, string id)

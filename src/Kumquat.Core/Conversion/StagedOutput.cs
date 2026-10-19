@@ -64,6 +64,83 @@ internal static class StagedOutput
         }
     }
 
+    /// <summary>
+    /// Igual que <see cref="RunAsync"/> pero la salida es una carpeta (p. ej. las páginas de un PDF):
+    /// se llena una carpeta oculta y se publica con un <c>Directory.Move</c> atómico.
+    /// </summary>
+    public static async Task<Result<string>> RunDirectoryAsync(
+        string inputPath,
+        string directory,
+        string? suffix,
+        Func<string, Task<Result>> produce,
+        CancellationToken cancellationToken)
+    {
+        var staging = Path.Combine(directory, string.Create(CultureInfo.InvariantCulture, $".kumquat-{Guid.NewGuid():N}"));
+        Directory.CreateDirectory(staging);
+        try
+        {
+            var result = await produce(staging);
+            if (!result.IsSuccess)
+            {
+                return result.Error;
+            }
+
+            if (!Directory.EnumerateFileSystemEntries(staging).Any())
+            {
+                return new Error("no-output", "La herramienta terminó sin producir archivos.");
+            }
+
+            for (var attempt = 0; ; attempt++)
+            {
+                var finalPath = OutputNaming.ChooseDirectoryPath(inputPath, suffix, p => Directory.Exists(p) || File.Exists(p), directory);
+                try
+                {
+                    Directory.Move(staging, finalPath);
+                    return finalPath;
+                }
+                catch (IOException) when (attempt < 5 && (Directory.Exists(finalPath) || File.Exists(finalPath)))
+                {
+                    // Carrera por el nombre: reintentar.
+                }
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return Error.Cancelled;
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return new Error("access-denied", ex.Message);
+        }
+        catch (IOException ex)
+        {
+            return new Error("io", ex.Message);
+        }
+        finally
+        {
+            TryDeleteDirectory(staging);
+        }
+    }
+
+    private static void TryDeleteDirectory(string path)
+    {
+        try
+        {
+            if (Directory.Exists(path))
+            {
+                Directory.Delete(path, recursive: true);
+            }
+        }
+        catch (IOException)
+        {
+            // Mejor esfuerzo: la carpeta oculta .kumquat-* queda y se limpia en el próximo arranque.
+        }
+        catch (UnauthorizedAccessException)
+        {
+            // Idem.
+        }
+    }
+
     private static string Publish(string stagingPath, string inputPath, FileFormat target, string directory, string? suffix)
     {
         // Mover dentro del mismo volumen es atómico; si otro proceso tomó el nombre entre

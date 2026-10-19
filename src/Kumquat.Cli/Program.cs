@@ -70,7 +70,7 @@ switch (command.Name)
         foreach (var file in command.Files)
         {
             var format = FormatSniffer.DetectFile(file);
-            var tools = format is null ? [] : toolService.ToolsFor([format]).Select(t => $"{t.Id} ({t.Label})");
+            var tools = format is null ? [] : toolService.ToolsForFormats([format]).Select(t => $"{t.Id} ({t.Label})");
             Console.WriteLine($"{file} ({format?.Id ?? "desconocido"}): {string.Join(", ", tools)}");
         }
 
@@ -121,10 +121,13 @@ return failures == 0 ? 0 : 1;
 
 static async Task<int> ApplyToolAsync(ToolService tools, string toolId, IReadOnlyList<string> files)
 {
+    // Las herramientas que combinan (unir, ZIP) reciben todos los archivos juntos; el resto, uno a uno.
+    var batches = tools.Find(toolId)?.Mode == ToolMode.Combine ? [files] : files.Select(f => (IReadOnlyList<string>)[f]).ToList();
     var failed = 0;
-    foreach (var file in files)
+    foreach (var batch in batches)
     {
-        var result = await tools.ApplyAsync(file, toolId, new ConsoleProgress(Path.GetFileName(file)), CancellationToken.None);
+        var file = batch[0];
+        var result = await tools.ApplyAsync(batch, toolId, new ConsoleProgress(Path.GetFileName(file)), CancellationToken.None);
         await Console.Error.WriteAsync("\r" + new string(' ', 60) + "\r");
         if (result.IsSuccess)
         {

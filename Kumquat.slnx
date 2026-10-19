@@ -7,7 +7,9 @@
     <Project Path="src/Kumquat.App/Kumquat.App.csproj" />
     <Project Path="src/Kumquat.Cli/Kumquat.Cli.csproj" />
     <Project Path="src/Kumquat.Core/Kumquat.Core.csproj" />
+    <Project Path="src/Kumquat.Engines.Archives/Kumquat.Engines.Archives.csproj" />
     <Project Path="src/Kumquat.Engines.FFmpeg/Kumquat.Engines.FFmpeg.csproj" />
+    <Project Path="src/Kumquat.Engines.Pdf/Kumquat.Engines.Pdf.csproj" />
     <Project Path="src/Kumquat.Engines.Vips/Kumquat.Engines.Vips.csproj" />
     <Project Path="src/Kumquat.Hosting/Kumquat.Hosting.csproj" />
     <Project Path="src/Kumquat.Infrastructure/Kumquat.Infrastructure.csproj" />

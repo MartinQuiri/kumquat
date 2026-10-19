@@ -58,6 +58,47 @@ public static class OutputNaming
         throw new IOException($"No se encontró un nombre libre para '{stem}{target.DefaultExtension}'.");
     }
 
+    /// <summary>Carpeta de salida libre junto al origen: <c>informe (páginas)</c>, <c>informe (páginas) (2)</c>...</summary>
+    /// <param name="inputPath">Archivo de origen.</param>
+    /// <param name="suffix">Sufijo; vacío = solo el nombre del origen (p. ej. al extraer un ZIP).</param>
+    /// <param name="exists">Predicado de existencia (archivo o carpeta).</param>
+    /// <param name="outputDirectory">Carpeta contenedora; por defecto la del origen.</param>
+    public static string ChooseDirectoryPath(string inputPath, string? suffix, Func<string, bool> exists, string? outputDirectory = null)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(inputPath);
+        ArgumentNullException.ThrowIfNull(exists);
+
+        var parent = outputDirectory ?? Path.GetDirectoryName(Path.GetFullPath(inputPath))
+            ?? throw new ArgumentException("La ruta de entrada no tiene carpeta.", nameof(inputPath));
+        var stem = Path.GetFileNameWithoutExtension(Path.TrimEndingDirectorySeparator(inputPath));
+        if (stem.Length == 0)
+        {
+            stem = "kumquat";
+        }
+
+        if (!string.IsNullOrWhiteSpace(suffix))
+        {
+            stem = $"{stem} ({suffix})";
+        }
+
+        var candidate = Path.Combine(parent, stem);
+        if (!exists(candidate))
+        {
+            return candidate;
+        }
+
+        for (var n = 2; n < MaxAttempts; n++)
+        {
+            candidate = Path.Combine(parent, string.Create(CultureInfo.InvariantCulture, $"{stem} ({n})"));
+            if (!exists(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        throw new IOException($"No se encontró un nombre libre para la carpeta '{stem}'.");
+    }
+
     private static bool SamePath(string a, string b)
         => string.Equals(Path.GetFullPath(a), Path.GetFullPath(b), StringComparison.OrdinalIgnoreCase);
 }
