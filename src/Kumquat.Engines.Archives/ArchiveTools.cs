@@ -20,7 +20,7 @@ public static class ArchiveTools
     {
         public string Id => "archive.zip";
 
-        public string Label => "Comprimir en ZIP";
+        public string Label => "Crear ZIP";
 
         public string OutputSuffix => string.Empty;
 

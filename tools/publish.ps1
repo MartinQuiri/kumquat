@@ -46,7 +46,7 @@ if ($Runtime -eq "win-$($env:PROCESSOR_ARCHITECTURE.ToLowerInvariant() -replace 
     Write-Host "[ok] Kumquat.exe arranca"
 
     $engines = & (Join-Path $cliOut 'kumquat-cli.exe') engines
-    if ($engines -notmatch 'ffmpeg=ok' -or $engines -notmatch 'vips=ok') { throw "Motores no disponibles en la publicación: $engines" }
+    if ($engines -notmatch 'ffmpeg=ok' -or $engines -notmatch 'vips=ok' -or $engines -notmatch 'tesseract=ok') { throw "Motores no disponibles en la publicación: $engines" }
     Write-Host "[ok] $engines"
 }
 

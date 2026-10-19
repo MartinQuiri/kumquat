@@ -26,6 +26,17 @@ New-Item -ItemType Directory -Force -Path $cache | Out-Null
 foreach ($engine in $manifest.engines) {
     if ($Only.Count -gt 0 -and $Only -notcontains $engine.id) { continue }
 
+    # Motores que se compilan desde el código fuente (sin binarios oficiales): su propio script.
+    if ($engine.build) {
+        $built = Join-Path $repo "engines/$($engine.id)/$Runtime/.version"
+        if ((Test-Path $built) -and ((Get-Content -Raw $built).Trim() -eq "$($engine.version) $($engine.recipe)")) {
+            Write-Host "[ok] $($engine.id) $($engine.version) ($Runtime) ya está compilado."
+        } else {
+            & (Join-Path $repo $engine.build) -Runtime $Runtime
+        }
+        continue
+    }
+
     $artifact = $engine.artifacts.$Runtime
     if ($null -eq $artifact) { throw "El motor '$($engine.id)' no tiene artefacto para $Runtime." }
 

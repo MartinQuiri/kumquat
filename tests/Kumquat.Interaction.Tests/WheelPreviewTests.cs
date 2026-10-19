@@ -30,7 +30,8 @@ public sealed class WheelPreviewTests
         (string Id, string Label)[] tools =
         [
             ("pdf.merge", "Unir PDF"), ("pdf.compress", "Comprimir"), ("pdf.rotate", "Rotar 90°"), ("pdf.split", "Dividir páginas"), ("pdf.to-jpg", "Páginas a JPG"),
-            ("pdf.extract", "Extraer páginas"), ("pdf.protect", "Proteger"), ("pdf.unlock", "Desbloquear"), ("pdf.metadata", "Metadatos"), ("archive.zip", "Comprimir en ZIP"),
+            ("pdf.extract", "Extraer páginas"), ("pdf.protect", "Proteger"), ("pdf.unlock", "Desbloquear"), ("pdf.metadata", "Metadatos"), ("pdf.ocr", "Reconocer texto"),
+            ("archive.zip", "Crear ZIP"),
         ];
         var state = new WheelVisualState(
         [

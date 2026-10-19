@@ -18,7 +18,7 @@ namespace Kumquat.Engines.Tests.Integration;
 [Trait("Category", "Integration")]
 public sealed class ToolTests : IDisposable
 {
-    /// <summary>"Comprimir en ZIP" sirve para todo: se prueba con una muestra por familia, no con los 46 formatos.</summary>
+    /// <summary>"Crear ZIP" sirve para todo: se prueba con una muestra por familia, no con los 46 formatos.</summary>
     private static readonly FileFormat[] ZipSamples = [KnownFormats.Png, KnownFormats.Pdf, KnownFormats.Mp3, KnownFormats.Txt];
 
     private static readonly IReadOnlyList<ITool> Tools =

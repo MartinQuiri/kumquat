@@ -62,7 +62,7 @@ Las conversiones de varios pasos se planifican solas (p. ej. HEIC → JPG → PD
 | Audio | Normalizar · **Recortar** · **Metadatos** · Unir audios (varios) |
 | Word, Excel, PowerPoint | **Metadatos** |
 | Comprimidos | Extraer (ZIP, RAR, 7z, TAR, GZIP) |
-| Todo, incluidas carpetas | Comprimir en ZIP |
+| Todo, incluidas carpetas | Crear ZIP |
 
 Las herramientas en **negrita** abren una ventana de opciones (vidrio acrílico de Windows 11) con los valores actuales del archivo ya cargados y **vista previa**:
 

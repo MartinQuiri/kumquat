@@ -56,7 +56,7 @@ public sealed class MupdfConverter : IConverter
         // Un PDF escaneado (solo imágenes) daría un TXT vacío: mejor decirlo.
         if (result.IsSuccess && toText && string.IsNullOrWhiteSpace(await File.ReadAllTextAsync(step.OutputPath, cancellationToken)))
         {
-            return new Error("no-text", "El documento no contiene texto seleccionable (¿es un escaneo? necesitarías OCR).");
+            return new Error("no-text", "El documento no tiene texto seleccionable: parece un escaneo. Usa «Reconocer texto» en la rueda y conviértelo después.");
         }
 
         return result;

@@ -23,6 +23,11 @@ public sealed class ArquitecturaTests
             var headers = reader.PEHeaders;
             var name = Path.GetFileName(path);
             headers.CorHeader.ShouldNotBeNull(name);
+            if (headers.CorHeader.EntryPointTokenOrRelativeVirtualAddress != 0)
+            {
+                continue; // ejecutable (app, CLI, tests): ese sí elige arquitectura
+            }
+
             headers.CoffHeader.Machine.ShouldBe(Machine.I386, $"{name} está compilada para una arquitectura concreta");
             headers.CorHeader.Flags.HasFlag(CorFlags.ILOnly).ShouldBeTrue(name);
             headers.CorHeader.Flags.HasFlag(CorFlags.Requires32Bit).ShouldBeFalse(name);

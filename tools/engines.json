@@ -61,6 +61,22 @@
           "stripPrefix": "mupdf-1.28.5-windows"
         }
       }
+    },
+    {
+      "id": "tesseract",
+      "$comment": "Sin binarios oficiales para Windows: se compila desde el código fuente con tools/build-tesseract.ps1 (vcpkg, baseline fijado). Los modelos se verifican por hash.",
+      "version": "5.5.3",
+      "license": "Apache-2.0",
+      "homepage": "https://github.com/tesseract-ocr/tesseract",
+      "source": "https://github.com/tesseract-ocr/tesseract/tree/5.5.3",
+      "build": "tools/build-tesseract.ps1",
+      "recipe": "vcpkg 664933b8d385dfc01f4e0cdff4c7c74e71f6a740",
+      "modelsSource": "https://github.com/tesseract-ocr/tessdata_best/tree/e12c65a915945e4c28e237a9b52bc4a8f39a0cec",
+      "models": [
+        { "language": "spa", "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_best/e12c65a915945e4c28e237a9b52bc4a8f39a0cec/spa.traineddata", "sha256": "e2c1ffdad8b30f26c45d4017a9183d3a7f9aa69e59918be4f88b126fac99ab2c" },
+        { "language": "eng", "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_best/e12c65a915945e4c28e237a9b52bc4a8f39a0cec/eng.traineddata", "sha256": "8280aed0782fe27257a68ea10fe7ef324ca0f8d85bd2fd145d1c2b560bcb66ba" },
+        { "language": "osd", "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_best/e12c65a915945e4c28e237a9b52bc4a8f39a0cec/osd.traineddata", "sha256": "9cf5d576fcc47564f11265841e5ca839001e7e6f38ff7f7aacf46d15a96b00ff" }
+      ]
     }
   ]
 }
