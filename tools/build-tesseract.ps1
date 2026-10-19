@@ -44,6 +44,10 @@ if (Test-Path $target) { Remove-Item $target -Recurse -Force }
 New-Item -ItemType Directory -Force "$target\bin", "$target\tessdata", "$target\licenses" | Out-Null
 Copy-Item $exe "$target\bin\tesseract.exe"
 
+# Los formatos de salida ("txt", "pdf") son archivos de configuración de tessdata: sin "configs/pdf"
+# Tesseract responde "Can't open pdf". (La fuente invisible del PDF viene dentro del ejecutable.)
+Copy-Item (Join-Path $installed 'share\tessdata\configs') "$target\tessdata\configs" -Recurse
+
 # Licencias de Tesseract y de cada biblioteca enlazada estáticamente.
 Get-ChildItem (Join-Path $installed 'share') -Directory | ForEach-Object {
     $copyright = Join-Path $_.FullName 'copyright'
@@ -66,6 +70,8 @@ Modelos: tessdata_best ($($engine.modelsSource)), Apache-2.0.
 Bibliotecas incluidas y sus licencias: carpeta licenses/.
 "@
 
-Set-Content -NoNewline "$target\.version" "$($engine.version) $($engine.recipe)"
+# Marca de versión (fetch-engines la compara para no recompilar). Set-Content -NoNewline no la
+# escribía en Windows PowerShell 5.1, sin error: se escribe con .NET.
+[System.IO.File]::WriteAllText("$target\.version", "$($engine.version) $($engine.recipe)")
 & "$target\bin\tesseract.exe" --version | Select-Object -First 1
 Write-Host "[ok] Tesseract listo en $target"

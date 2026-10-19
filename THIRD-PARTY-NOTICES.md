@@ -10,6 +10,10 @@ Kumquat (GPL-3.0-or-later) usa los siguientes componentes. Sus licencias se resp
 
 | qpdf | 12.4.2 | Apache-2.0 | https://github.com/qpdf/qpdf/tree/v12.4.2 |
 | MuPDF (mutool) | 1.28.5 | AGPL-3.0-or-later (compatible con GPL-3.0, sección 13) | https://mupdf.com/downloads/archive/mupdf-1.28.5-source.tar.gz |
+| Tesseract (compilado por Kumquat, estático) | 5.5.3 | Apache-2.0 | https://github.com/tesseract-ocr/tesseract/tree/5.5.3 · receta: `tools/ocr/vcpkg.json` + `tools/build-tesseract.ps1` |
+| Modelos tessdata_best (español, inglés) | commit e12c65a | Apache-2.0 | https://github.com/tesseract-ocr/tessdata_best |
+
+Tesseract incluye, enlazadas estáticamente, Leptonica 1.87 (BSD-2-Clause), libjpeg-turbo (IJG/BSD-3-Clause/Zlib), libpng y libspng (libpng-2.0/BSD-2-Clause), libtiff (libtiff), libwebp (BSD-3-Clause), OpenJPEG (BSD-2-Clause), giflib (MIT), zlib (Zlib), libarchive (BSD-2-Clause), bzip2, liblzma (0BSD), lz4 (BSD-2-Clause), zstd (BSD-3-Clause), curl (curl) y OpenSSL (Apache-2.0). El texto de cada licencia va en `engines/tesseract/licenses/`. Kumquat solo le pasa a Tesseract rutas locales que crea él mismo: nunca lee URLs.
 
 Cada instalación del motor incluye un `SOURCE.txt` con su versión, licencia y enlace al código fuente.
 
