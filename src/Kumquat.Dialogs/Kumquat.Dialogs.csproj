@@ -4,8 +4,6 @@
     <!-- WPF0001: ThemeMode (tema Fluent de Windows 11) sigue marcado como experimental en WPF. -->
     <NoWarn>$(NoWarn);WPF0001</NoWarn>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <!-- El SDK de WPF deriva la arquitectura del último RID (win-arm64): esta librería es IL puro. -->
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Kumquat.Core\Kumquat.Core.csproj" />

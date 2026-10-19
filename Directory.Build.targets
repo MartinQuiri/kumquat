@@ -1,0 +1,9 @@
+<Project>
+  <!-- Las librerías son IL puro (AnyCPU) siempre: la arquitectura la decide el ejecutable (app, CLI,
+       tests). Si no, compilar la solución o un proyecto dejaba variantes mezcladas en la carpeta de
+       salida compartida, y una librería ARM64 no carga en un proceso x64. Lo vigila ArquitecturaTests.
+       Va aquí (no en Directory.Build.props) porque recién aquí se conoce OutputType. -->
+  <PropertyGroup Condition="'$(OutputType)' == 'Library'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+</Project>
