@@ -236,6 +236,12 @@ internal sealed class MediaPreview : Grid, IDisposable
         {
             // Pausa o ventana cerrada.
         }
+#pragma warning disable CA1031 // Límite de una tarea de UI: se registra y la ventana vuelve a "reproducir".
+        catch (Exception ex) when (DialogDiagnostics.IsRecoverable(ex))
+#pragma warning restore CA1031
+        {
+            DialogDiagnostics.Report("reproducir la vista previa", ex);
+        }
         finally
         {
             _playing = null;
@@ -340,6 +346,12 @@ internal sealed class MediaPreview : Grid, IDisposable
         catch (OperationCanceledException)
         {
             // Ventana cerrada.
+        }
+#pragma warning disable CA1031 // Límite de una tarea de UI: se registra; queda el último fotograma mostrado.
+        catch (Exception ex) when (DialogDiagnostics.IsRecoverable(ex))
+#pragma warning restore CA1031
+        {
+            DialogDiagnostics.Report("leer un fotograma", ex);
         }
         finally
         {
