@@ -146,6 +146,34 @@ public sealed class WheelSessionTests
     }
 
     [Fact]
+    public void ConBuscador_ElAtajoYElMenuLoAbren_NoLaRueda()
+    {
+        var opened = new List<IReadOnlyList<string>>();
+        _session.KeyboardPicker = opened.Add;
+        _session.Selection = () => Files;
+
+        _session.OnHotkey();
+        _session.OnPathRequested(Files[0]);
+        _session.OnTimer(WheelSession.RequestTimerId);
+
+        opened.Count.ShouldBe(2);
+        opened.ShouldAllBe(files => files.SequenceEqual(Files));
+        _surface.IsShown.ShouldBeFalse("la rueda queda para arrastrar con el mouse");
+        _session.InClickMode.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void ConBuscador_ElArrastreSigueUsandoLaRueda()
+    {
+        _session.KeyboardPicker = _ => throw new InvalidOperationException("el arrastre no abre el buscador");
+        _session.OnSignal(GestureSignal.Trigger, Center);
+        _session.OnDragEnter(Files, NorthOfInnerRing);
+        _session.OnDrop(Files, NorthOfInnerRing);
+
+        _chosen.ShouldHaveSingleItem();
+    }
+
+    [Fact]
     public void ModoClic_ClicEnElCentroOEscape_CierraSinElegir()
     {
         _session.Selection = () => Files;

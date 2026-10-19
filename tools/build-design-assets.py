@@ -60,6 +60,8 @@ ICONS = {
     "warning": "warning-circle",
     "archive": "file-zip",
     "subtitle": "subtitles",
+    "search": "magnifying-glass",
+    "settings": "gear-six",
     "play": "play",
     "pause": "pause",
     "close": "x",

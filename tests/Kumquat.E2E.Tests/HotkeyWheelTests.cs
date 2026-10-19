@@ -8,18 +8,16 @@ using Kumquat.Core.Formats;
 namespace Kumquat.E2E.Tests;
 
 /// <summary>
-/// Sin arrastrar: archivo seleccionado en el Explorador → Ctrl+Alt+K → clic en un sector. Mueve el
+/// Sin arrastrar: archivo seleccionado en el Explorador → Ctrl+Alt+K → buscador → "jpg" + Enter. Mueve el
 /// mouse y presiona teclas reales: requiere escritorio interactivo y no corre en CI.
 /// </summary>
 [Trait("Category", "E2E")]
 public sealed class HotkeyWheelTests : IDisposable
 {
-    /// <summary>Mitad del anillo de conversión: centro de 34 DIP + medio anillo de 56 (WheelRenderer).</summary>
-    private const float LabelRadiusDip = 34 + (56 / 2f);
-
     private const ushort VkControl = 0x11;
     private const ushort VkAlt = 0x12;
     private const ushort VkK = 0x4B;
+    private const ushort VkEnter = 0x0D;
 
     private readonly string _dir = Directory.CreateTempSubdirectory("kumquat-atajo-").FullName;
     private Process? _app;
@@ -46,7 +44,7 @@ public sealed class HotkeyWheelTests : IDisposable
     }
 
     [Fact]
-    public async Task SeleccionarPng_CtrlAltK_ClicEnElNorte_CreaJpg()
+    public async Task SeleccionarPng_CtrlAltK_EscribirJpgYEnter_CreaJpg()
     {
         Assert.SkipUnless(Environment.UserInteractive && Environment.GetEnvironmentVariable("CI") is null, "Requiere un escritorio interactivo.");
         var png = CreatePng(Path.Combine(_dir, "atajo.png"));
@@ -61,8 +59,16 @@ public sealed class HotkeyWheelTests : IDisposable
         await SelectAsync(explorer, png);
 
         SyntheticInput.PressChord(VkControl, VkAlt, VkK);
-        await Task.Delay(800, TestContext.Current.CancellationToken);
-        await ClickNorthSectorAsync(cx, cy);
+        await Task.Delay(1200, TestContext.Current.CancellationToken); // aparece el buscador, con el foco
+
+        // Se escribe como una persona: el buscador tiene que estar al frente para recibirlo.
+        foreach (var key in "JPG")
+        {
+            SyntheticInput.PressChord(key);
+        }
+
+        await Task.Delay(300, TestContext.Current.CancellationToken);
+        SyntheticInput.PressChord(VkEnter);
 
         var expected = Path.Combine(_dir, "atajo.jpg");
         var watch = Stopwatch.StartNew();
@@ -74,6 +80,47 @@ public sealed class HotkeyWheelTests : IDisposable
         File.Exists(expected).ShouldBeTrue($"No apareció {expected}. Revisa %LOCALAPPDATA%\\Kumquat\\logs.");
         FormatSniffer.DetectFile(expected).ShouldBe(KnownFormats.Jpg);
         File.Exists(png).ShouldBeTrue("El original nunca debe moverse ni borrarse.");
+    }
+
+    [Fact]
+    public async Task MenuContextual_KumquatWheel_AbreElBuscador_EscribirJpgYEnter_CreaJpg()
+    {
+        Assert.SkipUnless(Environment.UserInteractive && Environment.GetEnvironmentVariable("CI") is null, "Requiere un escritorio interactivo.");
+        var png = CreatePng(Path.Combine(_dir, "menu.png"));
+        StartKumquat();
+        await Task.Delay(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
+        using var explorer = await ExplorerWindow.OpenSelectingAsync(png, TestContext.Current.CancellationToken);
+        await SelectAsync(explorer, png);
+
+        // Lo mismo que ejecuta el Explorador al elegir "Kumquat…": un segundo proceso que le pasa la
+        // ruta a la instancia en ejecución y sale.
+        var verb = Process.Start(new ProcessStartInfo(Path.Combine(AppContext.BaseDirectory, "Kumquat.exe")) { ArgumentList = { "--wheel", png }, UseShellExecute = false })!;
+        await verb.WaitForExitAsync(TestContext.Current.CancellationToken).WaitAsync(TimeSpan.FromSeconds(15), TestContext.Current.CancellationToken);
+        verb.ExitCode.ShouldBe(0);
+        verb.Dispose();
+        await Task.Delay(1200, TestContext.Current.CancellationToken); // junta pedidos 250 ms y abre el buscador
+
+        foreach (var key in "JPG")
+        {
+            SyntheticInput.PressChord(key);
+        }
+
+        await Task.Delay(300, TestContext.Current.CancellationToken);
+        SyntheticInput.PressChord(VkEnter);
+        await WaitForAsync(Path.Combine(_dir, "menu.jpg"));
+        File.Exists(png).ShouldBeTrue("El original nunca debe moverse ni borrarse.");
+    }
+
+    private static async Task WaitForAsync(string expected)
+    {
+        var watch = Stopwatch.StartNew();
+        while (!File.Exists(expected) && watch.Elapsed < TimeSpan.FromSeconds(30))
+        {
+            await Task.Delay(200, TestContext.Current.CancellationToken);
+        }
+
+        File.Exists(expected).ShouldBeTrue($@"No apareció {expected}. Revisa %LOCALAPPDATA%\Kumquat\logs.");
+        FormatSniffer.DetectFile(expected).ShouldBe(KnownFormats.Jpg);
     }
 
     private static string CreatePng(string path)
@@ -114,21 +161,6 @@ public sealed class HotkeyWheelTests : IDisposable
         }
 
         throw new ShouldAssertException($"El Explorador no quedó al frente con el archivo seleccionado: al frente '{ExplorerWindow.ForegroundDescription()}', selección [{string.Join(", ", seen)}]. Shell: {ExplorerWindow.LastDiagnostics}");
-    }
-
-    private static async Task ClickNorthSectorAsync(int cx, int cy)
-    {
-        var distance = LabelRadiusDip * SyntheticInput.DpiScaleAt(cx, cy);
-        for (var i = 1; i <= 12; i++)
-        {
-            SyntheticInput.MoveTo(cx, cy - (int)(distance * i / 12));
-            await Task.Delay(25, TestContext.Current.CancellationToken);
-        }
-
-        await Task.Delay(300, TestContext.Current.CancellationToken);
-        SyntheticInput.LeftDown();
-        await Task.Delay(60, TestContext.Current.CancellationToken);
-        SyntheticInput.LeftUp();
     }
 
     private void StartKumquat()

@@ -75,6 +75,12 @@ internal sealed class WheelSession
     /// <summary>Indica si una ruta existe (archivo o carpeta).</summary>
     public Func<string, bool> PathExists { get; set; } = path => File.Exists(path) || Directory.Exists(path);
 
+    /// <summary>
+    /// Elegir con el teclado (el buscador): si está, el atajo y el menú contextual lo abren con los
+    /// archivos en lugar de la rueda, que queda para el arrastre con el mouse.
+    /// </summary>
+    public Action<IReadOnlyList<string>>? KeyboardPicker { get; set; }
+
     /// <summary>Lo que se muestra ahora (pruebas y diagnóstico).</summary>
     public WheelVisualState State => _state;
 
@@ -222,6 +228,12 @@ internal sealed class WheelSession
 
     private void OpenForClick(IReadOnlyList<string> files)
     {
+        if (KeyboardPicker is { } picker)
+        {
+            picker(files);
+            return;
+        }
+
         _state = StateFor(files);
         var cursor = Cursor();
         _clickFiles = files;

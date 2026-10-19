@@ -76,6 +76,30 @@ internal sealed class WheelTargets(ConversionGraph graph, ToolService tools)
         return $"{label} · {size}";
     }
 
+    /// <summary>Ícono de la familia del primer archivo (o de carpeta).</summary>
+    public static string? CategoryIcon(IReadOnlyList<string> paths)
+    {
+        ArgumentNullException.ThrowIfNull(paths);
+        if (paths.Count == 0)
+        {
+            return null;
+        }
+
+        if (Directory.Exists(paths[0]))
+        {
+            return "show-in-folder";
+        }
+
+        try
+        {
+            return FormatSniffer.DetectFile(paths[0]) is { } format ? Kumquat.Design.Icons.ForCategory(format.Category) : null;
+        }
+        catch (IOException)
+        {
+            return null;
+        }
+    }
+
     private static string FormatName(string path)
     {
         var extension = Path.GetExtension(path).TrimStart('.').ToUpperInvariant();

@@ -27,7 +27,19 @@ public static unsafe partial class WheelRequests
     {
         ArgumentNullException.ThrowIfNull(paths);
         var window = FindWindowW(WheelWindow.ClassName, null);
-        return window != 0 && Send(window, paths);
+        if (window == 0)
+        {
+            return false;
+        }
+
+        // Este proceso lo lanzó el Explorador y puede pasar al frente; la instancia no: se le cede el
+        // permiso para que el buscador aparezca adelante y reciba lo que se escribe.
+        if (GetWindowThreadProcessId(window, out var processId) != 0)
+        {
+            _ = AllowSetForegroundWindow(processId);
+        }
+
+        return Send(window, paths);
     }
 
     /// <summary>Envía las rutas a una ventana concreta.</summary>
@@ -63,6 +75,13 @@ public static unsafe partial class WheelRequests
 
     [LibraryImport("user32.dll", StringMarshalling = StringMarshalling.Utf16)]
     private static partial nint FindWindowW(string className, string? windowName);
+
+    [LibraryImport("user32.dll")]
+    private static partial uint GetWindowThreadProcessId(nint window, out uint processId);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool AllowSetForegroundWindow(uint processId);
 
     [LibraryImport("user32.dll")]
     private static partial nint SendMessageTimeoutW(nint window, uint message, nint wParam, nint lParam, uint flags, uint timeoutMilliseconds, out nint result);
