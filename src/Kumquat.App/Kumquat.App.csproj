@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>Kumquat</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Arranque rápido del ícono de bandeja: código precompilado. -->
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <InvariantGlobalization>false</InvariantGlobalization>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Kumquat.Hosting\Kumquat.Hosting.csproj" />
+    <ProjectReference Include="..\Kumquat.Interaction\Kumquat.Interaction.csproj" />
+    <InternalsVisibleTo Include="Kumquat.Interaction.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Motores descargados por tools/fetch-engines.ps1: se copian junto al ejecutable. -->
+    <None Include="..\..\engines\ffmpeg\$(RuntimeIdentifier)\**\*" Condition="'$(RuntimeIdentifier)' != ''" Link="engines\ffmpeg\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

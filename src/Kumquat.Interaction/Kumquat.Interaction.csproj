@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Kumquat.Core\Kumquat.Core.csproj" />
+    <PackageReference Include="System.Drawing.Common" />
+    <InternalsVisibleTo Include="Kumquat.Interaction.Tests" />
+  </ItemGroup>
+</Project>
