@@ -3,8 +3,10 @@
 
 using Kumquat.Core.Conversion;
 using Kumquat.Engines.FFmpeg;
+using Kumquat.Engines.Pdf;
 using Kumquat.Engines.Vips;
 using Kumquat.Infrastructure.Engines;
+using Kumquat.Infrastructure.Files;
 using Kumquat.Infrastructure.Processes;
 
 namespace Kumquat.Engines.Tests.Integration;
@@ -17,7 +19,11 @@ internal static class TestEngines
     public static readonly FfmpegRunner FfmpegRunner = new(Runner, Locator);
     public static readonly FfmpegConverter Ffmpeg = new(FfmpegRunner);
     public static readonly VipsConverter Vips = new();
-    public static readonly IReadOnlyList<IConverter> All = [Ffmpeg, Vips];
+    public static readonly TempWorkspaceFactory Workspaces = new(TimeProvider.System);
+    public static readonly PdfEngines Pdf = new(Runner, Locator);
+    public static readonly ImagePdfBuilder ImagePdf = new(Pdf, Workspaces);
+    public static readonly MupdfConverter Mupdf = new(Pdf, ImagePdf);
+    public static readonly IReadOnlyList<IConverter> All = [Ffmpeg, Vips, Mupdf];
 
     public static string? FfmpegExe => Locator.Find("ffmpeg", Path.Combine("bin", "ffmpeg.exe"));
 

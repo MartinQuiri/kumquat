@@ -14,6 +14,8 @@ namespace Kumquat.App;
 internal static class FileActions
 {
     public const string CopyPath = "action.copy-path";
+    public const string CopyTo = "action.copy-to";
+    public const string MoveTo = "action.move-to";
     public const string ShowInFolder = "action.show-in-folder";
     public const string Terminal = "action.terminal";
 
@@ -21,6 +23,8 @@ internal static class FileActions
     public static IReadOnlyList<WheelItem> Items { get; } =
     [
         WheelItem.Action(CopyPath, "Copiar ruta"),
+        WheelItem.Action(CopyTo, "Copiar a…"),
+        WheelItem.Action(MoveTo, "Mover a…"),
         WheelItem.Action(ShowInFolder, "Ver en carpeta"),
         WheelItem.Action(Terminal, "Terminal aquí"),
     ];

@@ -20,5 +20,10 @@
     <!-- Solo lo necesario en runtime (sin include/, lib/, doc/ ni ffplay). -->
     <None Include="..\..\engines\ffmpeg\$(RuntimeIdentifier)\bin\*.dll;..\..\engines\ffmpeg\$(RuntimeIdentifier)\bin\ffmpeg.exe;..\..\engines\ffmpeg\$(RuntimeIdentifier)\bin\ffprobe.exe" Condition="'$(RuntimeIdentifier)' != ''" Link="engines\ffmpeg\bin\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <None Include="..\..\engines\ffmpeg\$(RuntimeIdentifier)\LICENSE.txt;..\..\engines\ffmpeg\$(RuntimeIdentifier)\SOURCE.txt" Condition="'$(RuntimeIdentifier)' != ''" Link="engines\ffmpeg\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <!-- qpdf: ejecutable + sus DLL (incluye el runtime de MSVC). -->
+    <None Include="..\..\engines\qpdf\$(RuntimeIdentifier)\bin\*.dll;..\..\engines\qpdf\$(RuntimeIdentifier)\bin\qpdf.exe" Condition="'$(RuntimeIdentifier)' != ''" Link="engines\qpdf\bin\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="..\..\engines\qpdf\$(RuntimeIdentifier)\SOURCE.txt" Condition="'$(RuntimeIdentifier)' != ''" Link="engines\qpdf\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <!-- MuPDF: solo mutool (sin los visores mupdf.exe / mupdf-gl.exe). -->
+    <None Include="..\..\engines\mupdf\$(RuntimeIdentifier)\mutool.exe;..\..\engines\mupdf\$(RuntimeIdentifier)\COPYING.txt;..\..\engines\mupdf\$(RuntimeIdentifier)\SOURCE.txt" Condition="'$(RuntimeIdentifier)' != ''" Link="engines\mupdf\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

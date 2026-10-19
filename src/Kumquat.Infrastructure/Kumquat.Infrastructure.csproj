@@ -6,6 +6,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Kumquat.Core\Kumquat.Core.csproj" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="SharpCompress" />
     <InternalsVisibleTo Include="Kumquat.Infrastructure.Tests" />
   </ItemGroup>
 </Project>

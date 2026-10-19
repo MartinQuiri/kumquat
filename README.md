@@ -23,15 +23,43 @@ kumquat-cli convert *.wav --to mp3 --out D:\musica
 kumquat-cli targets video.mkv      # a qué formatos se puede convertir
 ```
 
-## Formatos (fase 1)
+## La rueda: 3 anillos
+
+| Anillo | Qué hace |
+|---|---|
+| **Interior** (naranja) | Convertir a otro formato |
+| **Medio** (verde azulado) | Herramientas |
+| **Exterior** (violeta) | Acciones sobre el archivo |
+
+Los anillos vacíos no se muestran; soltar en el centro (✕) cancela.
+
+### Conversiones
 
 | Familia | Entrada | Salida |
 |---|---|---|
-| Imágenes | JPG, PNG, WebP, GIF, HEIC, AVIF, TIFF, BMP, SVG | JPG, PNG, WebP, GIF, AVIF, TIFF, BMP |
+| Imágenes | JPG, PNG, WebP, GIF, HEIC, AVIF, TIFF, BMP, SVG | JPG, PNG, WebP, GIF, AVIF, TIFF, BMP, PDF |
 | Audio | MP3, M4A, WAV, FLAC, OGG, Opus, AIFF, WMA | las mismas |
 | Video | MP4, MOV, MKV, WebM, AVI, WMV, GIF | las mismas + extraer audio + GIF |
+| PDF / EPUB | PDF, EPUB | TXT; EPUB → PDF |
 
-Las conversiones de varios pasos se planifican solas (p. ej. BMP → PNG → WebP), y nunca se ofrecen destinos sin sentido (una foto no se convierte a MP3).
+Las conversiones de varios pasos se planifican solas (p. ej. HEIC → JPG → PDF), y nunca se ofrecen destinos sin sentido (una foto no se convierte a MP3).
+
+### Herramientas
+
+| Para | Herramientas |
+|---|---|
+| Imágenes | Comprimir · Rotar 90° · Voltear · Máx. 1920 px · Blanco y negro · Sin metadatos · Unir en PDF (varias) |
+| PDF | Comprimir · Rotar 90° · Dividir páginas · Páginas a JPG · Unir PDF (varios) |
+| Video | Comprimir · Quitar audio · Rotar 90° · Fotograma · Unir videos (varios) |
+| Audio | Normalizar · Unir audios (varios) |
+| Comprimidos | Extraer (ZIP, RAR, 7z, TAR, GZIP) |
+| Todo, incluidas carpetas | Comprimir en ZIP |
+
+Al unir, el orden es el natural de los nombres (`foto2` antes que `foto10`). El resultado aparece junto al original (`foto (comprimido).jpg`); nunca se sobrescribe nada.
+
+### Acciones
+
+Copiar ruta · Copiar a… · Mover a… · Ver en carpeta · Terminal aquí
 
 ## Compilar
 
@@ -66,7 +94,8 @@ Detalles en [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) y [CONTRIBUTING.md](CON
 ## Hoja de ruta
 
 - [x] Fase 0–1: rueda de conversión, imágenes/audio/video, bandeja, CLI.
-- [ ] Fase 2: PDF (MuPDF, Ghostscript), documentos (Pandoc), herramientas (comprimir, recortar, cortar, unir/dividir), atajo de teclado sobre la selección del Explorador, menú contextual de Windows 11.
+- [x] Fase 2a: rueda de 3 anillos, herramientas de PDF, imagen, audio, video y comprimidos; acciones copiar/mover.
+- [ ] Fase 2b: ventana de opciones (recortar video/audio, rangos de páginas, proteger/desbloquear PDF), OCR, atajo de teclado sobre la selección del Explorador, menú contextual de Windows 11.
 - [ ] Fase 3: Office (LibreOffice), ebooks (Calibre), rueda de acciones (copiar ruta, mover, compartir, terminal), instalador firmado (SignPath), winget y Microsoft Store.
 - [ ] Fase 4: sandbox de motores (baja integridad / AppContainer), fuzzing continuo.
 

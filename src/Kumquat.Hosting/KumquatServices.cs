@@ -4,7 +4,9 @@
 using Kumquat.Core.Conversion;
 using Kumquat.Core.Jobs;
 using Kumquat.Core.Tools;
+using Kumquat.Engines.Archives;
 using Kumquat.Engines.FFmpeg;
+using Kumquat.Engines.Pdf;
 using Kumquat.Engines.Vips;
 using Kumquat.Infrastructure.Engines;
 using Kumquat.Infrastructure.Files;
@@ -58,12 +60,34 @@ public static class KumquatServices
         services.AddSingleton<IConverter, VipsConverter>();
 
         // Herramientas: el orden de registro es el orden en el anillo (la primera queda arriba).
-        services.AddSingleton(sp => new ToolService([.. VipsTool.CreateAll(), .. FfmpegTool.CreateAll(sp.GetRequiredService<FfmpegRunner>())]));
+        services.AddSingleton<PdfEngines>();
+        services.AddSingleton<ImagePdfBuilder>();
+        services.AddSingleton<IConverter, MupdfConverter>();
+        services.AddSingleton(sp => new ToolService(OrderForWheel(
+        [
+            .. PdfTool.CreateAll(sp.GetRequiredService<PdfEngines>(), sp.GetRequiredService<ImagePdfBuilder>()),
+            .. VipsTool.CreateAll(),
+            .. FfmpegTool.CreateAll(sp.GetRequiredService<FfmpegRunner>()),
+            .. ArchiveTools.CreateAll(),
+        ])));
         services.AddSingleton(sp => ConversionGraph.FromConverters(sp.GetServices<IConverter>()));
         services.AddSingleton<ConversionService>();
         services.AddSingleton(_ => new JobRunner(maxConcurrency: Math.Clamp(Environment.ProcessorCount / 2, 1, 4)));
         return services;
     }
+
+    /// <summary>
+    /// Orden en el anillo de herramientas: primero las que combinan (al soltar varios archivos,
+    /// unirlos es lo más probable), luego las de cada archivo y al final "Extraer" y "ZIP".
+    /// </summary>
+    private static IEnumerable<ITool> OrderForWheel(IReadOnlyList<ITool> tools)
+        => tools.OrderBy(t => t.Id switch
+        {
+            _ when t.Mode == ToolMode.Combine && !t.AcceptsDirectories => 0,
+            "archive.extract" => 2,
+            "archive.zip" => 3,
+            _ => 1,
+        });
 
     /// <summary>Resumen de motores para el log de arranque.</summary>
     public static string DescribeEngines(IServiceProvider services)

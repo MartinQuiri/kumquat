@@ -226,7 +226,8 @@
         "type": "Project",
         "dependencies": {
           "Kumquat.Core": "[0.1.0, )",
-          "Microsoft.Extensions.Logging.Abstractions": "[10.0.13, )"
+          "Microsoft.Extensions.Logging.Abstractions": "[10.0.13, )",
+          "SharpCompress": "[0.50.5, )"
         }
       },
       "kumquat.testtools.processprobe": {
@@ -240,6 +241,12 @@
         "dependencies": {
           "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.13"
         }
+      },
+      "SharpCompress": {
+        "type": "CentralTransitive",
+        "requested": "[0.50.5, )",
+        "resolved": "0.50.5",
+        "contentHash": "wAEAxPV67rmS3IlIm+tvGNPJXEtZNqlwkZrwJZAvz0AagZP0qLtT4mM2hk8S+uO0Kx+wYoy/FsADQpHwsN5y3g=="
       }
     },
     "net10.0-windows7.0/win-arm64": {

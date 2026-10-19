@@ -45,7 +45,11 @@ public sealed class VipsTool : ITool
     [
         new VipsTool("image.compress", "Comprimir", "comprimido", image => image.Copy(), CompressOptions),
         new VipsTool("image.rotate", "Rotar 90°", "rotado", image => image.Rot90(), QualityOptions, needsRandomAccess: true),
-        new VipsTool("image.half", "Reducir 50%", "50%", image => image.Resize(0.5), QualityOptions),
+        new VipsTool("image.flip", "Voltear", "volteado", image => image.FlipHor(), QualityOptions, needsRandomAccess: true),
+
+        // Lado mayor a 1920 px como máximo (nunca agranda): el tamaño típico para web y chat.
+        new VipsTool("image.fit", "Máx. 1920 px", "1920", image => Math.Max(image.Width, image.Height) > 1920 ? image.Resize(1920.0 / Math.Max(image.Width, image.Height), kernel: Enums.Kernel.Lanczos3) : image.Copy(), QualityOptions),
+        new VipsTool("image.gray", "Blanco y negro", "byn", image => image.Colourspace(Enums.Interpretation.Bw), QualityOptions),
         new VipsTool("image.strip", "Sin metadatos", "sin metadatos", image => image.Copy(), StripOptions),
     ];
 
@@ -53,7 +57,7 @@ public sealed class VipsTool : ITool
     public bool AppliesTo(FileFormat format) => EditableImages.Contains(format);
 
     /// <inheritdoc />
-    public FileFormat OutputFormat(FileFormat input) => input;
+    public FileFormat? OutputFormat(FileFormat? input) => input;
 
     /// <inheritdoc />
     public Task<Result> ApplyAsync(ToolStep step, IProgress<double>? progress, CancellationToken cancellationToken)
@@ -68,7 +72,7 @@ public sealed class VipsTool : ITool
                     using var oriented = VipsLoader.OpenOriented(step.InputPath, _needsRandomAccess);
                     using var result = _transform(oriented);
                     result.SetProgress(new PercentProgress(progress), cancellationToken);
-                    result.WriteToFile(step.OutputPath, _saveOptions(step.OutputFormat));
+                    result.WriteToFile(step.OutputPath, _saveOptions(step.OutputFormat!));
                     cancellationToken.ThrowIfCancellationRequested();
                     return Result.Success;
                 }

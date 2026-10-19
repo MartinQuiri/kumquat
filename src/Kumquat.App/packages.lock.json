@@ -50,10 +50,25 @@
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.13, )"
         }
       },
+      "kumquat.engines.archives": {
+        "type": "Project",
+        "dependencies": {
+          "Kumquat.Core": "[0.1.0, )",
+          "Kumquat.Infrastructure": "[0.1.0, )"
+        }
+      },
       "kumquat.engines.ffmpeg": {
         "type": "Project",
         "dependencies": {
           "Kumquat.Core": "[0.1.0, )",
+          "Kumquat.Infrastructure": "[0.1.0, )"
+        }
+      },
+      "kumquat.engines.pdf": {
+        "type": "Project",
+        "dependencies": {
+          "Kumquat.Core": "[0.1.0, )",
+          "Kumquat.Engines.Vips": "[0.1.0, )",
           "Kumquat.Infrastructure": "[0.1.0, )"
         }
       },
@@ -70,7 +85,9 @@
         "type": "Project",
         "dependencies": {
           "Kumquat.Core": "[0.1.0, )",
+          "Kumquat.Engines.Archives": "[0.1.0, )",
           "Kumquat.Engines.FFmpeg": "[0.1.0, )",
+          "Kumquat.Engines.Pdf": "[0.1.0, )",
           "Kumquat.Engines.Vips": "[0.1.0, )",
           "Kumquat.Infrastructure": "[0.1.0, )",
           "Microsoft.Extensions.DependencyInjection": "[10.0.13, )",
@@ -84,7 +101,8 @@
         "type": "Project",
         "dependencies": {
           "Kumquat.Core": "[0.1.0, )",
-          "Microsoft.Extensions.Logging.Abstractions": "[10.0.13, )"
+          "Microsoft.Extensions.Logging.Abstractions": "[10.0.13, )",
+          "SharpCompress": "[0.50.5, )"
         }
       },
       "kumquat.interaction": {
@@ -165,6 +183,12 @@
         "dependencies": {
           "Serilog": "4.2.0"
         }
+      },
+      "SharpCompress": {
+        "type": "CentralTransitive",
+        "requested": "[0.50.5, )",
+        "resolved": "0.50.5",
+        "contentHash": "wAEAxPV67rmS3IlIm+tvGNPJXEtZNqlwkZrwJZAvz0AagZP0qLtT4mM2hk8S+uO0Kx+wYoy/FsADQpHwsN5y3g=="
       },
       "System.Drawing.Common": {
         "type": "CentralTransitive",

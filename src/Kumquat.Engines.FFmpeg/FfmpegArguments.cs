@@ -39,6 +39,32 @@ internal static class FfmpegArguments
         return args;
     }
 
+    /// <summary>Como <see cref="Build(string, string, IReadOnlyList{string})"/> con varias entradas (para unir).</summary>
+    public static IReadOnlyList<string> BuildMulti(IReadOnlyList<string> inputs, string output, IReadOnlyList<string> profile)
+    {
+        ArgumentNullException.ThrowIfNull(inputs);
+        ArgumentException.ThrowIfNullOrEmpty(output);
+        ArgumentNullException.ThrowIfNull(profile);
+
+        List<string> args = ["-hide_banner", "-nostdin", "-nostats", "-loglevel", "error", "-y"];
+        foreach (var input in inputs)
+        {
+            args.AddRange(["-protocol_whitelist", "file,pipe", "-i", ToFileUrl(input)]);
+        }
+
+        args.AddRange(profile);
+        args.AddRange(["-progress", "pipe:1", ToFileUrl(output)]);
+        return args;
+    }
+
+    /// <summary>Argumentos de ffprobe para leer duración, resolución y pistas en JSON.</summary>
+    public static IReadOnlyList<string> ProbeStreams(string input)
+        =>
+        [
+            "-v", "error", "-protocol_whitelist", "file", "-show_entries", "stream=codec_type,width,height:format=duration",
+            "-of", "json", ToFileUrl(input),
+        ];
+
     /// <summary>Argumentos de ffprobe para leer la duración.</summary>
     public static IReadOnlyList<string> ProbeDuration(string input)
         =>

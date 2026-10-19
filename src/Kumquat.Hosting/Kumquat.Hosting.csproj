@@ -4,6 +4,8 @@
     <ProjectReference Include="..\Kumquat.Infrastructure\Kumquat.Infrastructure.csproj" />
     <ProjectReference Include="..\Kumquat.Engines.FFmpeg\Kumquat.Engines.FFmpeg.csproj" />
     <ProjectReference Include="..\Kumquat.Engines.Vips\Kumquat.Engines.Vips.csproj" />
+    <ProjectReference Include="..\Kumquat.Engines.Pdf\Kumquat.Engines.Pdf.csproj" />
+    <ProjectReference Include="..\Kumquat.Engines.Archives\Kumquat.Engines.Archives.csproj" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Serilog" />
