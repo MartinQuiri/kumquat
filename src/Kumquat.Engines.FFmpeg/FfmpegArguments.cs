@@ -15,10 +15,17 @@ internal static class FfmpegArguments
     /// </summary>
     public static IReadOnlyList<string> Build(string input, string output, FileFormat target)
     {
-        ArgumentException.ThrowIfNullOrEmpty(input);
-        ArgumentException.ThrowIfNullOrEmpty(output);
         ArgumentNullException.ThrowIfNull(target);
         var profile = FfmpegProfiles.For(target) ?? throw new ArgumentException($"Sin perfil FFmpeg para {target}.", nameof(target));
+        return Build(input, output, profile);
+    }
+
+    /// <summary>Igual que <see cref="Build(string, string, FileFormat)"/> con argumentos de salida explícitos.</summary>
+    public static IReadOnlyList<string> Build(string input, string output, IReadOnlyList<string> profile)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(input);
+        ArgumentException.ThrowIfNullOrEmpty(output);
+        ArgumentNullException.ThrowIfNull(profile);
 
         List<string> args =
         [

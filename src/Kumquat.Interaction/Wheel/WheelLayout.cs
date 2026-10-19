@@ -1,58 +1,95 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Kumquat contributors
 
-using System.Runtime.InteropServices;
-
 namespace Kumquat.Interaction.Wheel;
 
 /// <summary>
-/// Geometría de la rueda en píxeles físicos. El sector 0 está centrado arriba (norte)
-/// y los demás siguen en sentido horario: así los destinos más frecuentes caen en los
-/// ejes, que son los más rápidos y precisos de alcanzar (Kurtenbach &amp; Buxton, 1993).
+/// Geometría de una rueda de anillos concéntricos, en píxeles físicos. En cada anillo el
+/// sector 0 queda centrado arriba (norte) y el resto sigue en sentido horario: los destinos
+/// más frecuentes caen en los ejes, que son los más rápidos y precisos de alcanzar
+/// (Kurtenbach y Buxton, 1993).
 /// </summary>
-/// <param name="SectorCount">Cantidad de sectores (1..8 recomendado).</param>
-/// <param name="InnerRadius">Radio de la zona central de cancelar.</param>
-/// <param name="OuterRadius">Radio exterior del disco.</param>
-[StructLayout(LayoutKind.Auto)]
-public readonly record struct WheelLayout(int SectorCount, double InnerRadius, double OuterRadius)
+public sealed class WheelLayout
 {
     /// <summary>Máximo de sectores por anillo: más allá la tasa de error sube fuerte.</summary>
     public const int MaxSectors = 8;
 
-    /// <summary>Ancho angular de cada sector, en radianes.</summary>
-    public double SectorAngle => SectorCount > 0 ? 2 * Math.PI / SectorCount : 0;
+    private readonly int[] _sectorCounts;
+
+    /// <summary>Crea la geometría.</summary>
+    /// <param name="sectorCounts">Sectores por anillo, de adentro hacia afuera (sin anillos vacíos).</param>
+    /// <param name="centerRadius">Radio de la zona central de cancelar.</param>
+    /// <param name="ringThickness">Grosor de cada anillo.</param>
+    public WheelLayout(IReadOnlyList<int> sectorCounts, double centerRadius, double ringThickness)
+    {
+        ArgumentNullException.ThrowIfNull(sectorCounts);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(ringThickness);
+        _sectorCounts = [.. sectorCounts];
+        CenterRadius = centerRadius;
+        RingThickness = ringThickness;
+    }
+
+    /// <summary>Cantidad de anillos.</summary>
+    public int RingCount => _sectorCounts.Length;
+
+    /// <summary>Radio de la zona central.</summary>
+    public double CenterRadius { get; }
+
+    /// <summary>Grosor de cada anillo.</summary>
+    public double RingThickness { get; }
+
+    /// <summary>Radio exterior del último anillo (o del centro si no hay anillos).</summary>
+    public double OuterRadius => RingOuter(RingCount - 1);
+
+    /// <summary>Sectores del anillo.</summary>
+    public int SectorCount(int ring) => _sectorCounts[ring];
+
+    /// <summary>Radio interior del anillo.</summary>
+    public double RingInner(int ring) => CenterRadius + (ring * RingThickness);
+
+    /// <summary>Radio exterior del anillo (con <c>ring = -1</c>, el del centro).</summary>
+    public double RingOuter(int ring) => CenterRadius + ((ring + 1) * RingThickness);
+
+    /// <summary>Ancho angular de cada sector del anillo, en radianes.</summary>
+    public double SectorAngle(int ring) => _sectorCounts[ring] > 0 ? 2 * Math.PI / _sectorCounts[ring] : 0;
+
+    /// <summary>Ángulo central del sector, en radianes desde el norte en sentido horario.</summary>
+    public double CenterAngle(int ring, int sector) => sector * SectorAngle(ring);
 
     /// <summary>Clasifica un punto relativo al centro (x a la derecha, y hacia abajo).</summary>
     public WheelHit HitTest(double dx, double dy)
     {
         var distance = Math.Sqrt((dx * dx) + (dy * dy));
-        if (distance > OuterRadius || double.IsNaN(distance))
+        if (double.IsNaN(distance) || distance > OuterRadius)
         {
             return WheelHit.Outside;
         }
 
-        if (distance < InnerRadius || SectorCount <= 0)
+        if (distance < CenterRadius || RingCount == 0)
         {
             return WheelHit.Center;
         }
 
-        // Ángulo medido desde el norte, en sentido horario, desplazado medio sector
-        // para que el sector 0 quede centrado arriba.
-        var angle = Math.Atan2(dx, -dy);
-        var shifted = angle + (SectorAngle / 2);
+        var ring = Math.Min((int)((distance - CenterRadius) / RingThickness), RingCount - 1);
+        if (_sectorCounts[ring] == 0)
+        {
+            return WheelHit.Center;
+        }
+
+        var sectorAngle = SectorAngle(ring);
+
+        // Ángulo desde el norte, horario, desplazado medio sector para centrar el sector 0 arriba.
+        var shifted = Math.Atan2(dx, -dy) + (sectorAngle / 2);
         var normalized = ((shifted % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI);
-        var index = (int)(normalized / SectorAngle);
-        return new WheelHit(WheelZone.Sector, Math.Min(index, SectorCount - 1));
+        var sector = Math.Min((int)(normalized / sectorAngle), _sectorCounts[ring] - 1);
+        return WheelHit.At(ring, sector);
     }
 
-    /// <summary>Ángulo central del sector, en radianes desde el norte en sentido horario.</summary>
-    public double CenterAngle(int sectorIndex) => sectorIndex * SectorAngle;
-
     /// <summary>Punto medio del sector (para la etiqueta), relativo al centro.</summary>
-    public (double X, double Y) LabelPoint(int sectorIndex)
+    public (double X, double Y) LabelPoint(int ring, int sector)
     {
-        var angle = CenterAngle(sectorIndex);
-        var r = (InnerRadius + OuterRadius) / 2;
+        var angle = CenterAngle(ring, sector);
+        var r = (RingInner(ring) + RingOuter(ring)) / 2;
         return (Math.Sin(angle) * r, -Math.Cos(angle) * r);
     }
 }

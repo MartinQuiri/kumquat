@@ -46,7 +46,7 @@ internal sealed unsafe class WheelWindow : NativeWindow
     public float Scale => _scale;
 
     /// <summary>Geometría actual para un número de sectores.</summary>
-    public WheelLayout LayoutFor(int sectors) => WheelRenderer.Layout(sectors, _scale);
+    public WheelLayout LayoutFor(WheelVisualState state) => WheelRenderer.Layout(state, _scale);
 
     /// <summary>Centra la rueda en un punto de pantalla y la dibuja.</summary>
     public void ShowAt(POINT screenPoint, WheelVisualState state)

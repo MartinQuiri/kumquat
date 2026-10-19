@@ -52,8 +52,9 @@ internal sealed record CliCommand(string Name, IReadOnlyList<string> Files, stri
         {
             "convert" when files.Count == 0 => "Indica al menos un archivo.",
             "convert" when target is null => "Indica el formato de destino con --to.",
-            "targets" when files.Count == 0 => "Indica al menos un archivo.",
-            "convert" or "targets" or "formats" or "engines" => null,
+            "targets" or "tools" when files.Count == 0 => "Indica al menos un archivo.",
+            "apply" when files.Count < 2 => "Uso: apply <herramienta> <archivo>...",
+            "convert" or "targets" or "tools" or "apply" or "formats" or "engines" => null,
             _ => $"Comando desconocido: {name}",
         };
         return new CliCommand(name, files, target, output, error);

@@ -63,5 +63,5 @@ public static class WheelItemOrdering
         return items;
     }
 
-    private static WheelItem ToItem(FileFormat format) => new(format.DisplayName, format);
+    private static WheelItem ToItem(FileFormat format) => WheelItem.Convert(format);
 }

@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using Kumquat.Core.Conversion;
 using Kumquat.Core.Jobs;
+using Kumquat.Core.Tools;
 using Kumquat.Hosting;
 using Kumquat.Interaction;
 using Kumquat.Interaction.Input;
@@ -24,6 +25,8 @@ internal sealed partial class TrayApplication : IDisposable
     private readonly ILogger<TrayApplication> _logger;
     private readonly JobRunner _jobs;
     private readonly WheelTargets _targets;
+    private readonly ConversionService _conversions;
+    private readonly ToolService _tools;
     private readonly BatchNotifier _notifier;
     private AppSettings _settings;
     private WheelController? _wheel;
@@ -35,7 +38,9 @@ internal sealed partial class TrayApplication : IDisposable
         _ui = ui ?? throw new ArgumentNullException(nameof(ui));
         _logger = services.GetRequiredService<ILogger<TrayApplication>>();
         _jobs = services.GetRequiredService<JobRunner>();
-        _targets = new WheelTargets(services.GetRequiredService<ConversionGraph>());
+        _conversions = services.GetRequiredService<ConversionService>();
+        _tools = services.GetRequiredService<ToolService>();
+        _targets = new WheelTargets(services.GetRequiredService<ConversionGraph>(), _tools);
         _notifier = new BatchNotifier((title, message, isError) => _tray?.Notify(title, message, isError));
         _settings = AppSettings.Load(SettingsPath);
     }
@@ -61,9 +66,30 @@ internal sealed partial class TrayApplication : IDisposable
 
     private void OnChosen(IReadOnlyList<string> files, WheelItem item)
     {
-        var ids = files.Select(f => _jobs.Enqueue(new ConversionRequest(f, item.Target))).ToList();
-        _notifier.Track(ids, item.Target.DisplayName);
-        LogEnqueued(ids.Count, item.Target.Id);
+        switch (item.Ring)
+        {
+            case WheelRingKind.Convert:
+                Enqueue(files.Select(f => _conversions.CreateJob(new ConversionRequest(f, item.Target!))), "convertido", $"a {item.Label}", item.Id);
+                break;
+            case WheelRingKind.Tools:
+                Enqueue(files.Select(f => _tools.CreateJob(f, item.Id)), "listo", $"({item.Label})", item.Id);
+                break;
+            case WheelRingKind.Actions:
+                if (FileActions.Execute(item.Id, files) is { } message)
+                {
+                    _tray?.Notify("Kumquat", message);
+                }
+
+                LogEnqueued(files.Count, item.Id);
+                break;
+        }
+    }
+
+    private void Enqueue(IEnumerable<JobRequest> jobs, string verb, string detail, string id)
+    {
+        var ids = jobs.Select(_jobs.Enqueue).ToList();
+        _notifier.Track(ids, verb, detail);
+        LogEnqueued(ids.Count, id);
     }
 
     private List<TrayMenuItem> BuildMenu()

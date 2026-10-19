@@ -2,8 +2,6 @@
 // Copyright (C) 2026 Kumquat contributors
 
 using Kumquat.App;
-using Kumquat.Core.Conversion;
-using Kumquat.Core.Formats;
 using Kumquat.Core.Jobs;
 using Kumquat.Core.Results;
 
@@ -18,7 +16,7 @@ public sealed class BatchNotifierTests
     {
         var notifier = new BatchNotifier((t, m, e) => _notifications.Add((t, m, e)));
         var id = Guid.NewGuid();
-        notifier.Track([id], "PNG");
+        notifier.Track([id], "convertido", "a PNG");
 
         notifier.OnJobChanged(Snapshot(id, JobState.Running));
         _notifications.ShouldBeEmpty();
@@ -32,7 +30,7 @@ public sealed class BatchNotifierTests
     {
         var notifier = new BatchNotifier((t, m, e) => _notifications.Add((t, m, e)));
         var ids = new[] { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
-        notifier.Track(ids, "MP3");
+        notifier.Track(ids, "convertido", "a MP3");
 
         notifier.OnJobChanged(Snapshot(ids[0], JobState.Succeeded, output: "a.mp3"));
         notifier.OnJobChanged(Snapshot(ids[1], JobState.Succeeded, output: "b.mp3"));
@@ -47,7 +45,7 @@ public sealed class BatchNotifierTests
     {
         var notifier = new BatchNotifier((t, m, e) => _notifications.Add((t, m, e)));
         var ids = new[] { Guid.NewGuid(), Guid.NewGuid() };
-        notifier.Track(ids, "JPG");
+        notifier.Track(ids, "convertido", "a JPG");
 
         notifier.OnJobChanged(Snapshot(ids[0], JobState.Succeeded, output: "a.jpg"));
         notifier.OnJobChanged(Snapshot(ids[1], JobState.Failed, error: new Error("engine-failed", "archivo dañado")));
@@ -56,6 +54,19 @@ public sealed class BatchNotifierTests
         n.Title.ShouldBe("1 de 2 convertidos");
         n.Message.ShouldBe("in.txt: archivo dañado");
         n.IsError.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Herramienta_RedaccionPropia()
+    {
+        var notifier = new BatchNotifier((t, m, e) => _notifications.Add((t, m, e)));
+        var ids = new[] { Guid.NewGuid(), Guid.NewGuid() };
+        notifier.Track(ids, "listo", "(Comprimir)");
+
+        notifier.OnJobChanged(Snapshot(ids[0], JobState.Succeeded, output: "a.jpg"));
+        notifier.OnJobChanged(Snapshot(ids[1], JobState.Succeeded, output: "b.jpg"));
+
+        _notifications.ShouldHaveSingleItem().Message.ShouldBe("2 archivos listos (Comprimir)");
     }
 
     [Fact]
@@ -69,5 +80,5 @@ public sealed class BatchNotifierTests
     }
 
     private static JobSnapshot Snapshot(Guid id, JobState state, string? output = null, Error? error = null)
-        => new(id, new ConversionRequest(@"C:\x\in.txt", KnownFormats.Png), state, state == JobState.Succeeded ? 1 : 0, output, error);
+        => new(id, new JobRequest(@"C:\x\in.txt", "a PNG", (_, _) => Task.FromResult(Result<string>.Success("x"))), state, state == JobState.Succeeded ? 1 : 0, output, error);
 }

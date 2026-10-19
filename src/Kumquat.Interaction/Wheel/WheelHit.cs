@@ -7,13 +7,17 @@ namespace Kumquat.Interaction.Wheel;
 
 /// <summary>Resultado del hit-test.</summary>
 /// <param name="Zone">Zona.</param>
-/// <param name="SectorIndex">Índice del sector si <see cref="Zone"/> es <see cref="WheelZone.Sector"/>; si no, -1.</param>
+/// <param name="Ring">Índice del anillo (0 = interior) si es un sector; si no, -1.</param>
+/// <param name="Sector">Índice del sector dentro del anillo; si no, -1.</param>
 [StructLayout(LayoutKind.Auto)]
-public readonly record struct WheelHit(WheelZone Zone, int SectorIndex)
+public readonly record struct WheelHit(WheelZone Zone, int Ring, int Sector)
 {
     /// <summary>Fuera del disco.</summary>
-    public static WheelHit Outside => new(WheelZone.Outside, -1);
+    public static WheelHit Outside => new(WheelZone.Outside, -1, -1);
 
     /// <summary>En el centro.</summary>
-    public static WheelHit Center => new(WheelZone.Center, -1);
+    public static WheelHit Center => new(WheelZone.Center, -1, -1);
+
+    /// <summary>Un sector concreto.</summary>
+    public static WheelHit At(int ring, int sector) => new(WheelZone.Sector, ring, sector);
 }

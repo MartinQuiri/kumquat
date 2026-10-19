@@ -3,44 +3,36 @@
 
 using System.Collections.Concurrent;
 using System.Threading.Channels;
-using Kumquat.Core.Conversion;
 using Kumquat.Core.Results;
 
 namespace Kumquat.Core.Jobs;
 
 /// <summary>
-/// Cola de conversiones con concurrencia acotada. Los eventos se disparan desde hilos
+/// Cola de trabajos con concurrencia acotada. Los eventos se disparan desde hilos
 /// del pool: la UI debe pasarlos a su propio hilo.
 /// </summary>
 public sealed class JobRunner : IAsyncDisposable
 {
-    private readonly Func<ConversionRequest, IProgress<double>, CancellationToken, Task<Result<string>>> _convert;
-    private readonly Channel<(Guid Id, ConversionRequest Request)> _channel;
+    private readonly Channel<(Guid Id, JobRequest Request)> _channel;
     private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _running = new();
     private readonly CancellationTokenSource _shutdown = new();
     private readonly Task[] _workers;
 
-    /// <summary>Crea la cola usando un servicio de conversión.</summary>
-    public JobRunner(ConversionService service, int maxConcurrency)
-        : this((request, progress, ct) => (service ?? throw new ArgumentNullException(nameof(service))).ConvertAsync(request, progress, ct), maxConcurrency)
-    {
-    }
-
-    /// <summary>Crea la cola con una función de conversión arbitraria (útil en tests).</summary>
-    public JobRunner(Func<ConversionRequest, IProgress<double>, CancellationToken, Task<Result<string>>> convert, int maxConcurrency)
+    /// <summary>Crea la cola.</summary>
+    /// <param name="maxConcurrency">Trabajos simultáneos como máximo.</param>
+    public JobRunner(int maxConcurrency)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(maxConcurrency, 1);
-        _convert = convert ?? throw new ArgumentNullException(nameof(convert));
-        _channel = Channel.CreateUnbounded<(Guid, ConversionRequest)>(new UnboundedChannelOptions { SingleWriter = false, SingleReader = maxConcurrency == 1 });
+        _channel = Channel.CreateUnbounded<(Guid, JobRequest)>(new UnboundedChannelOptions { SingleWriter = false, SingleReader = maxConcurrency == 1 });
         _workers = [.. Enumerable.Range(0, maxConcurrency).Select(_ => Task.Run(WorkerLoopAsync))];
     }
 
     /// <summary>Se dispara cada vez que cambia el estado o el progreso de un trabajo.</summary>
     public event EventHandler<JobChangedEventArgs>? JobChanged;
 
-    /// <summary>Encola una conversión.</summary>
+    /// <summary>Encola un trabajo.</summary>
     /// <returns>Identificador del trabajo.</returns>
-    public Guid Enqueue(ConversionRequest request)
+    public Guid Enqueue(JobRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
         var id = Guid.NewGuid();
@@ -89,15 +81,14 @@ public sealed class JobRunner : IAsyncDisposable
         }
     }
 
-    private async Task RunAsync(Guid id, ConversionRequest request)
+    private async Task RunAsync(Guid id, JobRequest request)
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(_shutdown.Token);
         _running[id] = cts;
         try
         {
             Raise(new JobSnapshot(id, request, JobState.Running, 0, null, null));
-            var progress = new Progress(this, id, request);
-            var result = await _convert(request, progress, cts.Token);
+            var result = await request.Work(new Progress(this, id, request), cts.Token);
             Raise(result.IsSuccess
                 ? new JobSnapshot(id, request, JobState.Succeeded, 1, result.Value, null)
                 : new JobSnapshot(id, request, result.Error == Error.Cancelled ? JobState.Cancelled : JobState.Failed, 0, null, result.Error));
@@ -114,7 +105,7 @@ public sealed class JobRunner : IAsyncDisposable
 
     private void Raise(JobSnapshot snapshot) => JobChanged?.Invoke(this, new JobChangedEventArgs(snapshot));
 
-    private sealed class Progress(JobRunner owner, Guid id, ConversionRequest request) : IProgress<double>
+    private sealed class Progress(JobRunner owner, Guid id, JobRequest request) : IProgress<double>
     {
         public void Report(double value) => owner.Raise(new JobSnapshot(id, request, JobState.Running, value, null, null));
     }

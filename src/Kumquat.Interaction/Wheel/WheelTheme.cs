@@ -24,6 +24,17 @@ internal sealed record WheelTheme(Color Background, Color Separator, Color Text,
     public static WheelTheme Light { get; } = new(
         Color.FromArgb(242, 250, 250, 250), Color.FromArgb(50, 0, 0, 0), Color.FromArgb(255, 28, 28, 30), Kumquat, Color.FromArgb(255, 25, 20, 15), Color.FromArgb(255, 100, 100, 105));
 
+    /// <summary>Color de resaltado de cada anillo: distingue de un vistazo convertir, herramientas y acciones.</summary>
+    public static Color AccentFor(WheelRingKind ring) => ring switch
+    {
+        WheelRingKind.Tools => Color.FromArgb(255, 38, 166, 154),
+        WheelRingKind.Actions => Color.FromArgb(255, 142, 111, 216),
+        _ => Kumquat,
+    };
+
+    /// <summary>Tinte de fondo del anillo (muy tenue, para distinguirlos sin recargar).</summary>
+    public static Color TintFor(WheelRingKind ring) => Color.FromArgb(ring == WheelRingKind.Convert ? 0 : 26, AccentFor(ring));
+
     /// <summary>Tema según la preferencia de apps de Windows.</summary>
     public static WheelTheme FromSystem()
     {
