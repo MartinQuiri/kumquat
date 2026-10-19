@@ -1,0 +1,16 @@
+{
+  "$comment": "Tesseract compilado por Kumquat (tools/build-tesseract.ps1): estático, un solo tesseract.exe, versiones fijadas por el baseline de vcpkg.",
+  "name": "kumquat-ocr",
+  "version": "1.0.0",
+  "builtin-baseline": "664933b8d385dfc01f4e0cdff4c7c74e71f6a740",
+  "dependencies": [
+    {
+      "name": "tesseract",
+      "default-features": false
+    }
+  ],
+  "overrides": [
+    { "name": "tesseract", "version": "5.5.3" },
+    { "name": "leptonica", "version": "1.87.0" }
+  ]
+}

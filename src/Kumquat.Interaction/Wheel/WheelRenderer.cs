@@ -200,6 +200,13 @@ internal static class WheelRenderer
     private static void DrawLabel(Graphics g, WheelItem item, bool withIcon, bool highlighted, PointF center, float width, float thickness, Font font, StringFormat format, WheelTheme theme, float scale)
     {
         using var text = new SolidBrush(highlighted ? Color.White : theme.Text);
+
+        // Si una palabra no entra ni achicada, una sola línea con "…": GDI+ la partiría a la mitad.
+        using var oneLine = new StringFormat(format) { FormatFlags = StringFormatFlags.NoWrap, Trimming = StringTrimming.EllipsisCharacter };
+        if (LongestWord(g, font, item.Label) > width)
+        {
+            format = oneLine;
+        }
         var icon = withIcon ? Icons.ForItem(item.Id) : null;
         if (icon is null)
         {
@@ -245,12 +252,15 @@ internal static class WheelRenderer
     /// <summary>Achica la fuente (hasta 60 %) si la palabra más larga no cabe: nunca cortar una palabra a la mitad.</summary>
     private static Font FitFont(Graphics g, Font font, string label, float width)
     {
-        var longest = label.Split(' ', StringSplitOptions.RemoveEmptyEntries).Max(word => g.MeasureString(word, font).Width);
+        var longest = LongestWord(g, font, label);
         var ratio = longest > width ? Math.Max(0.6f, width / longest) : 1f;
         var family = font.FontFamily;
         var size = font.Size * ratio;
         return new Font(family, size, FontStyle.Regular, GraphicsUnit.Pixel);
     }
+
+    private static float LongestWord(Graphics g, Font font, string label)
+        => label.Split(' ', StringSplitOptions.RemoveEmptyEntries).Max(word => g.MeasureString(word, font).Width);
 
     /// <summary>Centro: botón de vidrio con el logo (soltar aquí cancela).</summary>
     private static void DrawCenter(Graphics g, float c, float radius, float scale, WheelTheme theme)

@@ -7,6 +7,7 @@ using Kumquat.Core.Previews;
 using Kumquat.Core.Tools;
 using Kumquat.Engines.Archives;
 using Kumquat.Engines.FFmpeg;
+using Kumquat.Engines.Ocr;
 using Kumquat.Engines.Pdf;
 using Kumquat.Engines.Vips;
 using Kumquat.Infrastructure.Engines;
@@ -63,11 +64,13 @@ public static class KumquatServices
         // Herramientas: el orden de registro es el orden en el anillo (la primera queda arriba).
         services.AddSingleton<PdfEngines>();
         services.AddSingleton<ImagePdfBuilder>();
+        services.AddSingleton<TesseractEngine>();
         services.AddSingleton<IConverter, MupdfConverter>();
         services.AddSingleton(sp => new ToolService(OrderForWheel(
         [
             .. PdfTool.CreateAll(sp.GetRequiredService<PdfEngines>(), sp.GetRequiredService<ImagePdfBuilder>(), sp.GetRequiredService<ITempWorkspaceFactory>()),
             .. VipsTool.CreateAll(),
+            .. OcrTool.CreateAll(sp.GetRequiredService<TesseractEngine>(), sp.GetRequiredService<PdfEngines>(), sp.GetRequiredService<ITempWorkspaceFactory>()),
             .. FfmpegTool.CreateAll(sp.GetRequiredService<FfmpegRunner>()),
             .. ArchiveTools.CreateAll(),
         ])));
@@ -97,7 +100,8 @@ public static class KumquatServices
         ArgumentNullException.ThrowIfNull(services);
         var converters = services.GetServices<IConverter>();
         var graph = services.GetRequiredService<ConversionGraph>();
-        return string.Join(", ", converters.Select(c => $"{c.Id}={(c.IsAvailable ? "ok" : "ausente")}({c.Edges.Count})")) + $"; aristas={graph.Edges.Count()}";
+        var ocr = services.GetRequiredService<TesseractEngine>().IsAvailable ? "ok" : "ausente";
+        return string.Join(", ", converters.Select(c => $"{c.Id}={(c.IsAvailable ? "ok" : "ausente")}({c.Edges.Count})")) + $", tesseract={ocr}; aristas={graph.Edges.Count()}";
     }
 
     /// <summary>Registra en el log el arranque y limpia restos de sesiones anteriores.</summary>

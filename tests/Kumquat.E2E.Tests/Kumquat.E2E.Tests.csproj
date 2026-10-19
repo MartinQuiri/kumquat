@@ -9,6 +9,8 @@
   <ItemGroup>
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="Shouldly" />
+    <!-- CI pasa la opción de cobertura a todos los proyectos de test: sin esto, este rechaza el argumento (código 5). -->
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
   </ItemGroup>
   <ItemGroup>
     <!-- Se copia Kumquat.exe junto a los tests para lanzarlo como proceso real. -->

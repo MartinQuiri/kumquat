@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- OCR con Tesseract (proceso aparte, compilado por Kumquat: tools/build-tesseract.ps1). -->
+  <ItemGroup>
+    <ProjectReference Include="..\Kumquat.Core\Kumquat.Core.csproj" />
+    <ProjectReference Include="..\Kumquat.Infrastructure\Kumquat.Infrastructure.csproj" />
+    <ProjectReference Include="..\Kumquat.Engines.Pdf\Kumquat.Engines.Pdf.csproj" />
+    <ProjectReference Include="..\Kumquat.Engines.Vips\Kumquat.Engines.Vips.csproj" />
+    <InternalsVisibleTo Include="Kumquat.Engines.Tests" />
+  </ItemGroup>
+</Project>

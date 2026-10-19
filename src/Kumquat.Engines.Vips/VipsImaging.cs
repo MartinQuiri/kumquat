@@ -39,6 +39,27 @@ public static class VipsImaging
         flat.Jpegsave(destination, q: quality, optimizeCoding: true);
     }
 
+    /// <summary>
+    /// Guarda como PNG con la orientación aplicada. Los SVG se dibujan a 300 ppp (a 72, el tamaño por
+    /// defecto, el texto queda demasiado chico para reconocerlo).
+    /// </summary>
+    public static void SaveAsPng(string source, string destination)
+    {
+        var vector = string.Equals(Path.GetExtension(source), ".svg", StringComparison.OrdinalIgnoreCase);
+        using var image = VipsLoader.OpenOriented(source, needsRandomAccess: false, vector ? new VOption { { "dpi", 300.0 } } : null);
+        image.Pngsave(destination);
+    }
+
+    /// <summary>Resolución declarada en la imagen, en puntos por pulgada (<c>null</c> si no la declara).</summary>
+    public static double? Dpi(string path)
+    {
+        using var image = Image.NewFromFile(path, access: Enums.Access.Sequential);
+
+        // libvips guarda la resolución en píxeles por milímetro; 1 px/mm es su "sin dato".
+        var dpi = image.Xres * 25.4;
+        return image.Xres > 1.001 ? dpi : null;
+    }
+
     /// <summary>Miniatura PNG con la orientación aplicada (primer fotograma si es animada).</summary>
     public static void Thumbnail(string source, string destination, int size)
     {

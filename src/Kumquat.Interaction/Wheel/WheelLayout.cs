@@ -15,10 +15,10 @@ public sealed class WheelLayout
     public const int MaxSectors = 8;
 
     /// <summary>
-    /// Máximo en el anillo de herramientas: al estar más afuera, cada sector sigue siendo ancho con 10
-    /// (un PDF tiene 9 herramientas propias más "Comprimir en ZIP").
+    /// Máximo en el anillo de herramientas: al estar más afuera, cada sector sigue siendo legible con 12
+    /// (un PDF tiene 10 herramientas propias más "Crear ZIP"; una foto, 10 más ZIP).
     /// </summary>
-    public const int MaxToolSectors = 10;
+    public const int MaxToolSectors = 12;
 
     private readonly int[] _sectorCounts;
 
