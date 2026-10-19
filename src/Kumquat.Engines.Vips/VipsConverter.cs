@@ -24,13 +24,17 @@ public sealed class VipsConverter : IConverter
 
     private static readonly FileFormat[] LosslessSources = [KnownFormats.Png, KnownFormats.Tiff, KnownFormats.Bmp, KnownFormats.Gif];
     private static readonly FileFormat[] Animated = [KnownFormats.Gif, KnownFormats.WebP];
+    private static readonly Lazy<bool> LibraryAvailable = new(TryInitialize);
 
     /// <summary>Crea el convertidor y detecta qué cargadores y guardadores trae libvips.</summary>
     public VipsConverter()
     {
-        IsAvailable = TryInitialize();
+        IsAvailable = IsLibraryAvailable;
         Edges = IsAvailable ? BuildEdges() : [];
     }
+
+    /// <summary>Indica si libvips cargó (se inicializa una sola vez y desactiva su caché).</summary>
+    public static bool IsLibraryAvailable => LibraryAvailable.Value;
 
     /// <inheritdoc />
     public string Id => ConverterId;
@@ -74,12 +78,12 @@ public sealed class VipsConverter : IConverter
         var to = step.Edge.To;
         var keepAnimation = Animated.Contains(from) && Animated.Contains(to);
 
-        using var loaded = keepAnimation
-            ? Image.NewFromFile(step.InputPath, access: Enums.Access.Sequential, kwargs: new VOption { { "n", -1 } })
-            : Image.NewFromFile(step.InputPath, access: Enums.Access.Sequential);
-
         // Orientación EXIF aplicada a los píxeles: si no, la foto sale "acostada" al quitar metadatos.
-        using var rotated = keepAnimation ? loaded.Copy() : loaded.Autorot();
+        using var rotated = VipsLoader.OpenOriented(
+            step.InputPath,
+            needsRandomAccess: false,
+            options: keepAnimation ? new VOption { { "n", -1 } } : null,
+            applyOrientation: !keepAnimation);
         using var prepared = to == KnownFormats.Jpg && rotated.HasAlpha() ? rotated.Flatten(background: [255, 255, 255]) : rotated.Copy();
 
         // NetVips mata el pipeline de libvips cuando el token se cancela.

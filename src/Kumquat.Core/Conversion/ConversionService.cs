@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Kumquat contributors
 
-using System.Globalization;
 using Kumquat.Core.Formats;
 using Kumquat.Core.Results;
 using Microsoft.Extensions.Logging;
@@ -50,51 +49,26 @@ public sealed partial class ConversionService
         LogPlan(request.InputPath, string.Join(" -> ", path.Edges.Select(e => $"{e.From}->{e.To}[{e.ConverterId}]")));
 
         using var workspace = _workspaces.Create();
-        var stagingPath = Path.Combine(finalDirectory, string.Create(CultureInfo.InvariantCulture, $".kumquat-{Guid.NewGuid():N}{request.Target.DefaultExtension}"));
-        try
+        var result = await StagedOutput.RunAsync(
+            request.InputPath,
+            request.Target,
+            finalDirectory,
+            suffix: null,
+            stagingPath => RunPathAsync(path, request.InputPath, stagingPath, workspace, progress, cancellationToken),
+            cancellationToken);
+        if (result.IsSuccess)
         {
-            var current = request.InputPath;
-            for (var i = 0; i < path.Edges.Count; i++)
-            {
-                var edge = path.Edges[i];
-                var isLast = i == path.Edges.Count - 1;
-                var output = isLast ? stagingPath : workspace.NewFilePath(edge.To.DefaultExtension);
-                var stepProgress = progress is null ? null : new StepProgress(progress, i, path.Edges.Count);
-
-                var result = await RunStepAsync(new ConversionStep(current, output, edge), stepProgress, cancellationToken);
-                if (!result.IsSuccess)
-                {
-                    return result.Error;
-                }
-
-                if (!File.Exists(output))
-                {
-                    return new Error("no-output", $"El motor '{edge.ConverterId}' terminó sin producir archivo.");
-                }
-
-                current = output;
-            }
-
-            var finalPath = Publish(stagingPath, request.InputPath, request.Target, finalDirectory);
             progress?.Report(1.0);
-            return finalPath;
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            return Error.Cancelled;
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return new Error("access-denied", ex.Message);
-        }
-        catch (IOException ex)
-        {
-            return new Error("io", ex.Message);
-        }
-        finally
-        {
-            TryDelete(stagingPath);
-        }
+
+        return result;
+    }
+
+    /// <summary>Envuelve una conversión como trabajo encolable en <see cref="Jobs.JobRunner"/>.</summary>
+    public Jobs.JobRequest CreateJob(ConversionRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        return new Jobs.JobRequest(request.InputPath, "a " + request.Target.DisplayName, (progress, ct) => ConvertAsync(request, progress, ct));
     }
 
     /// <summary>Valida el pedido y busca la ruta sin ejecutar nada.</summary>
@@ -122,39 +96,30 @@ public sealed partial class ConversionService
         return path;
     }
 
-    private static string Publish(string stagingPath, string inputPath, FileFormat target, string directory)
+    private async Task<Result> RunPathAsync(ConversionPath path, string input, string finalOutput, ITempWorkspace workspace, IProgress<double>? progress, CancellationToken cancellationToken)
     {
-        // Mover dentro del mismo volumen es atómico; si otro proceso tomó el nombre entre
-        // la elección y el movimiento, se elige el siguiente libre.
-        for (var attempt = 0; ; attempt++)
+        var current = input;
+        for (var i = 0; i < path.Edges.Count; i++)
         {
-            var finalPath = OutputNaming.ChooseOutputPath(inputPath, target, File.Exists, directory);
-            try
-            {
-                File.Move(stagingPath, finalPath, overwrite: false);
-                return finalPath;
-            }
-            catch (IOException) when (attempt < 5 && File.Exists(finalPath))
-            {
-                // Carrera por el nombre: reintentar.
-            }
-        }
-    }
+            var edge = path.Edges[i];
+            var output = i == path.Edges.Count - 1 ? finalOutput : workspace.NewFilePath(edge.To.DefaultExtension);
+            var stepProgress = progress is null ? null : new StepProgress(progress, i, path.Edges.Count);
 
-    private static void TryDelete(string path)
-    {
-        try
-        {
-            File.Delete(path);
+            var result = await RunStepAsync(new ConversionStep(current, output, edge), stepProgress, cancellationToken);
+            if (!result.IsSuccess)
+            {
+                return result;
+            }
+
+            if (!File.Exists(output))
+            {
+                return new Error("no-output", $"El motor '{edge.ConverterId}' terminó sin producir archivo.");
+            }
+
+            current = output;
         }
-        catch (IOException)
-        {
-            // Mejor esfuerzo: el archivo oculto .kumquat-* queda y se limpia en el próximo arranque.
-        }
-        catch (UnauthorizedAccessException)
-        {
-            // Idem.
-        }
+
+        return Result.Success;
     }
 
     private async Task<Result> RunStepAsync(ConversionStep step, IProgress<double>? progress, CancellationToken cancellationToken)

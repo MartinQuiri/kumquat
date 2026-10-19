@@ -3,6 +3,7 @@
 
 using Kumquat.Core.Conversion;
 using Kumquat.Core.Jobs;
+using Kumquat.Core.Tools;
 using Kumquat.Engines.FFmpeg;
 using Kumquat.Engines.Vips;
 using Kumquat.Infrastructure.Engines;
@@ -52,11 +53,15 @@ public static class KumquatServices
         services.AddSingleton<TempWorkspaceFactory>(sp => new TempWorkspaceFactory(sp.GetRequiredService<TimeProvider>()));
         services.AddSingleton<ITempWorkspaceFactory>(sp => sp.GetRequiredService<TempWorkspaceFactory>());
 
+        services.AddSingleton<FfmpegRunner>();
         services.AddSingleton<IConverter, FfmpegConverter>();
         services.AddSingleton<IConverter, VipsConverter>();
+
+        // Herramientas: el orden de registro es el orden en el anillo (la primera queda arriba).
+        services.AddSingleton(sp => new ToolService([.. VipsTool.CreateAll(), .. FfmpegTool.CreateAll(sp.GetRequiredService<FfmpegRunner>())]));
         services.AddSingleton(sp => ConversionGraph.FromConverters(sp.GetServices<IConverter>()));
         services.AddSingleton<ConversionService>();
-        services.AddSingleton(sp => new JobRunner(sp.GetRequiredService<ConversionService>(), maxConcurrency: Math.Clamp(Environment.ProcessorCount / 2, 1, 4)));
+        services.AddSingleton(_ => new JobRunner(maxConcurrency: Math.Clamp(Environment.ProcessorCount / 2, 1, 4)));
         return services;
     }
 

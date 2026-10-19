@@ -14,7 +14,8 @@ internal static class TestEngines
 {
     public static readonly ProcessRunner Runner = new();
     public static readonly EngineLocator Locator = new();
-    public static readonly FfmpegConverter Ffmpeg = new(Runner, Locator);
+    public static readonly FfmpegRunner FfmpegRunner = new(Runner, Locator);
+    public static readonly FfmpegConverter Ffmpeg = new(FfmpegRunner);
     public static readonly VipsConverter Vips = new();
     public static readonly IReadOnlyList<IConverter> All = [Ffmpeg, Vips];
 

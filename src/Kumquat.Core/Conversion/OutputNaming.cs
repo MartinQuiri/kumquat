@@ -20,7 +20,8 @@ public static class OutputNaming
     /// <param name="target">Formato de salida.</param>
     /// <param name="exists">Predicado de existencia (inyectable para tests).</param>
     /// <param name="outputDirectory">Carpeta de salida; por defecto la del origen.</param>
-    public static string ChooseOutputPath(string inputPath, FileFormat target, Func<string, bool> exists, string? outputDirectory = null)
+    /// <param name="suffix">Sufijo opcional: <c>foto (comprimido).jpg</c>.</param>
+    public static string ChooseOutputPath(string inputPath, FileFormat target, Func<string, bool> exists, string? outputDirectory = null, string? suffix = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(inputPath);
         ArgumentNullException.ThrowIfNull(target);
@@ -32,6 +33,11 @@ public static class OutputNaming
         if (stem.Length == 0)
         {
             stem = "kumquat";
+        }
+
+        if (!string.IsNullOrWhiteSpace(suffix))
+        {
+            stem = $"{stem} ({suffix})";
         }
 
         var candidate = Path.Combine(directory, stem + target.DefaultExtension);

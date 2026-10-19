@@ -25,7 +25,7 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
     private const uint DropGraceMilliseconds = 600;
     private const nuint CloseTimerId = 1;
 
-    private readonly Func<IReadOnlyList<string>, IReadOnlyList<WheelItem>> _itemsForFiles;
+    private readonly Func<IReadOnlyList<string>, IReadOnlyList<WheelRing>> _ringsForFiles;
     private readonly Action<IReadOnlyList<string>, WheelItem> _onChosen;
     private readonly DragGestureTracker _tracker;
     private readonly WheelWindow _window;
@@ -35,12 +35,12 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
     private bool _registered;
 
     /// <summary>Crea el controlador. Debe llamarse en el hilo de UI tras crear <see cref="UiThread"/>.</summary>
-    /// <param name="itemsForFiles">Destinos para los archivos arrastrados (vacío si no hay conversión).</param>
+    /// <param name="ringsForFiles">Anillos para los archivos arrastrados (vacío si no se puede hacer nada).</param>
     /// <param name="onChosen">Se invoca al soltar sobre un sector.</param>
     /// <param name="trigger">Gesto que abre la rueda.</param>
-    public WheelController(Func<IReadOnlyList<string>, IReadOnlyList<WheelItem>> itemsForFiles, Action<IReadOnlyList<string>, WheelItem> onChosen, TriggerKey trigger)
+    public WheelController(Func<IReadOnlyList<string>, IReadOnlyList<WheelRing>> ringsForFiles, Action<IReadOnlyList<string>, WheelItem> onChosen, TriggerKey trigger)
     {
-        _itemsForFiles = itemsForFiles ?? throw new ArgumentNullException(nameof(itemsForFiles));
+        _ringsForFiles = ringsForFiles ?? throw new ArgumentNullException(nameof(ringsForFiles));
         _onChosen = onChosen ?? throw new ArgumentNullException(nameof(onChosen));
         _tracker = new DragGestureTracker(trigger, Win32.GetSystemMetrics(Win32.SM_CXDRAG), Win32.GetSystemMetrics(Win32.SM_CYDRAG));
         _window = new WheelWindow { AppMessageHandler = OnAppMessage, TimerHandler = OnTimer };
@@ -100,13 +100,13 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
             return false; // Arrastre que pasó por la zona de estacionamiento: ignorar.
         }
 
-        var items = _itemsForFiles(files);
-        Trace?.Invoke($"DragEnter: {files.Count} archivo(s) ({Path.GetExtension(files[0])}), {items.Count} destino(s).");
-        _state = items.Count == 0
-            ? new WheelVisualState([], -1, "Sin conversiones para este archivo")
-            : new WheelVisualState(items, -1, null);
+        var rings = _ringsForFiles(files).Where(r => r.Items.Count > 0).ToList();
+        Trace?.Invoke($"DragEnter: {files.Count} archivo(s) ({Path.GetExtension(files[0])}), anillos: {string.Join(", ", rings.Select(r => $"{r.Kind}={r.Items.Count}"))}.");
+        _state = rings.Count == 0
+            ? new WheelVisualState([], WheelHit.Center, "Nada que hacer con este archivo")
+            : new WheelVisualState(rings, WheelHit.Center, null);
         _window.Render(_state);
-        return items.Count > 0 && UpdateHighlight(screenPoint);
+        return rings.Count > 0 && UpdateHighlight(screenPoint);
     }
 
     bool IDropHandler.OnDragOver(POINT screenPoint) => _window.IsShown && UpdateHighlight(screenPoint);
@@ -114,18 +114,17 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
     void IDropHandler.OnDragLeave()
     {
         // La rueda se queda (como en Tangerine) hasta soltar o cancelar; solo se quita el resaltado.
-        if (_state.Highlighted >= 0)
+        if (_state.HasHighlight)
         {
-            _state = _state with { Highlighted = -1 };
+            _state = _state with { Highlight = WheelHit.Center };
             _window.Render(_state);
         }
     }
 
     void IDropHandler.OnDrop(IReadOnlyList<string> files, POINT screenPoint)
     {
-        var hit = HitTest(screenPoint);
-        var item = hit.Zone == WheelZone.Sector ? _state.Items[hit.SectorIndex] : null;
-        Trace?.Invoke($"Drop en {hit.Zone} -> {item?.Target.Id ?? "(nada)"}.");
+        var item = _state.ItemAt(HitTest(screenPoint));
+        Trace?.Invoke($"Drop -> {(item is null ? "(nada)" : $"{item.Ring}:{item.Id}")}.");
         Close();
         if (item is not null)
         {
@@ -153,7 +152,7 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
                 _tracker.WheelOpen = true;
                 Trace?.Invoke($"Rueda mostrada en ({_window.Center.X}, {_window.Center.Y}), escala {_window.Scale:0.##}.");
                 break;
-            case GestureSignal.DragEnded when _window.IsShown && _state.Highlighted >= 0:
+            case GestureSignal.DragEnded when _window.IsShown && _state.HasHighlight:
                 // Sobre un sector: OLE entregará el drop en unos milisegundos; esperarlo.
                 _window.StartTimer(CloseTimerId, DropGraceMilliseconds);
                 break;
@@ -172,20 +171,20 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
     private bool UpdateHighlight(POINT screenPoint)
     {
         var hit = HitTest(screenPoint);
-        var index = hit.Zone == WheelZone.Sector ? hit.SectorIndex : -1;
-        if (index != _state.Highlighted)
+        var highlight = hit.Zone == WheelZone.Sector ? hit : WheelHit.Center;
+        if (highlight != _state.Highlight)
         {
-            _state = _state with { Highlighted = index };
+            _state = _state with { Highlight = highlight };
             _window.Render(_state);
         }
 
-        return index >= 0;
+        return highlight.Zone == WheelZone.Sector;
     }
 
     private WheelHit HitTest(POINT screenPoint)
     {
         var center = _window.Center;
-        return _window.LayoutFor(_state.Items.Count).HitTest(screenPoint.X - center.X, screenPoint.Y - center.Y);
+        return _window.LayoutFor(_state).HitTest(screenPoint.X - center.X, screenPoint.Y - center.Y);
     }
 
     private void OnTimer(nuint id)

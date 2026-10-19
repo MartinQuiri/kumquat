@@ -13,7 +13,7 @@ public sealed class WheelItemOrderingTests
     {
         var items = WheelItemOrdering.Arrange(FormatCategory.Image, [KnownFormats.Bmp, KnownFormats.WebP, KnownFormats.Jpg, KnownFormats.Gif]);
 
-        items.Select(i => i.Target.Id).ShouldBe(["jpg", "webp", "gif", "bmp"]);
+        items.Select(i => i.Id).ShouldBe(["jpg", "webp", "gif", "bmp"]);
     }
 
     [Fact]
@@ -24,11 +24,11 @@ public sealed class WheelItemOrderingTests
         var items = WheelItemOrdering.Arrange(FormatCategory.Video, targets);
 
         items.Count.ShouldBe(8);
-        items[0].Target.Id.ShouldBe("mp4"); // norte
-        items[2].Target.Id.ShouldBe("mp3"); // este
-        items[4].Target.Id.ShouldBe("gif"); // sur
-        items[6].Target.Id.ShouldBe("webm"); // oeste
-        items.Select(i => i.Target.Id).ShouldNotContain("wav"); // noveno: queda fuera
+        items[0].Id.ShouldBe("mp4"); // norte
+        items[2].Id.ShouldBe("mp3"); // este
+        items[4].Id.ShouldBe("gif"); // sur
+        items[6].Id.ShouldBe("webm"); // oeste
+        items.Select(i => i.Id).ShouldNotContain("wav"); // noveno: queda fuera
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public sealed class WheelItemOrderingTests
     {
         var items = WheelItemOrdering.Arrange(FormatCategory.Audio, [KnownFormats.Zip, KnownFormats.Mp3, KnownFormats.Pdf]);
 
-        items.Select(i => i.Target.Id).ShouldBe(["mp3", "pdf", "zip"]);
+        items.Select(i => i.Id).ShouldBe(["mp3", "pdf", "zip"]);
     }
 
     [Fact]

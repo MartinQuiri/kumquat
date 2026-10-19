@@ -14,10 +14,13 @@ internal sealed class BatchNotifier(Action<string, string, bool> notify)
 {
     private readonly Dictionary<Guid, Batch> _byJob = [];
 
-    public void Track(IReadOnlyCollection<Guid> jobIds, string targetName)
+    /// <param name="jobIds">Trabajos del drop.</param>
+    /// <param name="verb">Participio en singular ("convertido", "listo").</param>
+    /// <param name="detail">Complemento ("a PNG", "(Comprimir)").</param>
+    public void Track(IReadOnlyCollection<Guid> jobIds, string verb, string detail)
     {
         ArgumentNullException.ThrowIfNull(jobIds);
-        var batch = new Batch(targetName, jobIds.Count);
+        var batch = new Batch(verb, detail, jobIds.Count);
         foreach (var id in jobIds)
         {
             _byJob[id] = batch;
@@ -41,8 +44,10 @@ internal sealed class BatchNotifier(Action<string, string, bool> notify)
 
         if (batch.Failed == 0)
         {
-            var what = batch.Succeeded == 1 ? Path.GetFileName(batch.LastOutput) : string.Create(CultureInfo.CurrentCulture, $"{batch.Succeeded} archivos");
-            notify("Listo", $"{what} convertido{(batch.Succeeded == 1 ? string.Empty : "s")} a {batch.TargetName}", false);
+            var message = batch.Succeeded == 1
+                ? $"{Path.GetFileName(batch.LastOutput)} {batch.Verb} {batch.Detail}"
+                : string.Create(CultureInfo.CurrentCulture, $"{batch.Succeeded} archivos {batch.Verb}s {batch.Detail}");
+            notify("Listo", message, false);
         }
         else
         {
@@ -53,11 +58,13 @@ internal sealed class BatchNotifier(Action<string, string, bool> notify)
         }
     }
 
-    private sealed class Batch(string targetName, int total)
+    private sealed class Batch(string verb, string detail, int total)
     {
         private int _done;
 
-        public string TargetName { get; } = targetName;
+        public string Verb { get; } = verb;
+
+        public string Detail { get; } = detail;
 
         public int Total { get; } = total;
 

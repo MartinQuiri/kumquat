@@ -9,7 +9,7 @@ using Kumquat.Infrastructure.Processes;
 namespace Kumquat.Engines.Tests.Integration;
 
 /// <summary>Propiedades de un medio según ffprobe.</summary>
-internal sealed record MediaInfo(bool HasVideo, bool HasAudio, int? Width, int? Height, double? DurationSeconds, string? VideoCodec, string? AudioCodec);
+internal sealed record MediaInfo(bool HasVideo, bool HasAudio, int? Width, int? Height, double? DurationSeconds, string? VideoCodec, string? AudioCodec, int? SampleRate);
 
 /// <summary>Lee propiedades de un medio con ffprobe, para afirmar sobre la salida sin comparar bytes.</summary>
 internal static class MediaProbe
@@ -43,6 +43,7 @@ internal static class MediaProbe
             Height: video.ValueKind != JsonValueKind.Undefined ? video.GetProperty("height").GetInt32() : null,
             DurationSeconds: duration,
             VideoCodec: video.ValueKind != JsonValueKind.Undefined ? video.GetProperty("codec_name").GetString() : null,
-            AudioCodec: audio.ValueKind != JsonValueKind.Undefined ? audio.GetProperty("codec_name").GetString() : null);
+            AudioCodec: audio.ValueKind != JsonValueKind.Undefined ? audio.GetProperty("codec_name").GetString() : null,
+            SampleRate: audio.ValueKind != JsonValueKind.Undefined && audio.TryGetProperty("sample_rate", out var rate) ? int.Parse(rate.GetString()!, CultureInfo.InvariantCulture) : null);
     }
 }
