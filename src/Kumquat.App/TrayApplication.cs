@@ -57,7 +57,7 @@ internal sealed partial class TrayApplication : IDisposable
         _jobs.JobChanged += (_, e) => _ui.Post(() => _notifier.OnJobChanged(e.Snapshot));
 
         _tray = new TrayIcon("Kumquat: arrastra un archivo y presiona Shift", BuildMenu);
-        _wheel = new WheelController(_targets.For, OnChosen, _settings.Trigger) { Trace = LogInteraction, NothingSelected = OnNothingSelected };
+        _wheel = new WheelController(_targets.For, OnChosen, _settings.Trigger) { Trace = LogInteraction, NothingSelected = OnNothingSelected, CaptionForFiles = WheelTargets.Caption };
         _wheel.Start();
         var hotkeyActive = _settings.HotkeyEnabled && _wheel.SetHotkey(Hotkey.Default);
         SyncContextMenu();

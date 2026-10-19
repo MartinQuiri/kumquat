@@ -26,6 +26,7 @@ public sealed class WheelPreviewTests
     {
         const float scale = 2f;
         var size = WheelRenderer.CanvasSize(scale);
+        var height = WheelRenderer.CanvasHeight(scale);
         (string Id, string Label)[] tools =
         [
             ("pdf.merge", "Unir PDF"), ("pdf.compress", "Comprimir"), ("pdf.rotate", "Rotar 90°"), ("pdf.split", "Dividir páginas"), ("pdf.to-jpg", "Páginas a JPG"),
@@ -36,9 +37,9 @@ public sealed class WheelPreviewTests
             new(WheelRingKind.Convert, [WheelItem.Convert(KnownFormats.Txt)]),
             new(WheelRingKind.Tools, [.. tools.Select(t => WheelItem.Tool(t.Id, t.Label))]),
             Rings[2],
-        ], WheelHit.At(1, 8), null);
+        ], WheelHit.At(1, 8), null) { Caption = "PDF · 2,4 MB" };
 
-        using var bitmap = new Bitmap(size, size, PixelFormat.Format32bppPArgb);
+        using var bitmap = new Bitmap(size, height, PixelFormat.Format32bppPArgb);
         using (var g = Graphics.FromImage(bitmap))
         {
             WheelRenderer.Render(g, size, scale, state, WheelTheme.Dark);
@@ -54,9 +55,10 @@ public sealed class WheelPreviewTests
     {
         const float scale = 2f;
         var size = WheelRenderer.CanvasSize(scale);
-        var state = new WheelVisualState(Rings, WheelHit.At(ring, sector), null);
+        var height = WheelRenderer.CanvasHeight(scale);
+        var state = new WheelVisualState(Rings, WheelHit.At(ring, sector), null) { Caption = "PNG · 820 KB" };
 
-        using var bitmap = new Bitmap(size, size, PixelFormat.Format32bppPArgb);
+        using var bitmap = new Bitmap(size, height, PixelFormat.Format32bppPArgb);
         using (var g = Graphics.FromImage(bitmap))
         {
             WheelRenderer.Render(g, size, scale, state, light ? WheelTheme.Light : WheelTheme.Dark);
@@ -65,6 +67,10 @@ public sealed class WheelPreviewTests
         // El centro es transparente fuera del disco y opaco dentro.
         bitmap.GetPixel(1, 1).A.ShouldBe((byte)0);
         bitmap.GetPixel(size / 2, size / 2).A.ShouldBeGreaterThan((byte)200);
+
+        // La etiqueta queda pegada bajo el disco, centrada, dentro del lienzo.
+        bitmap.GetPixel(size / 2, height - (int)(10 * scale)).A.ShouldBeGreaterThan((byte)200);
+        bitmap.GetPixel(size / 4, height - (int)(10 * scale)).A.ShouldBe((byte)0);
 
         var dir = Path.Combine(RepoRoot(), "docs", "images");
         Directory.CreateDirectory(dir);

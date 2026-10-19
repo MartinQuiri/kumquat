@@ -60,6 +60,9 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
         _hook = new GlobalInputHook(_tracker, PostGesture);
     }
 
+    /// <summary>Texto bajo la rueda para estos archivos (formato y tamaño), o <c>null</c> para no mostrarlo.</summary>
+    public Func<IReadOnlyList<string>, string?>? CaptionForFiles { get; set; }
+
     /// <summary>Recibe una línea por cada paso de la interacción (diagnóstico; nunca incluye teclas).</summary>
     public Action<string>? Trace { get; set; }
 
@@ -143,6 +146,7 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
         _state = rings.Count == 0
             ? new WheelVisualState([], WheelHit.Center, "Nada que hacer con este archivo")
             : new WheelVisualState(rings, WheelHit.Center, null);
+        _state = _state with { Caption = CaptionFor(files) };
         _window.Render(_state);
         return rings.Count > 0 && UpdateHighlight(screenPoint);
     }
@@ -282,6 +286,7 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
         _state = rings.Count == 0
             ? new WheelVisualState([], WheelHit.Center, "Nada que hacer con este archivo")
             : new WheelVisualState(rings, WheelHit.Center, null);
+        _state = _state with { Caption = CaptionFor(files) };
         Win32.GetCursorPos(out var cursor);
         _clickFiles = files;
         _tracker.ClickMode = true;
@@ -312,6 +317,22 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
             case GestureSignal.Cancel:
                 Close();
                 break;
+        }
+    }
+
+    private string? CaptionFor(IReadOnlyList<string> files)
+    {
+        try
+        {
+            return CaptionForFiles?.Invoke(files);
+        }
+        catch (IOException)
+        {
+            return null; // la etiqueta es una ayuda: nunca debe impedir abrir la rueda
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return null;
         }
     }
 
