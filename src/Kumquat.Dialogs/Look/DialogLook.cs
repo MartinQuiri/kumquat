@@ -17,7 +17,9 @@ namespace Kumquat.Dialogs.Look;
 internal sealed class DialogLook
 {
     private static readonly Lazy<FontFamily> InterFamily = new(LoadInter);
-    private static readonly Lazy<Style> PillStyle = new(() => (Style)XamlReader.Parse(PillStyleXaml));
+    // Un estilo por hilo: un Style pertenece al hilo que lo creó hasta que WPF lo sella al usarlo,
+    // y compartirlo entre hilos de UI (p. ej. ventanas abiertas en paralelo) fallaría.
+    private static readonly ThreadLocal<Style> PillStyle = new(() => (Style)XamlReader.Parse(PillStyleXaml));
 
     public DialogLook(bool dark, Rgb accent)
     {
