@@ -95,6 +95,9 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
         set => _tracker.Trigger = value;
     }
 
+    /// <summary>Indica si el atajo global está registrado.</summary>
+    public bool HasHotkey => _hotkeyRegistered;
+
     /// <summary>Activa (o desactiva, con <c>null</c>) el atajo global. <c>false</c> si otra app ya lo usa.</summary>
     public bool SetHotkey(Hotkey? hotkey)
     {

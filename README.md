@@ -17,13 +17,13 @@ Kumquat es una alternativa libre (GPL-3.0) para Windows inspirada en la interacc
 3. Sin soltar, toca **Shift**. Aparece la rueda bajo el cursor.
 4. Suelta sobre un formato. La copia convertida aparece junto al original (el original nunca se toca).
 
-Soltar en el centro (el logo) o presionar **Esc** cancela. El gesto se puede cambiar a Ctrl, Bloq Mayús o clic derecho desde el menú del ícono.
+Soltar en el centro (el logo) o presionar **Esc** cancela. El gesto se puede cambiar a Ctrl, Bloq Mayús o clic derecho en **Configuración** (menú del ícono).
 
 **Con el teclado: el buscador.** Selecciona uno o más archivos en el Explorador (o en el escritorio) y presiona **Ctrl+Alt+K**, o haz clic derecho → **Kumquat…** (en Windows 11, dentro de "Mostrar más opciones"). Aparece un buscador con todo lo que se puede hacer con esos archivos: escribe para filtrar (`pdf`, `comprimir`, `achicar`, `ruta`… sin importar tildes), ↑ ↓ para elegir, **Enter** para aplicar y **Esc** para cerrar. La rueda queda para arrastrar con el mouse.
 
 <p align="center"><img src="docs/images/buscador-oscuro.png" width="560" alt="El buscador de acciones con la búsqueda pdf"></p>
 
-La entrada del clic derecho se registra solo para tu usuario, sin permisos de administrador; se quita desde el menú del ícono o con `Kumquat.exe --unregister`.
+La entrada del clic derecho se registra solo para tu usuario, sin permisos de administrador; se quita en Configuración o con `Kumquat.exe --unregister`.
 
 También hay una CLI:
 
