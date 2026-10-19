@@ -1,0 +1,11 @@
+P:System.Diagnostics.ProcessStartInfo.Arguments;Use ProcessStartInfo.ArgumentList via Kumquat.Infrastructure.Processes.ProcessRunner (evita inyección de argumentos).
+M:System.Diagnostics.Process.Start(System.String);Use ProcessRunner o ShellLauncher.
+M:System.Diagnostics.Process.Start(System.String,System.String);Use ProcessRunner (ArgumentList).
+M:System.Diagnostics.Process.Start(System.String,System.Collections.Generic.IEnumerable{System.String});Use ProcessRunner (Job Object + límites).
+M:System.IO.Path.GetTempFileName;Use TempWorkspace (carpeta propia, limpieza garantizada).
+M:System.IO.Compression.ZipFile.ExtractToDirectory(System.String,System.String);Use SafeExtractor (protección Zip Slip y bombas).
+M:System.IO.Compression.ZipFile.ExtractToDirectory(System.String,System.String,System.Boolean);Use SafeExtractor (protección Zip Slip y bombas).
+M:System.IO.Compression.ZipFileExtensions.ExtractToDirectory(System.IO.Compression.ZipArchive,System.String);Use SafeExtractor (protección Zip Slip y bombas).
+M:System.IO.Compression.ZipFileExtensions.ExtractToDirectory(System.IO.Compression.ZipArchive,System.String,System.Boolean);Use SafeExtractor (protección Zip Slip y bombas).
+M:System.DateTime.get_Now;Use TimeProvider inyectado.
+M:System.DateTime.get_UtcNow;Use TimeProvider inyectado.

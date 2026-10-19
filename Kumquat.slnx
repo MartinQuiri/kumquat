@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Kumquat.Core/Kumquat.Core.csproj" />
+    <Project Path="src/Kumquat.Infrastructure/Kumquat.Infrastructure.csproj">
+      <Platform Project="x64" />
+    </Project>
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Kumquat.Core.Tests/Kumquat.Core.Tests.csproj">
+      <Platform Project="x64" />
+    </Project>
+    <Project Path="tests/Kumquat.Infrastructure.Tests/Kumquat.Infrastructure.Tests.csproj">
+      <Platform Project="x64" />
+    </Project>
+    <Project Path="tests/Kumquat.TestTools.ProcessProbe/Kumquat.TestTools.ProcessProbe.csproj">
+      <Platform Project="x64" />
+    </Project>
+  </Folder>
+</Solution>

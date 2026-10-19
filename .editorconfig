@@ -1,0 +1,69 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{json,yml,yaml,props,targets,csproj,xml,md}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.cs]
+file_header_template = SPDX-License-Identifier: GPL-3.0-or-later\nCopyright (C) 2026 Kumquat contributors
+
+# Estilo
+csharp_style_namespace_declarations = file_scoped:error
+csharp_using_directive_placement = outside_namespace:error
+dotnet_sort_system_directives_first = true
+csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_expression_bodied_methods = when_on_single_line:suggestion
+csharp_prefer_braces = true:error
+dotnet_style_qualification_for_field = false:error
+dotnet_style_readonly_field = true:error
+csharp_style_prefer_primary_constructors = false:none
+
+# Nombres: campos privados _camelCase
+dotnet_naming_rule.private_fields.symbols = private_fields
+dotnet_naming_rule.private_fields.style = underscore_camel
+dotnet_naming_rule.private_fields.severity = error
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_style.underscore_camel.capitalization = camel_case
+dotnet_naming_style.underscore_camel.required_prefix = _
+dotnet_naming_rule.private_const.symbols = private_const
+dotnet_naming_rule.private_const.style = pascal
+dotnet_naming_rule.private_const.severity = error
+dotnet_naming_symbols.private_const.applicable_kinds = field
+dotnet_naming_symbols.private_const.required_modifiers = const
+dotnet_naming_style.pascal.capitalization = pascal_case
+
+# Reglas de calidad elevadas a error
+dotnet_diagnostic.IDE0005.severity = error   # usings innecesarios
+dotnet_diagnostic.IDE0161.severity = error   # namespace file-scoped
+dotnet_diagnostic.IDE0073.severity = error   # cabecera SPDX obligatoria
+dotnet_diagnostic.CA2000.severity = error    # dispose
+dotnet_diagnostic.CA2016.severity = error    # propagar CancellationToken
+dotnet_diagnostic.CA1849.severity = error    # no bloquear en async
+dotnet_diagnostic.CA2007.severity = none     # ConfigureAwait: app de escritorio, no librería pública
+dotnet_diagnostic.MA0004.severity = none     # idem ConfigureAwait (Meziantou)
+dotnet_diagnostic.CA1303.severity = none     # literales localizables: se maneja con resx
+dotnet_diagnostic.MA0076.severity = none     # interpolación con cultura implícita en logs
+dotnet_diagnostic.CA1848.severity = suggestion
+dotnet_diagnostic.CA1873.severity = suggestion
+
+[tests/**.cs]
+dotnet_diagnostic.CA1707.severity = none     # guiones bajos en nombres de tests
+dotnet_diagnostic.CA2000.severity = suggestion
+dotnet_diagnostic.MA0048.severity = none
+dotnet_diagnostic.CA1515.severity = none
+
+[*.cs]
+# CA1716: choques con palabras clave de VB.NET; Kumquat no expone APIs a VB.
+dotnet_diagnostic.CA1716.severity = none
