@@ -1,8 +1,8 @@
 <Project>
   <!-- Configuración común a todos los proyectos. Cambiar aquí, no en cada .csproj. -->
   <PropertyGroup>
-    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
-    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <!-- Sin versión de SDK de Windows: no usamos WinRT y la proyección CsWinRT pesa ~53 MB. -->
+    <TargetFramework>net10.0-windows</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>

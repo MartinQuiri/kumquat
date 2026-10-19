@@ -1,7 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <AssemblyName>kumquat</AssemblyName>
+    <!-- No puede llamarse "kumquat": en Windows chocaría con Kumquat.exe (la app) en la misma carpeta. -->
+    <AssemblyName>kumquat-cli</AssemblyName>
+    <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Kumquat.Hosting\Kumquat.Hosting.csproj" />

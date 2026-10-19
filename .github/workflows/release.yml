@@ -1,0 +1,67 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Paquete ${{ matrix.rid }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+          - os: windows-11-arm
+            rid: win-arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      - name: Publicar y verificar
+        shell: pwsh
+        run: ./tools/publish.ps1 -Runtime ${{ matrix.rid }} -Version ("${{ github.ref_name }}".TrimStart('v'))
+
+      # Firma de código: SignPath Foundation (gratis para proyectos OSI).
+      # Requiere postular el proyecto en https://signpath.org y configurar los secretos
+      # SIGNPATH_API_TOKEN / organization-id / project-slug. Hasta entonces el zip sale sin firmar.
+      # - uses: signpath/github-action-submit-signing-request@<sha> # v1
+      #   with:
+      #     api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+      #     organization-id: <id>
+      #     project-slug: kumquat
+      #     signing-policy-slug: release-signing
+      #     github-artifact-id: <artifact-id>
+      #     wait-for-completion: true
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: kumquat-${{ matrix.rid }}
+          path: |
+            artifacts/*.zip
+            artifacts/*.sha256
+
+  release:
+    needs: package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Crear release (borrador)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" dist/* \
+            --repo "${{ github.repository }}" --draft --generate-notes \
+            --title "Kumquat ${{ github.ref_name }}"

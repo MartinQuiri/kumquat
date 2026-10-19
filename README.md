@@ -18,9 +18,9 @@ Soltar en el centro (✕) o presionar **Esc** cancela. El gesto se puede cambiar
 También hay una CLI:
 
 ```powershell
-kumquat convert foto.heic --to jpg
-kumquat convert *.wav --to mp3 --out D:\musica
-kumquat targets video.mkv      # a qué formatos se puede convertir
+kumquat-cli convert foto.heic --to jpg
+kumquat-cli convert *.wav --to mp3 --out D:\musica
+kumquat-cli targets video.mkv      # a qué formatos se puede convertir
 ```
 
 ## Formatos (fase 1)
@@ -42,6 +42,12 @@ Requisitos: Windows 10 22H2+ o 11, [.NET SDK 10](https://dotnet.microsoft.com/do
 dotnet build Kumquat.slnx
 dotnet test --solution Kumquat.slnx --filter-not-trait "Category=E2E" --ignore-exit-code 8
 dotnet run --project src/Kumquat.App
+```
+
+Para generar el paquete distribuible (self-contained, recortado, ~93 MB en zip, arranque ~0,3 s):
+
+```powershell
+./tools/publish.ps1 -Runtime win-x64     # o win-arm64
 ```
 
 Los tests E2E hacen un arrastre real moviendo el mouse: córrelos solo cuando no estés usando el PC (`dotnet test --project tests/Kumquat.E2E.Tests`).
