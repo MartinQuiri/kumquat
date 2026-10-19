@@ -37,7 +37,8 @@ public sealed class WheelPreviewTests
             new(WheelRingKind.Convert, [WheelItem.Convert(KnownFormats.Txt)]),
             new(WheelRingKind.Tools, [.. tools.Select(t => WheelItem.Tool(t.Id, t.Label))]),
             Rings[2],
-        ], WheelHit.At(1, 8), null) { Caption = "PDF · 2,4 MB" };
+        ], WheelHit.At(1, 8), null)
+        { Caption = "PDF · 2,4 MB" };
 
         using var bitmap = new Bitmap(size, height, PixelFormat.Format32bppPArgb);
         using (var g = Graphics.FromImage(bitmap))
