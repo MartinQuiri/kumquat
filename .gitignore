@@ -1,0 +1,18 @@
+bin/
+obj/
+artifacts/
+TestResults/
+*.user
+*.suo
+.vs/
+.vscode/*
+!.vscode/extensions.json
+*.received.*
+coverage*/
+
+# Binarios de motores: se descargan con tools/fetch-engines.ps1 (hash fijado en tools/engines.json)
+engines/*
+!engines/README.md
+
+# Corpus generado
+corpus/generated/
