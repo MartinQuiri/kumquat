@@ -19,6 +19,10 @@ Kumquat es una alternativa libre (GPL-3.0) para Windows inspirada en la interacc
 3. Sin soltar, toca **Shift**. Aparece la rueda bajo el cursor.
 4. Suelta sobre un formato. La copia convertida aparece junto al original (el original nunca se toca).
 
+**Progreso:** si algo tarda (un video, un PDF grande, un lote de fotos), abajo a la derecha aparece un panel con cada archivo, su porcentaje y **cuánto falta**, calculado con el ritmo real del trabajo. Cada fila se puede cancelar, y "Ocultar" lo esconde hasta el próximo lote. Lo instantáneo no lo hace aparecer, y al terminar se va solo.
+
+<p align="center"><img src="docs/images/progreso-oscuro.png" width="360" alt="Panel de progreso con dos trabajos en curso y uno en cola"></p>
+
 Soltar en el centro (el logo) o presionar **Esc** cancela. El gesto se puede cambiar a Ctrl, Bloq Mayús o clic derecho en **Configuración** (menú del ícono).
 
 **Accesibilidad:** todo lo de la rueda se puede hacer con el teclado desde el buscador (Ctrl+Alt+K o clic derecho → Kumquat…). Con Narrador, NVDA o JAWS, la rueda anuncia qué se arrastró, cuántas opciones hay y qué sector queda elegido, y el buscador dice la opción elegida y su posición. En alto contraste, la rueda y las ventanas usan solo los colores del sistema.

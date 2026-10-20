@@ -9,6 +9,7 @@ using Kumquat.Core.Localization;
 using Kumquat.Core.Previews;
 using Kumquat.Core.Tools;
 using Kumquat.Dialogs;
+using Kumquat.Dialogs.Progress;
 using Kumquat.Dialogs.Search;
 using Kumquat.Dialogs.Settings;
 using Kumquat.Hosting;
@@ -39,6 +40,9 @@ internal sealed partial class TrayApplication : IDisposable
     private readonly ToolService _tools;
     private readonly IPreviewService _previews;
     private readonly BatchNotifier _notifier;
+    private readonly ProgressBoard _board = new(TimeProvider.System);
+    private ProgressPanel? _progress;
+    private System.Windows.Threading.DispatcherTimer? _progressTimer;
     private readonly bool _touchWindows;
     private AppSettings _settings;
     private WheelController? _wheel;
@@ -68,7 +72,12 @@ internal sealed partial class TrayApplication : IDisposable
 
     public void Start()
     {
-        _jobs.JobChanged += (_, e) => _ui.Post(() => _notifier.OnJobChanged(e.Snapshot));
+        _jobs.JobChanged += (_, e) => _ui.Post(() =>
+        {
+            _notifier.OnJobChanged(e.Snapshot);
+            _board.OnJobChanged(e.Snapshot);
+            RefreshProgress();
+        });
 
         DialogDiagnostics.Error = (activity, ex) => LogDialogError(activity, ex);
         VirtualDrops.CleanupStale(TimeSpan.FromDays(1));
@@ -90,6 +99,8 @@ internal sealed partial class TrayApplication : IDisposable
 
     public void Dispose()
     {
+        _progressTimer?.Stop();
+        _progress?.Close();
         _wheel?.Dispose();
         _tray?.Dispose();
     }
@@ -224,6 +235,40 @@ internal sealed partial class TrayApplication : IDisposable
         _tray?.Notify("Kumquat", Strings.Installed(offer.Name));
         EngineInstaller.Relaunch();
         _ui.Quit();
+    }
+
+    /// <summary>
+    /// Panel de progreso abajo a la derecha. El temporizador corre solo mientras hay algo que
+    /// mostrar: hace avanzar la cuenta regresiva y decide cuándo aparece y se va el panel.
+    /// </summary>
+    private void RefreshProgress()
+    {
+        var view = _board.View();
+        if (view.Visible || _progress?.IsVisible == true)
+        {
+            _progress ??= new ProgressPanel(id => _jobs.Cancel(id), () =>
+            {
+                _board.Dismiss();
+                RefreshProgress();
+            });
+            _progress.Present(view);
+        }
+
+        var busy = view.Rows.Count > 0 || _progress?.IsVisible == true;
+        if (busy && _progressTimer is null)
+        {
+            _progressTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
+            _progressTimer.Tick += (_, _) => RefreshProgress();
+        }
+
+        if (busy)
+        {
+            _progressTimer!.Start();
+        }
+        else
+        {
+            _progressTimer?.Stop();
+        }
     }
 
     private void TransferTo(IReadOnlyList<string> files, bool move)

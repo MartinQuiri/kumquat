@@ -129,6 +129,7 @@ Ejemplos:
   <data name="InstallWindowTitle" xml:space="preserve"><value>Kumquat · Instalar {0}</value><comment>params: name</comment></data>
   <data name="Installed" xml:space="preserve"><value>{0} quedó instalado. Kumquat se reinicia para usarlo.</value><comment>params: name</comment></data>
   <data name="ItemsCount" xml:space="preserve"><value>{0} elementos</value><comment>params: count</comment></data>
+  <data name="JobConvertTo" xml:space="preserve"><value>a {0}</value><comment>params: format</comment></data>
   <data name="JobCopy" xml:space="preserve"><value>Copiar</value></data>
   <data name="JobMove" xml:space="preserve"><value>Mover</value></data>
   <data name="JobSave" xml:space="preserve"><value>Guardar</value></data>
@@ -185,6 +186,18 @@ Ejemplos:
   <data name="PreviewLoading" xml:space="preserve"><value>Preparando vista previa…</value></data>
   <data name="PreviewNone" xml:space="preserve"><value>Sin vista previa para este archivo</value></data>
   <data name="PreviewRange" xml:space="preserve"><value>Tramo: {0} – {1}  ·  {2}</value><comment>params: start, end, length</comment></data>
+  <data name="ProgressAlmostDone" xml:space="preserve"><value>casi listo</value></data>
+  <data name="ProgressCalculating" xml:space="preserve"><value>calculando…</value></data>
+  <data name="ProgressCancel" xml:space="preserve"><value>Cancelar {0}</value><comment>params: file</comment></data>
+  <data name="ProgressHide" xml:space="preserve"><value>Ocultar</value></data>
+  <data name="ProgressHoursLeft" xml:space="preserve"><value>quedan ~{0} h {1} min</value><comment>params: hours, minutes</comment></data>
+  <data name="ProgressMinutesLeft" xml:space="preserve"><value>quedan ~{0} min</value><comment>params: minutes</comment></data>
+  <data name="ProgressMore" xml:space="preserve"><value>y {0} más en la cola</value><comment>params: count</comment></data>
+  <data name="ProgressPanelName" xml:space="preserve"><value>Progreso de Kumquat</value></data>
+  <data name="ProgressQueued" xml:space="preserve"><value>En cola</value></data>
+  <data name="ProgressRunning" xml:space="preserve"><value>{0} en curso</value><comment>params: running</comment></data>
+  <data name="ProgressRunningQueued" xml:space="preserve"><value>{0} en curso · {1} en cola</value><comment>params: running, queued</comment></data>
+  <data name="ProgressSecondsLeft" xml:space="preserve"><value>quedan ~{0} s</value><comment>params: seconds</comment></data>
   <data name="Remove" xml:space="preserve"><value>Quitar</value></data>
   <data name="RemoveField" xml:space="preserve"><value>Quitar campo</value></data>
   <data name="SelectAll" xml:space="preserve"><value>Todas</value></data>

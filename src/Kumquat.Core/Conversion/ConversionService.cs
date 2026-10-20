@@ -69,7 +69,7 @@ public sealed partial class ConversionService
     public Jobs.JobRequest CreateJob(ConversionRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        return new Jobs.JobRequest(request.InputPath, "a " + request.Target.DisplayName, (progress, ct) => ConvertAsync(request, progress, ct));
+        return new Jobs.JobRequest(request.InputPath, Strings.JobConvertTo(request.Target.DisplayName), (progress, ct) => ConvertAsync(request, progress, ct));
     }
 
     /// <summary>Valida el pedido y busca la ruta sin ejecutar nada.</summary>

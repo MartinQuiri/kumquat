@@ -340,6 +340,9 @@ public static partial class Strings
     /// <summary>{0} elementos</summary>
     public static string ItemsCount(object? count) => Format("ItemsCount", count);
 
+    /// <summary>a {0}</summary>
+    public static string JobConvertTo(object? format) => Format("JobConvertTo", format);
+
     /// <summary>Copiar</summary>
     public static string JobCopy => Get("JobCopy");
 
@@ -507,6 +510,42 @@ public static partial class Strings
 
     /// <summary>Tramo: {0} – {1}  ·  {2}</summary>
     public static string PreviewRange(object? start, object? end, object? length) => Format("PreviewRange", start, end, length);
+
+    /// <summary>casi listo</summary>
+    public static string ProgressAlmostDone => Get("ProgressAlmostDone");
+
+    /// <summary>calculando…</summary>
+    public static string ProgressCalculating => Get("ProgressCalculating");
+
+    /// <summary>Cancelar {0}</summary>
+    public static string ProgressCancel(object? file) => Format("ProgressCancel", file);
+
+    /// <summary>Ocultar</summary>
+    public static string ProgressHide => Get("ProgressHide");
+
+    /// <summary>quedan ~{0} h {1} min</summary>
+    public static string ProgressHoursLeft(object? hours, object? minutes) => Format("ProgressHoursLeft", hours, minutes);
+
+    /// <summary>quedan ~{0} min</summary>
+    public static string ProgressMinutesLeft(object? minutes) => Format("ProgressMinutesLeft", minutes);
+
+    /// <summary>y {0} más en la cola</summary>
+    public static string ProgressMore(object? count) => Format("ProgressMore", count);
+
+    /// <summary>Progreso de Kumquat</summary>
+    public static string ProgressPanelName => Get("ProgressPanelName");
+
+    /// <summary>En cola</summary>
+    public static string ProgressQueued => Get("ProgressQueued");
+
+    /// <summary>{0} en curso</summary>
+    public static string ProgressRunning(object? running) => Format("ProgressRunning", running);
+
+    /// <summary>{0} en curso · {1} en cola</summary>
+    public static string ProgressRunningQueued(object? running, object? queued) => Format("ProgressRunningQueued", running, queued);
+
+    /// <summary>quedan ~{0} s</summary>
+    public static string ProgressSecondsLeft(object? seconds) => Format("ProgressSecondsLeft", seconds);
 
     /// <summary>Quitar</summary>
     public static string Remove => Get("Remove");

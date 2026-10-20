@@ -129,6 +129,7 @@ Examples:
   <data name="InstallWindowTitle" xml:space="preserve"><value>Kumquat · Install {0}</value><comment>params: name</comment></data>
   <data name="Installed" xml:space="preserve"><value>{0} is installed. Kumquat will restart to use it.</value><comment>params: name</comment></data>
   <data name="ItemsCount" xml:space="preserve"><value>{0} items</value><comment>params: count</comment></data>
+  <data name="JobConvertTo" xml:space="preserve"><value>to {0}</value><comment>params: format</comment></data>
   <data name="JobCopy" xml:space="preserve"><value>Copy</value></data>
   <data name="JobMove" xml:space="preserve"><value>Move</value></data>
   <data name="JobSave" xml:space="preserve"><value>Save</value></data>
@@ -185,6 +186,18 @@ Examples:
   <data name="PreviewLoading" xml:space="preserve"><value>Preparing preview…</value></data>
   <data name="PreviewNone" xml:space="preserve"><value>No preview for this file</value></data>
   <data name="PreviewRange" xml:space="preserve"><value>Segment: {0} – {1}  ·  {2}</value><comment>params: start, end, length</comment></data>
+  <data name="ProgressAlmostDone" xml:space="preserve"><value>almost done</value></data>
+  <data name="ProgressCalculating" xml:space="preserve"><value>estimating…</value></data>
+  <data name="ProgressCancel" xml:space="preserve"><value>Cancel {0}</value><comment>params: file</comment></data>
+  <data name="ProgressHide" xml:space="preserve"><value>Hide</value></data>
+  <data name="ProgressHoursLeft" xml:space="preserve"><value>~{0} h {1} min left</value><comment>params: hours, minutes</comment></data>
+  <data name="ProgressMinutesLeft" xml:space="preserve"><value>~{0} min left</value><comment>params: minutes</comment></data>
+  <data name="ProgressMore" xml:space="preserve"><value>and {0} more queued</value><comment>params: count</comment></data>
+  <data name="ProgressPanelName" xml:space="preserve"><value>Kumquat progress</value></data>
+  <data name="ProgressQueued" xml:space="preserve"><value>Queued</value></data>
+  <data name="ProgressRunning" xml:space="preserve"><value>{0} in progress</value><comment>params: running</comment></data>
+  <data name="ProgressRunningQueued" xml:space="preserve"><value>{0} in progress · {1} queued</value><comment>params: running, queued</comment></data>
+  <data name="ProgressSecondsLeft" xml:space="preserve"><value>~{0} s left</value><comment>params: seconds</comment></data>
   <data name="Remove" xml:space="preserve"><value>Remove</value></data>
   <data name="RemoveField" xml:space="preserve"><value>Remove field</value></data>
   <data name="SelectAll" xml:space="preserve"><value>All</value></data>

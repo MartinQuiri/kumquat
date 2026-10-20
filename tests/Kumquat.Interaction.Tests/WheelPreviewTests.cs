@@ -47,7 +47,7 @@ public sealed class WheelPreviewTests
             WheelRenderer.Render(g, size, scale, state, WheelTheme.Dark);
         }
 
-        bitmap.Save(Path.Combine(RepoRoot(), "docs", "images", "rueda-pdf.png"), ImageFormat.Png);
+        SavePng(bitmap, Path.Combine(RepoRoot(), "docs", "images", "rueda-pdf.png"));
     }
 
     [Fact]
@@ -112,7 +112,29 @@ public sealed class WheelPreviewTests
 
         var dir = Path.Combine(RepoRoot(), "docs", "images");
         Directory.CreateDirectory(dir);
-        bitmap.Save(Path.Combine(dir, name + ".png"), ImageFormat.Png);
+        SavePng(bitmap, Path.Combine(dir, name + ".png"));
+    }
+
+    /// <summary>
+    /// Escribe la imagen de docs/images. Se codifica en memoria y se reintenta un momento si el
+    /// archivo está abierto (un antivirus o un visor recién lo leyó): GDI+ fallaría con un error genérico.
+    /// </summary>
+    private static void SavePng(Bitmap bitmap, string path)
+    {
+        using var memory = new MemoryStream();
+        bitmap.Save(memory, ImageFormat.Png);
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                File.WriteAllBytes(path, memory.ToArray());
+                return;
+            }
+            catch (IOException) when (attempt < 5)
+            {
+                Thread.Sleep(200);
+            }
+        }
     }
 
     private static string RepoRoot()

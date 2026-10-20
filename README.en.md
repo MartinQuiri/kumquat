@@ -19,6 +19,8 @@ Kumquat is a free (GPL-3.0) Windows alternative inspired by the interaction of [
 3. Without letting go, tap **Shift**. The wheel appears under the pointer.
 4. Drop it on a format. The converted copy appears next to the original (the original is never touched).
 
+**Progress:** when something takes a while (a video, a large PDF, a batch of photos), a small panel appears at the bottom right with each file, its percentage and **how much time is left**, estimated from the actual pace of the work. Each row can be cancelled; "Hide" tucks it away until the next batch. Instant jobs don't make it appear, and it goes away by itself when everything is done.
+
 Dropping on the center (the logo) or pressing **Esc** cancels. The gesture can be changed to Ctrl, Caps Lock or right-click in **Settings** (tray icon menu).
 
 **With the keyboard: the search.** Select one or more files in File Explorer (or on the desktop) and press **Ctrl+Alt+K**, or right-click → **Kumquat…** (on Windows 11 it is in the new menu; on Windows 10, in the classic one). A search box lists everything you can do with those files: type to filter (`pdf`, `compress`, `path`… accents don't matter, Spanish and English words both work), ↑ ↓ to choose, **Enter** to apply and **Esc** to close.
