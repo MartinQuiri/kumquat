@@ -104,6 +104,7 @@ public sealed class FfmpegPlayback : IMediaPlayback
                 _hasVideo ? PlayVideoAsync(clock, from, to, onFrame, stop.Token) : Task.CompletedTask);
 
             // Solo audio y sin salida de audio: igual avanza el cabezal hasta el final.
+            clock.Start();
             while (!_hasVideo && player is null && clock.Now < to)
             {
                 await Task.Delay(30, stop.Token);
@@ -208,6 +209,7 @@ public sealed class FfmpegPlayback : IMediaPlayback
                         break;
                     }
 
+                    clock.Start();
                     while (clock.Now < time)
                     {
                         await Task.Delay(TimeSpan.FromMilliseconds(Math.Clamp((time - clock.Now).TotalMilliseconds, 1, 15)), token);
