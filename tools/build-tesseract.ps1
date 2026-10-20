@@ -32,6 +32,19 @@ $vcpkg = if ($vcpkgRoot) { Join-Path $vcpkgRoot 'vcpkg.exe' } else {
 }
 if (-not (Test-Path $vcpkg)) { throw "No se encontró vcpkg ($vcpkg). Instala Visual Studio 2022 con C++ o define VCPKG_ROOT." }
 
+# El baseline fijado tiene que existir en el clon de vcpkg: el de los runners de GitHub viene
+# con un historial que puede no incluirlo, y entonces vcpkg falla al leer versions/baseline.json.
+$baseline = (Get-Content (Join-Path $PSScriptRoot 'ocr\vcpkg.json') -Raw | ConvertFrom-Json).'builtin-baseline'
+$vcpkgDir = Split-Path -Parent $vcpkg
+if (Test-Path (Join-Path $vcpkgDir '.git')) {
+    git -C $vcpkgDir cat-file -e "$baseline^{commit}" 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[..] Trayendo el baseline $baseline de vcpkg"
+        git -C $vcpkgDir fetch --quiet origin $baseline
+        if ($LASTEXITCODE -ne 0) { throw "No se pudo traer el baseline $baseline de vcpkg." }
+    }
+}
+
 Write-Host "[..] Compilando Tesseract $($engine.version) para $triplet (puede tardar la primera vez)"
 & $vcpkg install --x-manifest-root="$PSScriptRoot\ocr" --x-install-root="$work\installed" --triplet=$triplet --overlay-triplets="$PSScriptRoot\ocr\triplets" --clean-after-build --no-print-usage
 if ($LASTEXITCODE -ne 0) { throw "vcpkg falló ($LASTEXITCODE)." }
