@@ -95,6 +95,8 @@ Las conversiones de varios pasos se planifican solas (p. ej. HEIC → JPG → PD
 | Comprimidos | Extraer (ZIP, RAR, 7z, TAR, GZIP) |
 | Todo, incluidas carpetas | Crear ZIP |
 
+**PDF con contraseña:** no hace falta desbloquearlo antes. Comprimir, Rotar, Dividir, Extraer páginas y Páginas a JPG piden la contraseña y lo abren solos; el resultado queda protegido con la misma (las imágenes, sin contraseña). Con Proteger se cambia: pide la actual y la nueva. El original nunca se toca.
+
 Las herramientas en **negrita** abren una ventana de opciones (vidrio acrílico de Windows 11) con los valores actuales del archivo ya cargados y **vista previa**:
 
 - **PDF:** miniaturas de las páginas; en *Extraer páginas* se eligen con un clic (sincronizado con el campo de texto).

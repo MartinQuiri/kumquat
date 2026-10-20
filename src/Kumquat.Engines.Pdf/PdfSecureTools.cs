@@ -126,10 +126,72 @@ internal sealed partial class PdfSecureTools(PdfEngines engines, ITempWorkspaceF
         return password.Contains('\n', StringComparison.Ordinal) || password.Contains('\r', StringComparison.Ordinal) ? Strings.ValidatePasswordNewline : null;
     }
 
-    public async Task<Result> UnlockAsync(ToolStep step, CancellationToken cancellationToken)
+    public Task<Result> UnlockAsync(ToolStep step, CancellationToken cancellationToken)
+        => DecryptAsync(step.InputPath, step.OutputPath, step.Option("password") ?? string.Empty, cancellationToken);
+
+    // ---------- Herramientas sobre un PDF con contraseña ----------
+
+    /// <summary>Clave de la contraseña con que se abre un PDF protegido: las herramientas la piden solo si hace falta.</summary>
+    public const string OpenPasswordKey = "pdf-password";
+
+    public static ToolParameter OpenPasswordParameter(PdfPasswordHandling handling) => handling switch
     {
-        var password = step.Option("password") ?? string.Empty;
-        var result = await RunQpdfWithArgumentFileAsync([$"--password={password}", "--decrypt", PdfEngines.Abs(step.InputPath), PdfEngines.Abs(step.OutputPath)], cancellationToken);
+        PdfPasswordHandling.Replace => new ToolParameter(OpenPasswordKey, Strings.ParamCurrentPassword, ToolParameterKind.Password, Required: true),
+        PdfPasswordHandling.Drop => new ToolParameter(OpenPasswordKey, Strings.ParamPdfPassword, ToolParameterKind.Password, Hint: Strings.HintPdfPasswordImages, Required: true),
+        _ => new ToolParameter(OpenPasswordKey, Strings.ParamPdfPassword, ToolParameterKind.Password, Hint: Strings.HintPdfPasswordKept, Required: true),
+    };
+
+    public static string? ValidateOpenPassword(IReadOnlyDictionary<string, string> options)
+    {
+        var password = options.GetValueOrDefault(OpenPasswordKey) ?? string.Empty;
+        return password.Contains('\n', StringComparison.Ordinal) || password.Contains('\r', StringComparison.Ordinal) ? Strings.ValidatePasswordNewline : null;
+    }
+
+    /// <summary>
+    /// Aplica una herramienta a un PDF con contraseña sin que haga falta desbloquearlo antes: lo abre
+    /// en una carpeta temporal (con su mismo nombre, para que las páginas o imágenes que salen se
+    /// llamen igual), aplica la herramienta y, según <paramref name="handling"/>, vuelve a proteger cada
+    /// PDF resultante con la misma contraseña (AES-256). La copia abierta se borra al terminar.
+    /// </summary>
+    public async Task<Result> WithOpenPasswordAsync(ToolStep step, string password, PdfPasswordHandling handling, Func<ToolStep, CancellationToken, Task<Result>> apply, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(step);
+        ArgumentNullException.ThrowIfNull(apply);
+        using var workspace = workspaces.Create();
+        var open = Path.Combine(Directory.CreateDirectory(Path.Combine(workspace.DirectoryPath, "abierto")).FullName, Path.GetFileName(step.InputPath));
+        var opened = await DecryptAsync(step.InputPath, open, password, cancellationToken);
+        if (!opened.IsSuccess)
+        {
+            return opened;
+        }
+
+        var result = await apply(step with { Inputs = [step.Inputs[0] with { Path = open }] }, cancellationToken);
+        if (!result.IsSuccess || handling != PdfPasswordHandling.Keep)
+        {
+            return result;
+        }
+
+        var outputs = Directory.Exists(step.OutputPath)
+            ? Directory.EnumerateFiles(step.OutputPath, "*.pdf", SearchOption.AllDirectories).ToList()
+            : [step.OutputPath];
+        foreach (var output in outputs)
+        {
+            var locked = workspace.NewFilePath(".pdf");
+            var protectedResult = await RunQpdfWithArgumentFileAsync(["--encrypt", password, password, "256", "--", PdfEngines.Abs(output), PdfEngines.Abs(locked)], cancellationToken);
+            if (!protectedResult.IsSuccess)
+            {
+                return protectedResult;
+            }
+
+            File.Move(locked, output, overwrite: true);
+        }
+
+        return Result.Success;
+    }
+
+    private async Task<Result> DecryptAsync(string input, string output, string password, CancellationToken cancellationToken)
+    {
+        var result = await RunQpdfWithArgumentFileAsync([$"--password={password}", "--decrypt", PdfEngines.Abs(input), PdfEngines.Abs(output)], cancellationToken);
         return string.Equals(result.Error?.Code, "pdf-encrypted", StringComparison.Ordinal) ? new Error("wrong-password", Strings.ErrorWrongPassword) : result;
     }
 

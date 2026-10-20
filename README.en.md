@@ -87,6 +87,8 @@ Multi-step conversions are planned automatically (e.g. HEIC → JPG → PDF), an
 | Archives | Extract (ZIP, RAR, 7z, TAR, GZIP) |
 | Anything, folders included | Create ZIP |
 
+**Password-protected PDFs:** no need to unlock them first. Compress, Rotate, Split, Extract pages and Pages to JPG ask for the password and open the file themselves; the result keeps the same password (images are saved without one). Protect changes it: it asks for the current and the new one. The original is never touched.
+
 Tools in **bold** open an options window with the file's current values already filled in and a **preview** (PDF page thumbnails, a video player with a frame strip to pick the segment, the audio waveform).
 
 **Office documents** are converted with **what you already have installed**: Microsoft Office if present (best fidelity with its own formats), otherwise [LibreOffice](https://www.libreoffice.org). If there is neither, the wheel offers **Install LibreOffice**: it asks first, installs the official package with winget and restarts Kumquat. Office runs hidden, with macros disabled, read-only, on a copy of the file.

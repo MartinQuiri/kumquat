@@ -116,6 +116,8 @@ Ejemplos:
   <data name="GroupTools" xml:space="preserve"><value>Herramientas</value></data>
   <data name="HintFrameTime" xml:space="preserve"><value>Minutos:segundos, p. ej. 0:12</value></data>
   <data name="HintPages" xml:space="preserve"><value>Ej.: 1-3, 5, 8-fin</value></data>
+  <data name="HintPdfPasswordImages" xml:space="preserve"><value>El PDF tiene contraseña: escríbela para abrirlo. Las imágenes salen sin contraseña.</value></data>
+  <data name="HintPdfPasswordKept" xml:space="preserve"><value>El PDF tiene contraseña: escríbela para abrirlo. El resultado queda protegido con la misma.</value></data>
   <data name="HintTotalDuration" xml:space="preserve"><value>Duración total: {0}</value><comment>params: duration</comment></data>
   <data name="HintTrimStart" xml:space="preserve"><value>Minutos:segundos, p. ej. 0:15</value></data>
   <data name="HintUnlockPassword" xml:space="preserve"><value>Déjala vacía si el PDF se abre sin contraseña y solo tiene restricciones (imprimir, copiar...).</value></data>
@@ -169,10 +171,12 @@ Ejemplos:
   <data name="PaletteSearch" xml:space="preserve"><value>Buscar acción</value></data>
   <data name="PaletteWindowTitle" xml:space="preserve"><value>Kumquat · Buscar acción</value></data>
   <data name="ParamConfirmPassword" xml:space="preserve"><value>Repetir contraseña</value></data>
+  <data name="ParamCurrentPassword" xml:space="preserve"><value>Contraseña actual</value></data>
   <data name="ParamCustomFields" xml:space="preserve"><value>Campos personalizados</value></data>
   <data name="ParamEnd" xml:space="preserve"><value>Hasta</value></data>
   <data name="ParamPages" xml:space="preserve"><value>Páginas</value></data>
   <data name="ParamPassword" xml:space="preserve"><value>Contraseña</value></data>
+  <data name="ParamPdfPassword" xml:space="preserve"><value>Contraseña del PDF</value></data>
   <data name="ParamStart" xml:space="preserve"><value>Desde</value></data>
   <data name="ParamTime" xml:space="preserve"><value>Instante</value></data>
   <data name="PathCopied" xml:space="preserve"><value>Ruta copiada</value></data>

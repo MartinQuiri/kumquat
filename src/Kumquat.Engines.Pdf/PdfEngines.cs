@@ -58,6 +58,24 @@ public sealed class PdfEngines
         return outcome.Succeeded ? output.ToString() : null;
     }
 
+    /// <summary>
+    /// Indica si el PDF pide contraseña para abrirse. <c>qpdf --requires-password</c> sale con 0 si
+    /// la pide, 2 si no está cifrado y 3 si solo tiene restricciones (imprimir, copiar…), que los
+    /// motores abren sin contraseña.
+    /// </summary>
+    public async Task<bool> RequiresPasswordAsync(string path, CancellationToken cancellationToken)
+    {
+        if (Qpdf is null)
+        {
+            return false;
+        }
+
+        var outcome = await _runner.RunAsync(
+            new ProcessSpec { FileName = Qpdf, Arguments = ["--requires-password", Abs(path)], Timeout = Timeout, MaxMemoryBytes = MaxMemoryBytes },
+            cancellationToken);
+        return !outcome.TimedOut && outcome.ExitCode == 0;
+    }
+
     /// <summary>Ruta absoluta normalizada para pasar a un motor.</summary>
     internal static string Abs(string path) => Path.GetFullPath(path);
 

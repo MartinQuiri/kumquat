@@ -301,6 +301,12 @@ public static partial class Strings
     /// <summary>Ej.: 1-3, 5, 8-fin</summary>
     public static string HintPages => Get("HintPages");
 
+    /// <summary>El PDF tiene contraseña: escríbela para abrirlo. Las imágenes salen sin contraseña.</summary>
+    public static string HintPdfPasswordImages => Get("HintPdfPasswordImages");
+
+    /// <summary>El PDF tiene contraseña: escríbela para abrirlo. El resultado queda protegido con la misma.</summary>
+    public static string HintPdfPasswordKept => Get("HintPdfPasswordKept");
+
     /// <summary>Duración total: {0}</summary>
     public static string HintTotalDuration(object? duration) => Format("HintTotalDuration", duration);
 
@@ -460,6 +466,9 @@ public static partial class Strings
     /// <summary>Repetir contraseña</summary>
     public static string ParamConfirmPassword => Get("ParamConfirmPassword");
 
+    /// <summary>Contraseña actual</summary>
+    public static string ParamCurrentPassword => Get("ParamCurrentPassword");
+
     /// <summary>Campos personalizados</summary>
     public static string ParamCustomFields => Get("ParamCustomFields");
 
@@ -471,6 +480,9 @@ public static partial class Strings
 
     /// <summary>Contraseña</summary>
     public static string ParamPassword => Get("ParamPassword");
+
+    /// <summary>Contraseña del PDF</summary>
+    public static string ParamPdfPassword => Get("ParamPdfPassword");
 
     /// <summary>Desde</summary>
     public static string ParamStart => Get("ParamStart");

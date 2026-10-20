@@ -60,7 +60,18 @@ public sealed class PdfTool : ITool
         bool HasMutool() => engines.Mutool is not null;
         bool HasQpdf() => engines.Qpdf is not null;
 
-        return
+        // Con un PDF protegido, estas piden la contraseña y lo abren solas (sin desbloquearlo antes).
+        // Unir (varios archivos, cada uno con su clave) y Metadatos (lee los actuales antes de
+        // preguntar nada) siguen pidiendo desbloquearlo primero; Desbloquear ya pide la contraseña.
+        ITool WithPassword(PdfTool tool) => tool.Id switch
+        {
+            "pdf.compress" or "pdf.rotate" or "pdf.split" or "pdf.extract" => tool.OpeningProtected(engines, secure, PdfPasswordHandling.Keep),
+            "pdf.to-jpg" => tool.OpeningProtected(engines, secure, PdfPasswordHandling.Drop),
+            "pdf.protect" => tool.OpeningProtected(engines, secure, PdfPasswordHandling.Replace),
+            _ => tool,
+        };
+
+        PdfTool[] tools =
         [
             // Unir: varios PDF en el orden natural de sus nombres.
             new PdfTool("pdf.merge", "Unir PDF", "unido", PdfOnly, KnownFormats.Pdf, HasQpdf,
@@ -96,6 +107,7 @@ public sealed class PdfTool : ITool
                 (step, ct) => images.BuildAsync([.. step.Inputs.Select(i => (i.Path, i.Format!))], step.OutputPath, ct),
                 ToolMode.Combine, minInputs: 2),
         ];
+        return [.. tools.Select(WithPassword)];
     }
 
     /// <summary>Herramientas que piden datos antes de ejecutarse (páginas, contraseña, metadatos).</summary>
@@ -131,6 +143,43 @@ public sealed class PdfTool : ITool
                 Validator = PdfSecureTools.ValidateMetadata,
             },
         ];
+    }
+
+    /// <summary>
+    /// La misma herramienta, pero si el PDF pide contraseña para abrirse la agrega a lo que pregunta
+    /// y lo abre con ella (<see cref="PdfSecureTools.WithOpenPasswordAsync"/>). Solo para herramientas
+    /// de un archivo por vez.
+    /// </summary>
+    private PdfTool OpeningProtected(PdfEngines engines, PdfSecureTools secure, PdfPasswordHandling handling)
+    {
+        var parameters = ParameterSource;
+        var validate = Validator;
+        var apply = _apply;
+        return new PdfTool(Id, Label, OutputSuffix, _appliesTo, _output, _available, RunAsync, Mode, MinInputs)
+        {
+            ParameterSource = AskAsync,
+            Validator = options => PdfSecureTools.ValidateOpenPassword(options) ?? validate?.Invoke(options),
+        };
+
+        async Task<IReadOnlyList<ToolParameter>> AskAsync(IReadOnlyList<ToolInput> inputs, CancellationToken cancellationToken)
+        {
+            var own = parameters is null ? [] : await parameters(inputs, cancellationToken);
+            foreach (var input in inputs)
+            {
+                if (await engines.RequiresPasswordAsync(input.Path, cancellationToken))
+                {
+                    return [PdfSecureTools.OpenPasswordParameter(handling), .. own];
+                }
+            }
+
+            return own;
+        }
+
+        // Con varios PDF, cada uno se procesa por separado: la contraseña solo se usa en los que la piden.
+        async Task<Result> RunAsync(ToolStep step, CancellationToken cancellationToken)
+            => step.Option(PdfSecureTools.OpenPasswordKey) is { Length: > 0 } password && await engines.RequiresPasswordAsync(step.InputPath, cancellationToken)
+                ? await secure.WithOpenPasswordAsync(step, password, handling, apply, cancellationToken)
+                : await apply(step, cancellationToken);
     }
 
     /// <inheritdoc />

@@ -91,6 +91,129 @@ public sealed class MetadataAndSecurityTests : IDisposable
         result.Error.ShouldNotBeNull().Code.ShouldBe("pdf-encrypted");
     }
 
+    [Fact]
+    public async Task ConContraseña_LaPideSoloSiElPdfLaNecesita()
+    {
+        var pdf = await SamplePdfAsync();
+        var locked = await LockAsync(pdf, "clave ñ");
+
+        var plain = await Service.GetParametersAsync([pdf], "pdf.compress", TestContext.Current.CancellationToken);
+        var asked = await Service.GetParametersAsync([locked], "pdf.compress", TestContext.Current.CancellationToken);
+        var extract = await Service.GetParametersAsync([locked], "pdf.extract", TestContext.Current.CancellationToken);
+
+        plain.ShouldBeEmpty("un PDF sin contraseña se comprime sin preguntar nada");
+        var password = asked.ShouldHaveSingleItem();
+        password.Key.ShouldBe("pdf-password");
+        password.Kind.ShouldBe(ToolParameterKind.Password);
+        password.Required.ShouldBeTrue();
+        // La contraseña primero y después lo propio de la herramienta.
+        extract.Select(p => p.Key).ShouldBe(["pdf-password", "pages"]);
+    }
+
+    [Theory]
+    [InlineData("pdf.compress")]
+    [InlineData("pdf.rotate")]
+    public async Task ConContraseña_ElResultadoQuedaProtegidoConLaMisma(string tool)
+    {
+        var locked = await LockAsync(await SamplePdfAsync(), "clave ñ");
+
+        var result = await Service.ApplyAsync([locked], tool, Options(("pdf-password", "clave ñ")), null, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue(result.Error?.ToString());
+        (await TestEngines.Pdf.RequiresPasswordAsync(result.Value!, TestContext.Current.CancellationToken)).ShouldBeTrue("el resultado sigue protegido");
+        (await Service.ApplyAsync([result.Value!], "pdf.unlock", Options(("password", "otra")), null, TestContext.Current.CancellationToken)).Error.ShouldNotBeNull().Code.ShouldBe("wrong-password");
+        (await Service.ApplyAsync([result.Value!], "pdf.unlock", Options(("password", "clave ñ")), null, TestContext.Current.CancellationToken)).IsSuccess.ShouldBeTrue("se abre con la misma contraseña");
+        (await TestEngines.Pdf.RequiresPasswordAsync(locked, TestContext.Current.CancellationToken)).ShouldBeTrue("el original no se toca");
+    }
+
+    [Fact]
+    public async Task ConContraseña_ExtraerPaginas_Funciona()
+    {
+        var locked = await LockAsync(await SamplePdfAsync(), "x");
+
+        var result = await Service.ApplyAsync([locked], "pdf.extract", Options(("pdf-password", "x"), ("pages", "1")), null, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue(result.Error?.ToString());
+        (await TestEngines.Pdf.RequiresPasswordAsync(result.Value!, TestContext.Current.CancellationToken)).ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task ConContraseña_Dividir_CadaPaginaQuedaProtegida()
+    {
+        var locked = await LockAsync(await SamplePdfAsync(), "x");
+
+        var result = await Service.ApplyAsync([locked], "pdf.split", Options(("pdf-password", "x")), null, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue(result.Error?.ToString());
+        var pages = Directory.GetFiles(result.Value!, "*.pdf");
+        pages.ShouldNotBeEmpty();
+        foreach (var page in pages)
+        {
+            // Las páginas se llaman como el original, no como la copia temporal.
+            Path.GetFileName(page).ShouldStartWith(Path.GetFileNameWithoutExtension(locked), Case.Sensitive);
+            (await TestEngines.Pdf.RequiresPasswordAsync(page, TestContext.Current.CancellationToken)).ShouldBeTrue();
+        }
+    }
+
+    [Fact]
+    public async Task ConContraseña_PaginasAJpg_SacaLasImagenes()
+    {
+        Assert.SkipUnless(VipsConverter.IsLibraryAvailable, "libvips no está disponible.");
+        var locked = await LockAsync(await SamplePdfAsync(), "x");
+
+        var result = await Service.ApplyAsync([locked], "pdf.to-jpg", Options(("pdf-password", "x")), null, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue(result.Error?.ToString());
+        Directory.GetFiles(result.Value!, "*.jpg").ShouldNotBeEmpty();
+    }
+
+    [Fact]
+    public async Task ConContraseña_Proteger_LaCambia()
+    {
+        var locked = await LockAsync(await SamplePdfAsync(), "vieja");
+
+        var result = await Service.ApplyAsync([locked], "pdf.protect", Options(("pdf-password", "vieja"), ("password", "nueva"), ("confirm", "nueva")), null, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue(result.Error?.ToString());
+        (await Service.ApplyAsync([result.Value!], "pdf.unlock", Options(("password", "vieja")), null, TestContext.Current.CancellationToken)).Error.ShouldNotBeNull().Code.ShouldBe("wrong-password");
+        (await Service.ApplyAsync([result.Value!], "pdf.unlock", Options(("password", "nueva")), null, TestContext.Current.CancellationToken)).IsSuccess.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task ConContraseñaIncorrecta_ErrorClaroYNoDejaNada()
+    {
+        var locked = await LockAsync(await SamplePdfAsync(), "clave");
+        var before = Directory.GetFileSystemEntries(_dir).Order().ToArray();
+
+        var result = await Service.ApplyAsync([locked], "pdf.compress", Options(("pdf-password", "otra")), null, TestContext.Current.CancellationToken);
+
+        result.Error.ShouldNotBeNull().Code.ShouldBe("wrong-password");
+        // Ni resultado a medias ni copia abierta junto al original.
+        Directory.GetFileSystemEntries(_dir).Order().ShouldBe(before);
+    }
+
+    [Fact]
+    public async Task ConContraseña_SinEscribirla_PideDesbloquear()
+    {
+        var locked = await LockAsync(await SamplePdfAsync(), "clave");
+
+        var result = await Service.ApplyAsync([locked], "pdf.compress", null, null, TestContext.Current.CancellationToken);
+
+        result.Error.ShouldNotBeNull().Code.ShouldBe("pdf-encrypted");
+    }
+
+    [Fact]
+    public void ContraseñaDelPdf_ConSaltoDeLinea_SeRechaza()
+        => Service.Validate("pdf.compress", Options(("pdf-password", "a\nb"))).ShouldNotBeNull();
+
+    private static async Task<string> LockAsync(string pdf, string password)
+    {
+        var locked = await Service.ApplyAsync([pdf], "pdf.protect", Options(("password", password), ("confirm", password)), null, TestContext.Current.CancellationToken);
+        locked.IsSuccess.ShouldBeTrue(locked.Error?.ToString());
+        (await TestEngines.Pdf.RequiresPasswordAsync(locked.Value!, TestContext.Current.CancellationToken)).ShouldBeTrue();
+        return locked.Value!;
+    }
+
     private static Dictionary<string, string> Options(params (string Key, string Value)[] pairs)
         => pairs.ToDictionary(p => p.Key, p => p.Value, StringComparer.Ordinal);
 
