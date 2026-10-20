@@ -146,4 +146,12 @@ internal unsafe struct NOTIFYICONDATAW
     public nint HBalloonIcon;
 }
 
+/// <summary>Última entrada (teclado o mouse) que registró Windows, en ticks de GetTickCount.</summary>
+[StructLayout(LayoutKind.Sequential)]
+internal struct LASTINPUTINFO
+{
+    public uint CbSize;
+    public uint DwTime;
+}
+
 #pragma warning restore SA1307, CA1051, MA0048, SA1649

@@ -5,6 +5,7 @@
     <IsTestProject>true</IsTestProject>
     <!-- La ventana de opciones es WPF: el host de pruebas necesita el framework de escritorio. -->
     <UseWPF>true</UseWPF>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="xunit.v3" />

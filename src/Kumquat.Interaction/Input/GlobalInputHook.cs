@@ -16,6 +16,7 @@ namespace Kumquat.Interaction.Input;
 /// silencio un hook que tarda más que <c>LowLevelHooksTimeout</c> (máx. 1 s).</item>
 /// <item>Nunca se traga un evento: siempre se llama a <c>CallNextHookEx</c>.</item>
 /// <item>Nunca registra pulsaciones: solo mira las teclas del gesto y Escape.</item>
+/// <item>Si Windows igual los quita, <see cref="HookWatchdog"/> lo nota y se reinstalan.</item>
 /// </list>
 /// </summary>
 internal sealed unsafe class GlobalInputHook : IDisposable
@@ -30,6 +31,8 @@ internal sealed unsafe class GlobalInputHook : IDisposable
     private uint _threadId;
     private nint _mouseHook;
     private nint _keyboardHook;
+    private uint _lastHookEvent;
+    private uint _lastReinstall;
 
     /// <param name="tracker">Máquina de estados del gesto.</param>
     /// <param name="post">
@@ -41,6 +44,12 @@ internal sealed unsafe class GlobalInputHook : IDisposable
         _post = post ?? throw new ArgumentNullException(nameof(post));
         _thread = new Thread(Run) { IsBackground = true, Name = "Kumquat input hooks", Priority = ThreadPriority.AboveNormal };
     }
+
+    /// <summary>Tick del último evento recibido (pruebas).</summary>
+    internal uint LastHookEventForTests => Volatile.Read(ref _lastHookEvent);
+
+    /// <summary>Diagnóstico (se escribe en el registro de Kumquat).</summary>
+    public Action<string>? Trace { get; set; }
 
     public void Start()
     {
@@ -76,6 +85,7 @@ internal sealed unsafe class GlobalInputHook : IDisposable
         var self = _current;
         if (code >= 0 && self is not null)
         {
+            Volatile.Write(ref self._lastHookEvent, (uint)Environment.TickCount);
             var data = (MSLLHOOKSTRUCT*)lParam;
             var signal = (uint)wParam switch
             {
@@ -100,6 +110,7 @@ internal sealed unsafe class GlobalInputHook : IDisposable
         var self = _current;
         if (code >= 0 && self is not null)
         {
+            Volatile.Write(ref self._lastHookEvent, (uint)Environment.TickCount);
             var vk = (int)((KBDLLHOOKSTRUCT*)lParam)->VkCode;
             var signal = (uint)wParam switch
             {
@@ -122,18 +133,7 @@ internal sealed unsafe class GlobalInputHook : IDisposable
         try
         {
             _threadId = Win32.GetCurrentThreadId();
-            var module = Win32.GetModuleHandleW(null);
-            _mouseHook = Win32.SetWindowsHookExW(Win32.WH_MOUSE_LL, &MouseProc, module, 0);
-            if (_mouseHook == 0)
-            {
-                throw new Win32Exception(Marshal.GetLastPInvokeError());
-            }
-
-            _keyboardHook = Win32.SetWindowsHookExW(Win32.WH_KEYBOARD_LL, &KeyboardProc, module, 0);
-            if (_keyboardHook == 0)
-            {
-                throw new Win32Exception(Marshal.GetLastPInvokeError());
-            }
+            Install();
         }
 #pragma warning disable CA1031 // Se re-lanza en el hilo que llamó a Start.
         catch (Exception ex)
@@ -147,6 +147,8 @@ internal sealed unsafe class GlobalInputHook : IDisposable
 
         _ready.Set();
 
+        // Vigilante: un timer del hilo (sin ventana) revisa cada segundo que los hooks sigan vivos.
+        _ = Win32.SetTimer(0, 0, 1000, 0);
         MSG msg;
         while (Win32.GetMessageW(&msg, 0, 0, 0) > 0)
         {
@@ -155,11 +157,70 @@ internal sealed unsafe class GlobalInputHook : IDisposable
                 break;
             }
 
+            if (msg.Message == WmTestUnhook && msg.Hwnd == 0)
+            {
+                Unhook();
+                continue;
+            }
+
+            if (msg.Message == Win32.WM_TIMER && msg.Hwnd == 0)
+            {
+                CheckAlive();
+                continue;
+            }
+
             Win32.TranslateMessage(&msg);
             Win32.DispatchMessageW(&msg);
         }
 
         Unhook();
+    }
+
+    /// <summary>Quita los hooks como lo haría Windows, sin avisar (pruebas del vigilante).</summary>
+    internal void SimulateSystemRemovalForTests() => Win32.PostThreadMessageW(_threadId, WmTestUnhook, 0, 0);
+
+    private const uint WmTestUnhook = Win32.WM_APP + 77;
+
+    private void Install()
+    {
+        var module = Win32.GetModuleHandleW(null);
+        _mouseHook = Win32.SetWindowsHookExW(Win32.WH_MOUSE_LL, &MouseProc, module, 0);
+        if (_mouseHook == 0)
+        {
+            throw new Win32Exception(Marshal.GetLastPInvokeError());
+        }
+
+        _keyboardHook = Win32.SetWindowsHookExW(Win32.WH_KEYBOARD_LL, &KeyboardProc, module, 0);
+        if (_keyboardHook == 0)
+        {
+            throw new Win32Exception(Marshal.GetLastPInvokeError());
+        }
+
+        var now = (uint)Environment.TickCount;
+        Volatile.Write(ref _lastHookEvent, now);
+        _lastReinstall = now;
+    }
+
+    private void CheckAlive()
+    {
+        var info = new LASTINPUTINFO { CbSize = (uint)sizeof(LASTINPUTINFO) };
+        if (!Win32.GetLastInputInfo(&info)
+            || !HookWatchdog.ShouldReinstall(info.DwTime, Volatile.Read(ref _lastHookEvent), _lastReinstall, (uint)Environment.TickCount))
+        {
+            return;
+        }
+
+        Unhook();
+        try
+        {
+            Install();
+            Trace?.Invoke("Windows había quitado los hooks de entrada (equipo muy cargado): reinstalados.");
+        }
+        catch (Win32Exception ex)
+        {
+            _lastReinstall = (uint)Environment.TickCount; // se reintenta en el próximo intervalo
+            Trace?.Invoke($"No se pudieron reinstalar los hooks de entrada: {ex.Message}");
+        }
     }
 
     private void Unhook()
