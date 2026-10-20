@@ -4,9 +4,9 @@
     "net10.0-windows7.0": {
       "Meziantou.Analyzer": {
         "type": "Direct",
-        "requested": "[3.0.312, )",
-        "resolved": "3.0.312",
-        "contentHash": "lRRGluh3rSFXfxVsIzx4o5DCoxpUpwma6qc8LgI9DjsQx0t6CgS9KZiFKtTUllAHSsrPw/um0FR9gPJMTkeb3Q=="
+        "requested": "[3.0.315, )",
+        "resolved": "3.0.315",
+        "contentHash": "adL/ZRvZdqwVnpIcfTKC+soGLj4H+6mV7lcLSA79FkAjJd5bVUnKF6geq+b1w9uz3Dtj1VGJkGCYS0WKtxNEyQ=="
       },
       "Microsoft.CodeAnalysis.BannedApiAnalyzers": {
         "type": "Direct",
@@ -217,6 +217,20 @@
         "requested": "[0.50.5, )",
         "resolved": "0.50.5",
         "contentHash": "wAEAxPV67rmS3IlIm+tvGNPJXEtZNqlwkZrwJZAvz0AagZP0qLtT4mM2hk8S+uO0Kx+wYoy/FsADQpHwsN5y3g=="
+      }
+    },
+    "net10.0-windows7.0/linux-x64": {
+      "NetVips.Native.win-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "xZGa709UzaMRL6TUKXvNboEeP6rVqgPjP+5u1pXkwq1tXFcauNwXWIMy5ozsrCOf7xvxvcmWf+Y+rtCRpwmGBA=="
+      },
+      "NetVips.Native.win-x64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "xmJCf4GoVHOSB7nED+/JxP6nxx+a/JZTqv3VQ8ni1LdZb3dewcMwSJPjEItdzNMpKLJL/40HZG42/dP05ifEJA=="
       }
     },
     "net10.0-windows7.0/win-arm64": {

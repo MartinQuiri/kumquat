@@ -4,7 +4,7 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup Label="Analizadores">
-    <PackageVersion Include="Meziantou.Analyzer" Version="3.0.312" />
+    <PackageVersion Include="Meziantou.Analyzer" Version="3.0.315" />
     <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="5.6.0" />
   </ItemGroup>
   <ItemGroup Label="Runtime">
