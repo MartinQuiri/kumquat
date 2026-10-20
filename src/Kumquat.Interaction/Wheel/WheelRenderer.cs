@@ -42,6 +42,15 @@ internal static class WheelRenderer
     /// <summary>Radio de las esquinas de cada sector, en DIP.</summary>
     private const float CornerDip = 7;
 
+    /// <summary>Lado del ícono de herramientas y acciones, en DIP.</summary>
+    private const float IconSizeDip = 19;
+
+    /// <summary>La palabra más larga debe caber en este tanto del ancho (GDI+ rellena al dibujar).</summary>
+    private const float WordFitMargin = 0.94f;
+
+    /// <summary>Lo más que se achica una etiqueta para que quepa.</summary>
+    private const float MinFontRatio = 0.6f;
+
     /// <summary>Lado del lienzo en píxeles. Fijo para el máximo de anillos: la ventana no cambia de tamaño al llenarse.</summary>
     public static int CanvasSize(float scale) => (int)Math.Ceiling(2 * (CenterRadiusDip + (MaxRings * RingThicknessDip) + MarginDip) * scale);
 
@@ -204,7 +213,8 @@ internal static class WheelRenderer
             var center = new PointF(c + (float)x, c + (float)y);
             // CA2000 es un falso positivo del análisis de flujo dentro del bucle: el using libera en toda ruta.
 #pragma warning disable CA2000
-            using (var fitted = FitFont(g, font, items[i].Label, width))
+            var maxHeight = withIcons ? thickness - ((IconSizeDip + 6) * scale) : thickness * 0.9f;
+            using (var fitted = FitFont(g, font, items[i].Label, width, maxHeight, format))
             {
                 DrawLabel(g, items[i], withIcons, IsHighlighted(state, ring, i), center, width, thickness, fitted, format, theme, scale);
             }
@@ -231,7 +241,7 @@ internal static class WheelRenderer
         }
 
         // Ícono arriba y texto debajo, centrados juntos en el sector.
-        var iconSize = 19 * scale;
+        var iconSize = IconSizeDip * scale;
         var textSize = g.MeasureString(item.Label, font, new SizeF(width, thickness), format);
         var textHeight = Math.Min(textSize.Height, thickness - iconSize - (6 * scale));
         var top = center.Y - ((iconSize + scale + textHeight) / 2);
@@ -264,14 +274,25 @@ internal static class WheelRenderer
         return 2 * half * 0.92;
     }
 
-    /// <summary>Achica la fuente (hasta 60 %) si la palabra más larga no cabe: nunca cortar una palabra a la mitad.</summary>
-    private static Font FitFont(Graphics g, Font font, string label, float width)
+    /// <summary>
+    /// Achica la fuente (hasta 60 %) hasta que la palabra más larga quepa con margen (nunca cortar
+    /// una palabra a la mitad: GDI+ suma un poco de relleno al dibujar, así que "justo" no alcanza)
+    /// y el texto completo quepa en alto (si no, la primera línea se monta sobre el ícono).
+    /// </summary>
+    private static Font FitFont(Graphics g, Font font, string label, float width, float maxHeight, StringFormat format)
     {
+        var usable = width * WordFitMargin;
         var longest = LongestWord(g, font, label);
-        var ratio = longest > width ? Math.Max(0.6f, width / longest) : 1f;
-        var family = font.FontFamily;
-        var size = font.Size * ratio;
-        return new Font(family, size, FontStyle.Regular, GraphicsUnit.Pixel);
+        var ratio = longest > usable ? Math.Max(MinFontRatio, usable / longest) : 1f;
+        var fitted = new Font(font.FontFamily, font.Size * ratio, FontStyle.Regular, GraphicsUnit.Pixel);
+        while (ratio > MinFontRatio && g.MeasureString(label, fitted, new SizeF(width, float.MaxValue), format).Height > maxHeight)
+        {
+            ratio = Math.Max(MinFontRatio, ratio - 0.05f);
+            fitted.Dispose();
+            fitted = new Font(font.FontFamily, font.Size * ratio, FontStyle.Regular, GraphicsUnit.Pixel);
+        }
+
+        return fitted;
     }
 
     private static float LongestWord(Graphics g, Font font, string label)

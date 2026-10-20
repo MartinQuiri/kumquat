@@ -3,7 +3,9 @@
 
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Globalization;
 using Kumquat.Core.Formats;
+using Kumquat.Core.Localization;
 using Kumquat.Interaction.Wheel;
 
 namespace Kumquat.Interaction.Tests;
@@ -113,6 +115,41 @@ public sealed class WheelPreviewTests
         var dir = Path.Combine(RepoRoot(), "docs", "images");
         Directory.CreateDirectory(dir);
         SavePng(bitmap, Path.Combine(dir, name + ".png"));
+    }
+
+    /// <summary>La rueda con la interfaz en inglés, para la imagen social y el README en inglés.</summary>
+    [Fact]
+    public void Render_EnIngles()
+    {
+        var previous = CultureInfo.CurrentUICulture;
+        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en");
+        try
+        {
+            WheelRing[] rings =
+            [
+                Rings[0],
+                new(WheelRingKind.Tools, [WheelItem.Tool("image.compress", Strings.ToolCompress), WheelItem.Tool("image.rotate", Strings.ToolRotate90), WheelItem.Tool("image.metadata", Strings.ToolMetadata), WheelItem.Tool("image.strip", Strings.ToolStripMetadata)]),
+                new(WheelRingKind.Actions, [WheelItem.Action("action.copy-path", Strings.ActionCopyPath), WheelItem.Action("action.copy-to", Strings.ActionCopyTo), WheelItem.Action("action.move-to", Strings.ActionMoveTo), WheelItem.Action("action.show-in-folder", Strings.ActionShowInFolder), WheelItem.Action("action.terminal", Strings.ActionTerminal)]),
+            ];
+            rings[1].Items[0].Label.ShouldBe("Compress");
+
+            const float scale = 2f;
+            var size = WheelRenderer.CanvasSize(scale);
+            var height = WheelRenderer.CanvasHeight(scale);
+            var state = new WheelVisualState(rings, WheelHit.At(1, 0), null) { Caption = "PNG · 820 KB" };
+
+            using var bitmap = new Bitmap(size, height, PixelFormat.Format32bppPArgb);
+            using (var g = Graphics.FromImage(bitmap))
+            {
+                WheelRenderer.Render(g, size, scale, state, WheelTheme.Dark);
+            }
+
+            SavePng(bitmap, Path.Combine(RepoRoot(), "docs", "images", "rueda-oscura-en.png"));
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = previous;
+        }
     }
 
     /// <summary>

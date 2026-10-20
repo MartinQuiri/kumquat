@@ -18,7 +18,7 @@ Kumquat is a free (GPL-3.0) Windows alternative inspired by the interaction of [
 
 > **Status: pre-alpha (0.1).** See the [roadmap](#roadmap).
 
-<p align="center"><img src="docs/images/rueda-pdf.png" width="420" alt="The Kumquat wheel with the PDF tools"></p>
+<p align="center"><img src="docs/images/rueda-oscura-en.png" width="420" alt="The Kumquat wheel for an image: formats, tools and actions"></p>
 
 ## Install
 

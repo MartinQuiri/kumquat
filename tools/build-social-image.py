@@ -4,10 +4,13 @@
 Genera docs/images/social-preview.png (1280x640): la imagen que muestran GitHub, LinkedIn y otras
 redes al compartir el enlace del repositorio. Usa el logo, Inter y la captura real de la rueda
 (docs/images/rueda-oscura.png, que regeneran los tests de Kumquat.Interaction).
-Uso: python tools/build-social-image.py   (requiere Pillow)
+Uso: python tools/build-social-image.py [--en]   (requiere Pillow)
+     --en genera social-preview-en.png con los textos en inglés y la rueda en inglés
+     (docs/images/rueda-oscura-en.png).
 En GitHub se sube a mano: Settings -> General -> Social preview.
 """
 import os
+import sys
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
@@ -37,12 +40,31 @@ def glow(image, center, radius, color, alpha):
     return Image.alpha_composite(image, layer.filter(ImageFilter.GaussianBlur(radius / 2)))
 
 
+TEXT = {
+    "es": {
+        "title": ("Convierte archivos", "sin abrir nada."),
+        "body": ("Arrastra un archivo, presiona Shift y suéltalo", "sobre el formato o la herramienta que quieras."),
+        "chips": ("100 % local", "Código abierto", "Windows 10 / 11"),
+        "wheel": "rueda-oscura.png",
+        "out": "social-preview.png",
+    },
+    "en": {
+        "title": ("Convert files", "without opening anything."),
+        "body": ("Drag a file, press Shift and drop it", "on the format or tool you want."),
+        "chips": ("100% local", "Open source", "Windows 10 / 11"),
+        "wheel": "rueda-oscura-en.png",
+        "out": "social-preview-en.png",
+    },
+}
+
+
 def main():
+    text = TEXT["en" if "--en" in sys.argv[1:] else "es"]
     image = gradient()
     image = glow(image, (990, 330), 300, ORANGE, 70)
     image = glow(image, (180, 120), 220, (120, 90, 255), 35)
 
-    wheel = Image.open(os.path.join(REPO, "docs", "images", "rueda-oscura.png")).convert("RGBA")
+    wheel = Image.open(os.path.join(REPO, "docs", "images", text["wheel"])).convert("RGBA")
     wheel = wheel.resize((int(wheel.width * 0.62), int(wheel.height * 0.62)), Image.LANCZOS)
     image.alpha_composite(wheel, (W - wheel.width - 40, (H - wheel.height) // 2 + 6))
 
@@ -52,17 +74,17 @@ def main():
 
     draw = ImageDraw.Draw(image)
     draw.text((192, 118), "Kumquat", font=font("Bold", 84), fill=(245, 245, 247))
-    draw.text((82, 250), "Convierte archivos", font=font("SemiBold", 46), fill=(245, 245, 247))
-    draw.text((82, 304), "sin abrir nada.", font=font("SemiBold", 46), fill=ORANGE)
-    draw.text((82, 382), "Arrastra un archivo, presiona Shift y suéltalo", font=font("Regular", 25), fill=(200, 200, 210))
-    draw.text((82, 414), "sobre el formato o la herramienta que quieras.", font=font("Regular", 25), fill=(200, 200, 210))
+    draw.text((82, 250), text["title"][0], font=font("SemiBold", 46), fill=(245, 245, 247))
+    draw.text((82, 304), text["title"][1], font=font("SemiBold", 46), fill=ORANGE)
+    draw.text((82, 382), text["body"][0], font=font("Regular", 25), fill=(200, 200, 210))
+    draw.text((82, 414), text["body"][1], font=font("Regular", 25), fill=(200, 200, 210))
 
     # Píldoras translúcidas: en una capa aparte (dibujar con alfa sobre la imagen reemplaza, no mezcla).
     chips = Image.new("RGBA", image.size, (0, 0, 0, 0))
     chip_draw = ImageDraw.Draw(chips)
     x = 82
     f = font("Medium", 20)
-    labels = ("100 % local", "Código abierto", "Windows 10 / 11")
+    labels = text["chips"]
     positions = []
     for label in labels:
         width = draw.textlength(label, font=f)
@@ -76,7 +98,7 @@ def main():
 
     draw.text((82, 566), "github.com/MartinQuiri/kumquat", font=font("Medium", 22), fill=(150, 150, 160))
 
-    out = os.path.join(REPO, "docs", "images", "social-preview.png")
+    out = os.path.join(REPO, "docs", "images", text["out"])
     image.convert("RGB").save(out, optimize=True)
     print("->", out)
 
