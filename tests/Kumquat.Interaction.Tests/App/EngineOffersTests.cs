@@ -20,15 +20,15 @@ public sealed class EngineOffersTests : IDisposable
     [Fact]
     public void DocumentosSinConversion_OfreceLibreOffice()
     {
-        EngineOffers.For([KnownFormats.Docx], []).ShouldBe(EngineOffers.LibreOffice);
-        EngineOffers.For([KnownFormats.Xlsx, KnownFormats.Odp], []).ShouldBe(EngineOffers.LibreOffice);
+        EngineOffers.For([KnownFormats.Docx], []).ShouldNotBeNull().ActionId.ShouldBe(EngineOffers.LibreOffice.ActionId);
+        EngineOffers.For([KnownFormats.Xlsx, KnownFormats.Odp], []).ShouldNotBeNull().ActionId.ShouldBe(EngineOffers.LibreOffice.ActionId);
     }
 
     [Fact]
     public void KindleSinConversion_OfreceCalibre()
     {
-        EngineOffers.For([KnownFormats.Mobi], []).ShouldBe(EngineOffers.Calibre);
-        EngineOffers.For([KnownFormats.Azw3, KnownFormats.Fb2], []).ShouldBe(EngineOffers.Calibre);
+        EngineOffers.For([KnownFormats.Mobi], []).ShouldNotBeNull().ActionId.ShouldBe(EngineOffers.Calibre.ActionId);
+        EngineOffers.For([KnownFormats.Azw3, KnownFormats.Fb2], []).ShouldNotBeNull().ActionId.ShouldBe(EngineOffers.Calibre.ActionId);
         EngineOffers.For([KnownFormats.Epub], [KnownFormats.Pdf]).ShouldBeNull("EPUB ya convierte con MuPDF");
         EngineInstaller.Arguments(EngineOffers.Calibre)[2].ShouldBe("calibre.calibre");
     }

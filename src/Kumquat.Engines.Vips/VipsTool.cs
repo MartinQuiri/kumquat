@@ -2,6 +2,7 @@
 // Copyright (C) 2026 Kumquat contributors
 
 using Kumquat.Core.Formats;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Results;
 using Kumquat.Core.Tools;
 using NetVips;
@@ -43,15 +44,15 @@ public sealed class VipsTool : ITool
     /// <summary>Herramientas de imagen, en el orden en que aparecen en la rueda.</summary>
     public static IReadOnlyList<ITool> CreateAll() =>
     [
-        new VipsTool("image.compress", "Comprimir", "comprimido", image => image.Copy(), CompressOptions),
-        new VipsTool("image.rotate", "Rotar 90°", "rotado", image => image.Rot90(), QualityOptions, needsRandomAccess: true),
-        new VipsTool("image.flip", "Voltear", "volteado", image => image.FlipHor(), QualityOptions, needsRandomAccess: true),
+        new VipsTool("image.compress", Strings.ToolCompress, Strings.SuffixCompressed, image => image.Copy(), CompressOptions),
+        new VipsTool("image.rotate", Strings.ToolRotate90, Strings.SuffixRotated, image => image.Rot90(), QualityOptions, needsRandomAccess: true),
+        new VipsTool("image.flip", Strings.ToolFlip, Strings.SuffixFlipped, image => image.FlipHor(), QualityOptions, needsRandomAccess: true),
 
         // Lado mayor a 1920 px como máximo (nunca agranda): el tamaño típico para web y chat.
-        new VipsTool("image.fit", "Máx. 1920 px", "1920", image => Math.Max(image.Width, image.Height) > 1920 ? image.Resize(1920.0 / Math.Max(image.Width, image.Height), kernel: Enums.Kernel.Lanczos3) : image.Copy(), QualityOptions),
-        new VipsTool("image.gray", "Blanco y negro", "byn", image => image.Colourspace(Enums.Interpretation.Bw), QualityOptions),
+        new VipsTool("image.fit", Strings.ToolFit1920, "1920", image => Math.Max(image.Width, image.Height) > 1920 ? image.Resize(1920.0 / Math.Max(image.Width, image.Height), kernel: Enums.Kernel.Lanczos3) : image.Copy(), QualityOptions),
+        new VipsTool("image.gray", Strings.ToolGrayscale, Strings.SuffixGrayscale, image => image.Colourspace(Enums.Interpretation.Bw), QualityOptions),
         new ImageMetadataTool(),
-        new VipsTool("image.strip", "Sin metadatos", "sin metadatos", image => image.Copy(), StripOptions),
+        new VipsTool("image.strip", Strings.ToolStripMetadata, Strings.SuffixStripped, image => image.Copy(), StripOptions),
     ];
 
     /// <inheritdoc />

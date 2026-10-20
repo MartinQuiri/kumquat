@@ -3,6 +3,7 @@
 
 using Kumquat.Core.Conversion;
 using Kumquat.Core.Formats;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Results;
 using Kumquat.Core.Tools;
 using Kumquat.Engines.Vips;
@@ -68,7 +69,7 @@ public sealed class PdfTool : ITool
 
             // Comprimir: reduce imágenes de más de 225 ppp a 150 ppp (JPEG calidad 70), compacta
             // objetos y comprime flujos. Es lo que hace "comprimir PDF" en los servicios web.
-            new PdfTool("pdf.compress", "Comprimir", "comprimido", PdfOnly, KnownFormats.Pdf, HasMutool,
+            new PdfTool("pdf.compress", Strings.ToolCompress, Strings.SuffixCompressed, PdfOnly, KnownFormats.Pdf, HasMutool,
                 (step, ct) => engines.RunMutoolAsync(
                 [
                     "clean", "-gggg", "-z", "-f", "-i", "-Z",
@@ -77,21 +78,21 @@ public sealed class PdfTool : ITool
                     PdfEngines.Abs(step.InputPath), PdfEngines.Abs(step.OutputPath),
                 ], ct)),
 
-            new PdfTool("pdf.rotate", "Rotar 90°", "rotado", PdfOnly, KnownFormats.Pdf, HasQpdf,
+            new PdfTool("pdf.rotate", Strings.ToolRotate90, Strings.SuffixRotated, PdfOnly, KnownFormats.Pdf, HasQpdf,
                 (step, ct) => engines.RunQpdfAsync([PdfEngines.Abs(step.InputPath), PdfEngines.Abs(step.OutputPath), "--rotate=+90"], ct)),
 
             // Dividir: una carpeta con un PDF por página (informe-01.pdf, informe-02.pdf...).
-            new PdfTool("pdf.split", "Dividir páginas", "páginas", PdfOnly, null, HasQpdf,
+            new PdfTool("pdf.split", Strings.ToolSplitPages, Strings.SuffixPages, PdfOnly, null, HasQpdf,
                 (step, ct) => engines.RunQpdfAsync(["--split-pages", PdfEngines.Abs(step.InputPath), Path.Combine(step.OutputPath, Path.GetFileNameWithoutExtension(step.InputPath) + ".pdf")], ct)),
 
             // Páginas a JPG: MuPDF renderiza PNG a 150 ppp y libvips los pasa a JPEG calidad 90.
-            new PdfTool("pdf.to-jpg", "Páginas a JPG", "JPG", PdfOnly, null, () => HasMutool() && VipsConverter.IsLibraryAvailable,
+            new PdfTool("pdf.to-jpg", Strings.ToolPagesToJpg, "JPG", PdfOnly, null, () => HasMutool() && VipsConverter.IsLibraryAvailable,
                 (step, ct) => PagesToJpegAsync(engines, step, ct)),
 
             .. CreateWithParameters(engines, secure),
 
             // Unir imágenes en un PDF (una por página).
-            new PdfTool("image.to-pdf", "Unir en PDF", "PDF", ImagePdfBuilder.Inputs, KnownFormats.Pdf, () => images.IsAvailable,
+            new PdfTool("image.to-pdf", Strings.ToolImagesToPdf, "PDF", ImagePdfBuilder.Inputs, KnownFormats.Pdf, () => images.IsAvailable,
                 (step, ct) => images.BuildAsync([.. step.Inputs.Select(i => (i.Path, i.Format!))], step.OutputPath, ct),
                 ToolMode.Combine, minInputs: 2),
         ];
@@ -106,25 +107,25 @@ public sealed class PdfTool : ITool
         return
         [
             // Extraer páginas: un PDF nuevo solo con las páginas indicadas.
-            new PdfTool("pdf.extract", "Extraer páginas", "extracto", PdfOnly, KnownFormats.Pdf, HasQpdf, secure.ExtractAsync)
+            new PdfTool("pdf.extract", Strings.ToolExtractPages, Strings.SuffixExtract, PdfOnly, KnownFormats.Pdf, HasQpdf, secure.ExtractAsync)
             {
                 ParameterSource = (_, _) => Task.FromResult(PdfSecureTools.ExtractParameters()),
                 Validator = PdfSecureTools.ValidateExtract,
             },
 
-            new PdfTool("pdf.protect", "Proteger", "protegido", PdfOnly, KnownFormats.Pdf, HasQpdf, secure.ProtectAsync)
+            new PdfTool("pdf.protect", Strings.ToolProtect, Strings.SuffixProtected, PdfOnly, KnownFormats.Pdf, HasQpdf, secure.ProtectAsync)
             {
                 ParameterSource = (_, _) => Task.FromResult(PdfSecureTools.ProtectParameters()),
                 Validator = PdfSecureTools.ValidateProtect,
             },
 
-            new PdfTool("pdf.unlock", "Desbloquear", "desbloqueado", PdfOnly, KnownFormats.Pdf, HasQpdf, secure.UnlockAsync)
+            new PdfTool("pdf.unlock", Strings.ToolUnlock, Strings.SuffixUnlocked, PdfOnly, KnownFormats.Pdf, HasQpdf, secure.UnlockAsync)
             {
                 ParameterSource = (_, _) => Task.FromResult(PdfSecureTools.UnlockParameters()),
                 Validator = PdfSecureTools.ValidateUnlock,
             },
 
-            new PdfTool("pdf.metadata", "Metadatos", "metadatos", PdfOnly, KnownFormats.Pdf, HasMutool, secure.WriteMetadataAsync)
+            new PdfTool("pdf.metadata", Strings.ToolMetadata, Strings.SuffixMetadata, PdfOnly, KnownFormats.Pdf, HasMutool, secure.WriteMetadataAsync)
             {
                 ParameterSource = (inputs, ct) => secure.MetadataParametersAsync(inputs[0].Path, ct),
                 Validator = PdfSecureTools.ValidateMetadata,

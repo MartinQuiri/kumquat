@@ -3,6 +3,7 @@
 
 using System.Globalization;
 using Kumquat.Core.Formats;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Results;
 
 namespace Kumquat.Core.Conversion;
@@ -47,7 +48,7 @@ internal static class StagedOutput
 
             if (!File.Exists(stagingPath))
             {
-                return new Error("no-output", "El motor terminó sin producir archivo.");
+                return new Error("no-output", Strings.ErrorNoOutput);
             }
 
             return Publish(stagingPath, inputPath, target, directory, suffix, exists ?? File.Exists);
@@ -93,7 +94,7 @@ internal static class StagedOutput
 
             if (!Directory.EnumerateFileSystemEntries(staging).Any())
             {
-                return new Error("no-output", "La herramienta terminó sin producir archivos.");
+                return new Error("no-output", Strings.ErrorToolNoOutput);
             }
 
             for (var attempt = 0; ; attempt++)

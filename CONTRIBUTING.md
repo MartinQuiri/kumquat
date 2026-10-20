@@ -37,6 +37,15 @@
 3. Si el corpus sintético no puede generar muestras de su formato de entrada, agrega una muestra **con licencia CC0 o generada por script** en `corpus/` y regístrala en `corpus/LICENSES.md`.
 4. Actualiza `THIRD-PARTY-NOTICES.md`.
 
+## Textos e idiomas
+
+Ningún texto visible va escrito en el código: todos están en `src/Kumquat.Core/Localization/Strings.resx` (español, el idioma base) y sus traducciones en `Strings.<idioma>.resx`.
+
+- **Texto nuevo:** agrégalo a `Strings.resx` y a cada traducción. Si tiene huecos (`{0}`), nombra los parámetros en el comentario (`params: count, target`). Después corre `python tools/build-strings.py`, que genera `Strings.g.cs` (`Strings.MiTexto` o `Strings.MiTexto(count, target)`).
+- **Idioma nuevo:** copia `Strings.en.resx` como `Strings.<código>.resx` (p. ej. `pt`), traduce los valores sin tocar los `{n}` y agrega el idioma a `Strings.Languages`. `LocalizationTests` verifica que estén todas las claves con los mismos huecos.
+- Frases completas, no pedazos: cada idioma ordena y pluraliza a su manera (por eso hay `NotifyConvertedOne` y `NotifyConvertedMany`).
+- Los tests corren en español sea cual sea el idioma del equipo; para probar otro idioma, cambia `CultureInfo.CurrentUICulture` dentro del test.
+
 ## Probar la interacción
 
 La rueda y el arrastre dependen del escritorio real. Además de los E2E automáticos, sigue [docs/TESTING-MANUAL.md](docs/TESTING-MANUAL.md) si tocas `Kumquat.Interaction`.

@@ -3,6 +3,7 @@
 
 using Kumquat.Core.Conversion;
 using Kumquat.Core.Formats;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Results;
 using Kumquat.Infrastructure.Processes;
 
@@ -70,7 +71,7 @@ public sealed class OfficeConverter : IConverter
         ArgumentNullException.ThrowIfNull(step);
         return _routes.TryGetValue((step.Edge.From, step.Edge.To), out var convert)
             ? convert(step, cancellationToken)
-            : Task.FromResult<Result>(new Error("no-route", $"No hay cómo convertir {step.Edge.From.DisplayName} a {step.Edge.To.DisplayName}."));
+            : Task.FromResult<Result>(new Error("no-route", Strings.ErrorNoRoute(step.Edge.From.DisplayName, step.Edge.To.DisplayName)));
     }
 
     private void Route(FileFormat[] formats, string? microsoftApp, MicrosoftOffice microsoft, LibreOffice? libre)

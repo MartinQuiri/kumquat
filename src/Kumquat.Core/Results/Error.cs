@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Kumquat contributors
 
+using Kumquat.Core.Localization;
+
 namespace Kumquat.Core.Results;
 
 /// <summary>
@@ -12,7 +14,7 @@ namespace Kumquat.Core.Results;
 public sealed record Error(string Code, string Message)
 {
     /// <summary>El usuario o el sistema canceló la operación.</summary>
-    public static Error Cancelled { get; } = new("cancelled", "La operación fue cancelada.");
+    public static Error Cancelled => new("cancelled", Strings.ErrorCancelled);
 
     /// <inheritdoc />
     public override string ToString() => $"{Code}: {Message}";

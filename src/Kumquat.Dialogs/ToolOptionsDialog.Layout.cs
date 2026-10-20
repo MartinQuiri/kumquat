@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Tools;
 using Kumquat.Design;
 using Kumquat.Dialogs.Look;
@@ -26,7 +27,7 @@ public sealed partial class ToolOptionsDialog
         var fields = new StackPanel { Margin = new Thickness(0, 4, 4, 0) };
         if (_parameters.Any(p => p.Kind == ToolParameterKind.Text))
         {
-            fields.Children.Add(new TextBlock { Text = "Deja un campo vacío para borrarlo.", Foreground = _look.Muted, Margin = new Thickness(0, 0, 0, 14), FontSize = 12.5 });
+            fields.Children.Add(new TextBlock { Text = Strings.MetadataClearHint, Foreground = _look.Muted, Margin = new Thickness(0, 0, 0, 14), FontSize = 12.5 });
         }
 
         foreach (var parameter in _parameters)
@@ -111,7 +112,7 @@ public sealed partial class ToolOptionsDialog
         section.Children.Add(_customRows);
         var content = new StackPanel { Orientation = Orientation.Horizontal };
         content.Children.Add(DialogLook.Icon("plus", 14, _look.Text));
-        content.Children.Add(new TextBlock { Text = "Agregar campo", Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center });
+        content.Children.Add(new TextBlock { Text = Strings.AddField, Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center });
         var add = DialogLook.Pill(content, _look.Subtle, _look.Text);
         add.Height = 34;
         add.FontSize = 13;
@@ -131,14 +132,14 @@ public sealed partial class ToolOptionsDialog
         row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         var name = new TextBox { Margin = new Thickness(0, 0, 6, 0), FontSize = 14 };
         var value = new TextBox { Margin = new Thickness(0, 0, 6, 0), FontSize = 14 };
-        AutomationProperties.SetName(name, "Nombre del campo");
-        AutomationProperties.SetName(value, "Valor del campo");
+        AutomationProperties.SetName(name, Strings.FieldName);
+        AutomationProperties.SetName(value, Strings.FieldValue);
         var remove = DialogLook.Pill(DialogLook.Icon("close", 12, _look.Text), _look.Subtle, _look.Text);
         remove.Width = 32;
         remove.Height = 32;
         remove.Padding = new Thickness(0);
-        remove.ToolTip = "Quitar";
-        AutomationProperties.SetName(remove, "Quitar campo");
+        remove.ToolTip = Strings.Remove;
+        AutomationProperties.SetName(remove, Strings.RemoveField);
         remove.Click += (_, _) => _customRows.Children.Remove(row);
         Grid.SetColumn(value, 1);
         Grid.SetColumn(remove, 2);
@@ -156,10 +157,10 @@ public sealed partial class ToolOptionsDialog
         buttons.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(10) });
         buttons.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1.4, GridUnitType.Star) });
 
-        var cancel = DialogLook.Pill("Cancelar", _look.Subtle, _look.Text);
+        var cancel = DialogLook.Pill(Strings.ButtonCancel, _look.Subtle, _look.Text);
         cancel.IsCancel = true;
         cancel.Height = 44;
-        var apply = DialogLook.Pill("Aplicar", _look.AccentGradient, Brushes.White);
+        var apply = DialogLook.Pill(Strings.ButtonApply, _look.AccentGradient, Brushes.White);
         apply.IsDefault = true;
         apply.Height = 44;
         apply.FontSize = 15;

@@ -9,4 +9,5 @@ namespace Kumquat.Dialogs.Settings;
 /// <param name="ContextMenu">"Kumquat…" en el menú del clic derecho del Explorador.</param>
 /// <param name="StartWithWindows">Abrir Kumquat al iniciar sesión.</param>
 /// <param name="OutputFolder">Carpeta para resultados de archivos sin carpeta (adjuntos, .zip, web).</param>
-public sealed record SettingsValues(string Trigger, bool Hotkey, bool ContextMenu, bool StartWithWindows, string OutputFolder);
+/// <param name="Language">Idioma de la interfaz: "auto" o un código de <c>Strings.Languages</c>.</param>
+public sealed record SettingsValues(string Trigger, bool Hotkey, bool ContextMenu, bool StartWithWindows, string OutputFolder, string Language = "auto");

@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text;
 using Kumquat.Core.Conversion;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Results;
 using Kumquat.Engines.Pdf;
 using Kumquat.Engines.Vips;
@@ -32,7 +33,7 @@ internal sealed class PdfOcr(TesseractEngine tesseract, PdfEngines pdf, ITempWor
         var count = await PageCountAsync(source, cancellationToken);
         if (count <= 0)
         {
-            return new Error("pdf-unreadable", "No se pudo leer el PDF (¿está protegido o dañado?).");
+            return new Error("pdf-unreadable", Strings.ErrorPdfUnreadable);
         }
 
         var text = await pdf.RunMutoolAsync(["draw", "-q", "-F", "txt", "-o", Path.Combine(workspace.DirectoryPath, "text-%d.txt"), source], cancellationToken);
@@ -44,7 +45,7 @@ internal sealed class PdfOcr(TesseractEngine tesseract, PdfEngines pdf, ITempWor
         var scanned = Enumerable.Range(1, count).Where(page => !HasText(TextFile(workspace, page))).ToList();
         if (scanned.Count == 0)
         {
-            return new Error("already-searchable", "El PDF ya tiene texto en todas sus páginas: no hace falta OCR.");
+            return new Error("already-searchable", Strings.ErrorAlreadySearchable);
         }
 
         var drawn = await pdf.RunMutoolAsync(

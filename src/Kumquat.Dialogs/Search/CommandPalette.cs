@@ -9,6 +9,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Shell;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Text;
 using Kumquat.Design;
 using Kumquat.Dialogs.Look;
@@ -73,7 +74,7 @@ public sealed partial class CommandPalette : Window
     {
         _request = request;
         _look = new DialogLook(dark, Palette.Kumquat);
-        Title = "Kumquat · Buscar acción";
+        Title = Strings.PaletteWindowTitle;
         ThemeMode = dark ? ThemeMode.Dark : ThemeMode.Light;
         FontFamily = DialogLook.Font;
         Resources["ContentControlThemeFontFamily"] = DialogLook.Font;
@@ -88,7 +89,7 @@ public sealed partial class CommandPalette : Window
         Resources["KumquatHover"] = _look.Subtle;
         Resources["KumquatSelected"] = DialogLook.Brush(Color.FromArgb(0x40, _look.Accent.R, _look.Accent.G, _look.Accent.B));
         _query = new TextBox { FontSize = 18, Padding = new Thickness(10, 10, 12, 10), Style = (Style)System.Windows.Markup.XamlReader.Parse(BareTextBoxXaml), Foreground = _look.Text, CaretBrush = _look.Text };
-        AutomationProperties.SetName(_query, "Buscar acción");
+        AutomationProperties.SetName(_query, Strings.PaletteSearch);
         _query.TextChanged += (_, _) => Refresh();
         _list = new ListBox
         {
@@ -99,7 +100,7 @@ public sealed partial class CommandPalette : Window
             ItemContainerStyle = (Style)System.Windows.Markup.XamlReader.Parse(RowStyleXaml),
             Focusable = false,
         };
-        AutomationProperties.SetName(_list, "Acciones");
+        AutomationProperties.SetName(_list, Strings.GroupActions);
         ScrollViewer.SetHorizontalScrollBarVisibility(_list, ScrollBarVisibility.Disabled);
         _list.MouseLeftButtonUp += (_, e) =>
         {
@@ -108,7 +109,7 @@ public sealed partial class CommandPalette : Window
                 Accept();
             }
         };
-        _empty = new TextBlock { Text = "Nada coincide. Prueba con otra palabra (p. ej. pdf, comprimir, ruta).", Foreground = _look.Muted, Margin = new Thickness(14, 14, 14, 10), Visibility = Visibility.Collapsed, TextWrapping = TextWrapping.Wrap };
+        _empty = new TextBlock { Text = Strings.PaletteEmpty, Foreground = _look.Muted, Margin = new Thickness(14, 14, 14, 10), Visibility = Visibility.Collapsed, TextWrapping = TextWrapping.Wrap };
 
         Content = Build();
         WindowChrome.SetWindowChrome(this, new WindowChrome { CaptionHeight = 0, GlassFrameThickness = new Thickness(-1), UseAeroCaptionButtons = false, ResizeBorderThickness = new Thickness(0) });
@@ -192,7 +193,7 @@ public sealed partial class CommandPalette : Window
         panel.Children.Add(search);
         panel.Children.Add(_list);
         panel.Children.Add(_empty);
-        panel.Children.Add(new TextBlock { Text = "↑ ↓ elegir   ·   Enter aplicar   ·   Esc cerrar", Foreground = _look.Muted, FontSize = 11.5, Margin = new Thickness(4, 10, 0, 0) });
+        panel.Children.Add(new TextBlock { Text = Strings.PaletteKeys, Foreground = _look.Muted, FontSize = 11.5, Margin = new Thickness(4, 10, 0, 0) });
         var tint = new LinearGradientBrush(
             _look.IsDark ? Color.FromArgb(0x40, 0x2A, 0x2A, 0x33) : Color.FromArgb(0x66, 0xFF, 0xFF, 0xFF),
             _look.IsDark ? Color.FromArgb(0x60, 0x12, 0x12, 0x16) : Color.FromArgb(0x40, 0xF2, 0xF2, 0xF7),

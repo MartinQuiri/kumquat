@@ -3,6 +3,7 @@
 
 using System.Text.RegularExpressions;
 using Kumquat.Core.Formats;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Tools;
 
 namespace Kumquat.Engines.FFmpeg;
@@ -14,15 +15,15 @@ namespace Kumquat.Engines.FFmpeg;
 internal static partial class MediaMetadata
 {
     /// <summary>Campos conocidos: clave de FFmpeg → etiqueta visible.</summary>
-    public static readonly (string Key, string Label)[] Fields =
+    public static (string Key, string Label)[] Fields =>
     [
-        ("title", "Título"),
-        ("artist", "Artista / autor"),
-        ("album", "Álbum"),
-        ("date", "Año o fecha"),
-        ("genre", "Género"),
-        ("comment", "Comentario"),
-        ("copyright", "Copyright"),
+        ("title", Strings.FieldTitle),
+        ("artist", Strings.FieldArtist),
+        ("album", Strings.FieldAlbum),
+        ("date", Strings.FieldDate),
+        ("genre", Strings.FieldGenre),
+        ("comment", Strings.FieldComment),
+        ("copyright", Strings.FieldCopyright),
     ];
 
     /// <summary>Etiquetas técnicas que no se ofrecen para editar (las pone el propio contenedor).</summary>
@@ -48,13 +49,13 @@ internal static partial class MediaMetadata
             .Select(t => new ToolParameter(ToolParameter.CustomPrefix + t.Key, t.Key, ToolParameterKind.Text, t.Value));
         return FixedTagSet.Contains(format)
             ? [.. known]
-            : [.. known, .. custom, new ToolParameter("custom", "Campos personalizados", ToolParameterKind.CustomFields)];
+            : [.. known, .. custom, new ToolParameter("custom", Strings.ParamCustomFields, ToolParameterKind.CustomFields)];
     }
 
     public static string? Validate(IReadOnlyDictionary<string, string> options)
     {
         var bad = options.Keys.FirstOrDefault(k => k.StartsWith(ToolParameter.CustomPrefix, StringComparison.Ordinal) && !ValidKey().IsMatch(k[ToolParameter.CustomPrefix.Length..]));
-        return bad is null ? null : $"El nombre de campo '{bad[ToolParameter.CustomPrefix.Length..]}' solo puede tener letras, números, guion o guion bajo.";
+        return bad is null ? null : Strings.ValidateFieldName(bad[ToolParameter.CustomPrefix.Length..]);
     }
 
     /// <summary>Argumentos de salida: copia todo y aplica las etiquetas (valor vacío = borrar la etiqueta).</summary>

@@ -2,6 +2,7 @@
 // Copyright (C) 2026 Kumquat contributors
 
 using Kumquat.Core.Conversion;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Results;
 using Kumquat.Infrastructure.Processes;
 
@@ -43,13 +44,13 @@ internal sealed class LibreOffice(string soffice, IProcessRunner runner, ITempWo
             cancellationToken);
         if (outcome.TimedOut)
         {
-            return new Error("engine-timeout", "LibreOffice no respondió a tiempo.");
+            return new Error("engine-timeout", Strings.ErrorEngineNoResponse("LibreOffice"));
         }
 
         var result = Directory.EnumerateFiles(produced).FirstOrDefault();
         if (result is null)
         {
-            return new Error("engine-failed", "LibreOffice no pudo convertir el documento (¿está protegido con contraseña o dañado?).");
+            return new Error("engine-failed", Strings.ErrorLibreOfficeFailed);
         }
 
         File.Move(result, output, overwrite: false);

@@ -4,38 +4,24 @@
 using Kumquat.Cli;
 using Kumquat.Core.Conversion;
 using Kumquat.Core.Formats;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Tools;
 using Kumquat.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
 // Códigos de salida: 0 ok, 1 alguna conversión falló, 2 uso incorrecto, 130 cancelado.
 Console.OutputEncoding = System.Text.Encoding.UTF8;
+System.Globalization.CultureInfo.CurrentUICulture = Strings.Resolve("auto", System.Globalization.CultureInfo.CurrentUICulture);
 var command = CliCommand.Parse(args);
 if (command.Error is not null)
 {
-    await Console.Error.WriteLineAsync($"kumquat-cli: {command.Error}  (usa 'kumquat-cli help')");
+    await Console.Error.WriteLineAsync($"kumquat-cli: {Strings.CliUsageHint(command.Error)}");
     return 2;
 }
 
 if (string.Equals(command.Name, "help", StringComparison.Ordinal))
 {
-    Console.WriteLine("""
-        Kumquat: conversor local de archivos.
-
-        Uso:
-          kumquat-cli convert <archivo>... --to <formato> [--out <carpeta>]
-          kumquat-cli targets <archivo>...     formatos a los que se puede convertir
-          kumquat-cli tools <archivo>...       herramientas disponibles para el archivo
-          kumquat-cli apply <herramienta> <archivo>... [--set clave=valor]...
-          kumquat-cli formats                  formatos conocidos
-          kumquat-cli engines                  estado de los motores
-
-        Ejemplos:
-          kumquat-cli convert foto.heic --to jpg
-          kumquat-cli convert *.wav --to mp3 --out D:\musica
-          kumquat-cli apply media.trim video.mp4 --set start=0:10 --set end=0:45
-          kumquat-cli apply office.metadata informe.docx --set creator="María Pérez"
-        """);
+    Console.WriteLine(Strings.CliHelp);
     return 0;
 }
 
@@ -61,10 +47,10 @@ switch (command.Name)
         {
             var format = FormatSniffer.DetectFile(file);
             var targets = format is null ? [] : graph.Targets(format).Select(p => p.To.Id + (p.Edges.Count > 1 ? "*" : string.Empty));
-            Console.WriteLine($"{file} ({format?.Id ?? "desconocido"}): {string.Join(", ", targets)}");
+            Console.WriteLine($"{file} ({format?.Id ?? Strings.CliUnknownFileFormat}): {string.Join(", ", targets)}");
         }
 
-        Console.WriteLine("(* = conversión en varios pasos)");
+        Console.WriteLine(Strings.CliMultiStep);
         return 0;
 
     case "tools":
@@ -73,7 +59,7 @@ switch (command.Name)
         {
             var format = FormatSniffer.DetectFile(file);
             var tools = format is null ? [] : toolService.ToolsForFormats([format]).Select(t => $"{t.Id} ({t.Label})");
-            Console.WriteLine($"{file} ({format?.Id ?? "desconocido"}): {string.Join(", ", tools)}");
+            Console.WriteLine($"{file} ({format?.Id ?? Strings.CliUnknownFileFormat}): {string.Join(", ", tools)}");
         }
 
         return 0;
@@ -85,7 +71,7 @@ switch (command.Name)
 var target = KnownFormats.FindById(command.Target!) ?? KnownFormats.FindByExtension(command.Target!);
 if (target is null)
 {
-    await Console.Error.WriteLineAsync($"kumquat-cli: formato desconocido '{command.Target}'. Usa 'kumquat-cli formats'.");
+    await Console.Error.WriteLineAsync($"kumquat-cli: {Strings.CliUnknownTarget(command.Target)}");
     return 2;
 }
 
@@ -109,7 +95,7 @@ foreach (var file in command.Files)
     }
     else if (cancel.IsCancellationRequested)
     {
-        await Console.Error.WriteLineAsync("kumquat-cli: cancelado.");
+        await Console.Error.WriteLineAsync($"kumquat-cli: {Strings.CliCancelled}");
         return 130;
     }
     else

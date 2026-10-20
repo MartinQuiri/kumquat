@@ -2,6 +2,7 @@
 // Copyright (C) 2026 Kumquat contributors
 
 using System.Diagnostics;
+using Kumquat.Core.Localization;
 using Kumquat.Interaction.Native;
 using Kumquat.Interaction.Wheel;
 
@@ -23,13 +24,13 @@ internal static class FileActions
     public const string Save = "action.save";
 
     /// <summary>Acciones disponibles, en orden de la rueda (la primera queda arriba).</summary>
-    public static IReadOnlyList<WheelItem> Items { get; } =
+    public static IReadOnlyList<WheelItem> Items =>
     [
-        WheelItem.Action(CopyPath, "Copiar ruta"),
-        WheelItem.Action(CopyTo, "Copiar a…"),
-        WheelItem.Action(MoveTo, "Mover a…"),
-        WheelItem.Action(ShowInFolder, "Ver en carpeta"),
-        WheelItem.Action(Terminal, "Terminal aquí"),
+        WheelItem.Action(CopyPath, Strings.ActionCopyPath),
+        WheelItem.Action(CopyTo, Strings.ActionCopyTo),
+        WheelItem.Action(MoveTo, Strings.ActionMoveTo),
+        WheelItem.Action(ShowInFolder, Strings.ActionShowInFolder),
+        WheelItem.Action(Terminal, Strings.ActionTerminal),
     ];
 
     /// <summary>Ejecuta una acción. Devuelve un mensaje para notificar, o <c>null</c> si no hace falta.</summary>
@@ -45,8 +46,8 @@ internal static class FileActions
         {
             case CopyPath:
                 return ClipboardText.TrySet(string.Join(Environment.NewLine, paths))
-                    ? (paths.Count == 1 ? "Ruta copiada" : $"{paths.Count} rutas copiadas")
-                    : "No se pudo acceder al portapapeles";
+                    ? (paths.Count == 1 ? Strings.PathCopied : Strings.PathsCopied(paths.Count))
+                    : Strings.ClipboardFailed;
             case ShowInFolder:
                 Launch(WindowsTool("explorer.exe"), ["/select,", paths[0]], workingDirectory: null);
                 return null;

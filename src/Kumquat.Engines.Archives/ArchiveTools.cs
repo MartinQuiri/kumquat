@@ -3,6 +3,7 @@
 
 using System.IO.Compression;
 using Kumquat.Core.Formats;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Results;
 using Kumquat.Core.Tools;
 using Kumquat.Infrastructure.Files;
@@ -20,7 +21,7 @@ public static class ArchiveTools
     {
         public string Id => "archive.zip";
 
-        public string Label => "Crear ZIP";
+        public string Label => Strings.ToolCreateZip;
 
         public string OutputSuffix => string.Empty;
 
@@ -87,7 +88,7 @@ public static class ArchiveTools
 
         public string Id => "archive.extract";
 
-        public string Label => "Extraer";
+        public string Label => Strings.ToolExtract;
 
         public string OutputSuffix => string.Empty;
 

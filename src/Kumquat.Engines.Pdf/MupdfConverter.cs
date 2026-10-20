@@ -3,6 +3,7 @@
 
 using Kumquat.Core.Conversion;
 using Kumquat.Core.Formats;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Results;
 
 namespace Kumquat.Engines.Pdf;
@@ -56,7 +57,7 @@ public sealed class MupdfConverter : IConverter
         // Un PDF escaneado (solo imágenes) daría un TXT vacío: mejor decirlo.
         if (result.IsSuccess && toText && string.IsNullOrWhiteSpace(await File.ReadAllTextAsync(step.OutputPath, cancellationToken)))
         {
-            return new Error("no-text", "El documento no tiene texto seleccionable: parece un escaneo. Usa «Reconocer texto» en la rueda y conviértelo después.");
+            return new Error("no-text", Strings.ErrorNoTextScan);
         }
 
         return result;

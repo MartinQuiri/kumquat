@@ -29,6 +29,9 @@ internal static partial class Program
             return 0;
         }
 
+        // El idioma antes que cualquier texto (rueda, menús y herramientas se arman al arrancar).
+        AppSettings.Load(TrayApplication.SettingsPath).ApplyLanguage();
+
         // Desde el menú contextual: "--wheel archivo". Si Kumquat ya corre, se le pasa y se sale.
         var wheelFiles = WheelFilesFrom(args);
 

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Kumquat contributors
 
+using Kumquat.Core.Localization;
+
 namespace Kumquat.Cli;
 
 /// <summary>Comando ya interpretado de la línea de comandos.</summary>
@@ -42,15 +44,15 @@ internal sealed record CliCommand(string Name, IReadOnlyList<string> Files, stri
                     options[pair[..eq]] = pair[(eq + 1)..];
                     break;
                 case "--set" or "-s":
-                    return new CliCommand(name, files, target, output, "Usa --set clave=valor.");
+                    return new CliCommand(name, files, target, output, Strings.CliSetUsage);
                 case "--to" or "-t" or "--out" or "-o":
-                    return new CliCommand(name, files, target, output, $"Falta el valor de {args[i]}.");
+                    return new CliCommand(name, files, target, output, Strings.CliMissingValue(args[i]));
                 case "--":
                     files.AddRange(args.Skip(i + 1));
                     i = args.Count;
                     break;
                 case var flag when flag.StartsWith('-') && !File.Exists(flag):
-                    return new CliCommand(name, files, target, output, $"Opción desconocida: {flag}");
+                    return new CliCommand(name, files, target, output, Strings.CliUnknownOption(flag));
                 default:
                     files.Add(args[i]);
                     break;
@@ -59,12 +61,12 @@ internal sealed record CliCommand(string Name, IReadOnlyList<string> Files, stri
 
         var error = name switch
         {
-            "convert" when files.Count == 0 => "Indica al menos un archivo.",
-            "convert" when target is null => "Indica el formato de destino con --to.",
-            "targets" or "tools" when files.Count == 0 => "Indica al menos un archivo.",
-            "apply" when files.Count < 2 => "Uso: apply <herramienta> <archivo>...",
+            "convert" when files.Count == 0 => Strings.CliNeedFile,
+            "convert" when target is null => Strings.CliNeedTarget,
+            "targets" or "tools" when files.Count == 0 => Strings.CliNeedFile,
+            "apply" when files.Count < 2 => Strings.CliApplyUsage,
             "convert" or "targets" or "tools" or "apply" or "formats" or "engines" => null,
-            _ => $"Comando desconocido: {name}",
+            _ => Strings.CliUnknownCommand(name),
         };
         return new CliCommand(name, files, target, output, error, options);
     }

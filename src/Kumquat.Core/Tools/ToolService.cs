@@ -4,6 +4,7 @@
 using Kumquat.Core.Conversion;
 using Kumquat.Core.Formats;
 using Kumquat.Core.Jobs;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Results;
 using Kumquat.Core.Text;
 
@@ -95,19 +96,19 @@ public sealed class ToolService
         var tool = Find(toolId);
         if (tool is null)
         {
-            return new Error("tool-missing", $"La herramienta '{toolId}' no está disponible.");
+            return new Error("tool-missing", Strings.ErrorToolMissing(toolId));
         }
 
         var missing = paths.FirstOrDefault(p => !File.Exists(p) && !Directory.Exists(p));
         if (paths.Count == 0 || missing is not null)
         {
-            return new Error("input-missing", $"No existe '{missing}'.");
+            return new Error("input-missing", Strings.ErrorToolInputMissing(missing));
         }
 
         var inputs = Describe(paths);
         if (inputs is null || !IsOffered(tool, inputs))
         {
-            return new Error("tool-not-applicable", $"{tool.Label} no sirve para estos archivos.");
+            return new Error("tool-not-applicable", Strings.ErrorToolNotApplicable(tool.Label));
         }
 
         options ??= new Dictionary<string, string>(StringComparer.Ordinal);

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Kumquat contributors
 
+using Kumquat.Core.Localization;
 using Kumquat.Core.Results;
 using Kumquat.Infrastructure.Engines;
 using Kumquat.Infrastructure.Processes;
@@ -64,7 +65,7 @@ public sealed class PdfEngines
     {
         if (executable is null)
         {
-            return new Error("engine-missing", $"{name} no está instalado.");
+            return new Error("engine-missing", Strings.ErrorEngineMissing(name));
         }
 
         var outcome = await _runner.RunAsync(
@@ -73,7 +74,7 @@ public sealed class PdfEngines
 
         if (outcome.TimedOut)
         {
-            return new Error("engine-timeout", $"{name} superó el tiempo máximo.");
+            return new Error("engine-timeout", Strings.ErrorEngineTimeout(name));
         }
 
         if (okExitCodes.Contains(outcome.ExitCode))
@@ -83,7 +84,7 @@ public sealed class PdfEngines
 
         var detail = outcome.StandardErrorTail.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries).LastOrDefault() ?? string.Empty;
         return outcome.StandardErrorTail.Contains("password", StringComparison.OrdinalIgnoreCase)
-            ? new Error("pdf-encrypted", "El PDF está protegido con contraseña.")
-            : new Error("engine-failed", $"{name} terminó con código {outcome.ExitCode}: {detail}");
+            ? new Error("pdf-encrypted", Strings.ErrorPdfEncrypted)
+            : new Error("engine-failed", Strings.ErrorEngineExit(name, outcome.ExitCode, detail));
     }
 }

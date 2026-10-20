@@ -2,6 +2,7 @@
 // Copyright (C) 2026 Kumquat contributors
 
 using System.Runtime.InteropServices;
+using Kumquat.Core.Localization;
 using Kumquat.Interaction.Native;
 
 namespace Kumquat.Interaction.DragDrop;
@@ -111,7 +112,7 @@ public static unsafe partial class VirtualDrops
         var leaf = Path.GetFileName(name.Replace('/', '\\').TrimEnd('\\'));
         var invalid = Path.GetInvalidFileNameChars();
         var clean = new string([.. leaf.Select(c => invalid.Contains(c) ? '_' : c)]).Trim().TrimEnd('.');
-        return clean.Length == 0 || clean is "." or ".." ? "archivo" : clean;
+        return clean.Length == 0 || clean is "." or ".." ? Strings.FallbackFileName : clean;
     }
 
     /// <summary>Nombres de los archivos virtuales (sin carpetas), o vacío si no hay.</summary>

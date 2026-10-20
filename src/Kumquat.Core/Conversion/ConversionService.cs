@@ -2,6 +2,7 @@
 // Copyright (C) 2026 Kumquat contributors
 
 using Kumquat.Core.Formats;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Results;
 using Microsoft.Extensions.Logging;
 
@@ -78,19 +79,19 @@ public sealed partial class ConversionService
 
         if (!File.Exists(request.InputPath))
         {
-            return new Error("input-missing", $"No existe el archivo '{request.InputPath}'.");
+            return new Error("input-missing", Strings.ErrorInputMissing(request.InputPath));
         }
 
         var source = FormatSniffer.DetectFile(request.InputPath);
         if (source is null)
         {
-            return new Error("unknown-format", $"No se reconoce el formato de '{Path.GetFileName(request.InputPath)}'.");
+            return new Error("unknown-format", Strings.ErrorUnknownFormat(Path.GetFileName(request.InputPath)));
         }
 
         var path = _graph.FindPath(source, request.Target);
         if (path is null)
         {
-            return new Error("no-route", $"No hay forma de convertir {source.DisplayName} a {request.Target.DisplayName}.");
+            return new Error("no-route", Strings.ErrorNoRoute(source.DisplayName, request.Target.DisplayName));
         }
 
         return path;
@@ -113,7 +114,7 @@ public sealed partial class ConversionService
 
             if (!File.Exists(output))
             {
-                return new Error("no-output", $"El motor '{edge.ConverterId}' terminó sin producir archivo.");
+                return new Error("no-output", Strings.ErrorNoOutput);
             }
 
             current = output;
@@ -126,7 +127,7 @@ public sealed partial class ConversionService
     {
         if (!_converters.TryGetValue(step.Edge.ConverterId, out var converter))
         {
-            return new Error("converter-missing", $"El convertidor '{step.Edge.ConverterId}' no está registrado.");
+            return new Error("converter-missing", Strings.ErrorConverterMissing(step.Edge.ConverterId));
         }
 
         cancellationToken.ThrowIfCancellationRequested();

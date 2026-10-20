@@ -84,7 +84,7 @@ public sealed class DragToWheelTests : IDisposable
         File.Delete(Path.Combine(_dir, "fuente.png"));
         var output = Directory.CreateDirectory(Path.Combine(_dir, "salida")).FullName;
         var data = Directory.CreateDirectory(Path.Combine(_dir, "datos")).FullName;
-        await File.WriteAllTextAsync(Path.Combine(data, "settings.json"), System.Text.Json.JsonSerializer.Serialize(new { OutputFolder = output }), TestContext.Current.CancellationToken);
+        await File.WriteAllTextAsync(Path.Combine(data, "settings.json"), System.Text.Json.JsonSerializer.Serialize(new { OutputFolder = output, Language = "es" }), TestContext.Current.CancellationToken);
         StartKumquat(data);
 
         RunDragScenario(() => VirtualPng("adjunto.png", png), northSector: true);

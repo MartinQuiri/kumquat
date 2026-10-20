@@ -4,6 +4,7 @@
 using System.Globalization;
 using Kumquat.Core.Conversion;
 using Kumquat.Core.Formats;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Results;
 using Kumquat.Infrastructure.Processes;
 using Microsoft.Win32;
@@ -82,7 +83,7 @@ public sealed class CalibreConverter : IConverter
         ArgumentNullException.ThrowIfNull(step);
         if (EbookConvert is null || !Edges.Any(e => e.From == step.Edge.From && e.To == step.Edge.To))
         {
-            return new Error("no-route", $"No hay cómo convertir {step.Edge.From.DisplayName} a {step.Edge.To.DisplayName}.");
+            return new Error("no-route", Strings.ErrorNoRoute(step.Edge.From.DisplayName, step.Edge.To.DisplayName));
         }
 
         using var workspace = _workspaces.Create();
@@ -111,17 +112,17 @@ public sealed class CalibreConverter : IConverter
 
         if (outcome.TimedOut)
         {
-            return new Error("engine-timeout", "Calibre no respondió a tiempo.");
+            return new Error("engine-timeout", Strings.ErrorEngineNoResponse("Calibre"));
         }
 
         if (problem is "drm")
         {
-            return new Error("engine-failed", "El libro tiene DRM (protección anticopia): no se puede convertir.");
+            return new Error("engine-failed", Strings.ErrorBookDrm);
         }
 
         if (!outcome.Succeeded || !File.Exists(output))
         {
-            return new Error("engine-failed", "Calibre no pudo convertir el libro (¿está dañado?).");
+            return new Error("engine-failed", Strings.ErrorCalibreFailed);
         }
 
         File.Move(output, step.OutputPath, overwrite: false);
