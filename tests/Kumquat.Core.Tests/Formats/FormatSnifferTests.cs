@@ -91,6 +91,43 @@ public sealed class FormatSnifferTests
         FormatSniffer.Detect(header, ".msg").ShouldBeNull();
     }
 
+    [Theory]
+    [InlineData(6, ".azw3", "mobi")]
+    [InlineData(8, ".mobi", "azw3")]
+    public void Detect_Kindle_PorVersionDelEncabezadoMobi(int version, string extension, string expected)
+    {
+        // Cabecera Palm (78 bytes) + lista de 1 registro + registro 0 en el byte 88 (PalmDOC + "MOBI").
+        var file = new byte[200];
+        "BOOKMOBI"u8.CopyTo(file.AsSpan(60));
+        System.Buffers.Binary.BinaryPrimitives.WriteUInt32BigEndian(file.AsSpan(78), 88);
+        "MOBI"u8.CopyTo(file.AsSpan(88 + 16));
+        System.Buffers.Binary.BinaryPrimitives.WriteUInt32BigEndian(file.AsSpan(88 + 36), (uint)version);
+
+        FormatSniffer.Detect(file, extension)!.Id.ShouldBe(expected, "manda el contenido, no la extensión");
+    }
+
+    [Theory]
+    [InlineData(".azw3", "azw3")]
+    [InlineData(".mobi", "mobi")]
+    [InlineData("", "mobi")]
+    public void Detect_Kindle_RegistroFueraDeLaCabecera_UsaExtension(string extension, string expected)
+    {
+        var file = new byte[100];
+        "BOOKMOBI"u8.CopyTo(file.AsSpan(60));
+        System.Buffers.Binary.BinaryPrimitives.WriteUInt32BigEndian(file.AsSpan(78), 50_000);
+
+        FormatSniffer.Detect(file, extension)!.Id.ShouldBe(expected);
+    }
+
+    [Fact]
+    public void Detect_Fb2_PorRaizFictionBook()
+    {
+        var fb2 = "﻿<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<FictionBook xmlns=\"http://www.gribuser.ru/xml/fictionbook/2.0\">"u8;
+        FormatSniffer.Detect(Encoding.UTF8.GetBytes("<?xml version=\"1.0\"?>\n<FictionBook xmlns=\"http://www.gribuser.ru/xml/fictionbook/2.0\"><body/>"), ".xml")!.Id.ShouldBe("fb2");
+        FormatSniffer.Detect(fb2, null)!.Id.ShouldBe("fb2");
+        FormatSniffer.Detect(Encoding.UTF8.GetBytes("<html><body>FictionBook</body></html>"), ".fb2").ShouldBeNull("la extensión sola no basta");
+    }
+
     [Fact]
     public void Detect_Tar_PorUstarEnOffset257()
     {

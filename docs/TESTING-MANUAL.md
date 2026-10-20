@@ -65,6 +65,15 @@ Ejecuta `dotnet run --project src/Kumquat.App` y anota ✅/❌ y la versión de 
 | 39 | Equipo sin Office ni LibreOffice: arrastrar un DOCX | Primer sector de acciones: "Instalar LibreOffice"; "Ahora no" no instala nada |
 | 40 | Ídem → Instalar | Se ve la consola de winget; al terminar Kumquat se reinicia y ofrece PDF |
 
+## Libros electrónicos
+
+| # | Caso | Esperado |
+|---|---|---|
+| 41 | Sin Calibre: arrastrar un MOBI | Primer sector de acciones: "Instalar Calibre" |
+| 42 | Con Calibre: EPUB → AZW3 y enviarlo a un Kindle | El Kindle lo abre con portada e índice |
+| 43 | Con Calibre abierto, convertir un MOBI | Funciona; la biblioteca de Calibre no cambia |
+| 44 | Libro de Kindle con DRM | Aviso "El libro tiene DRM"; no queda `ebook-convert.exe` |
+
 ## Pantallas
 
 | # | Caso | Esperado |

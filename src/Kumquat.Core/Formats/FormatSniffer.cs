@@ -22,6 +22,8 @@ public static class FormatSniffer
 
     private static readonly FileFormat[] OleFamily = [KnownFormats.Doc, KnownFormats.Xls, KnownFormats.Ppt];
 
+    private static readonly FileFormat[] MobiFamily = [KnownFormats.Mobi, KnownFormats.Azw3];
+
     private static readonly FileFormat[] IsoBmffFamily = [KnownFormats.Mp4, KnownFormats.M4a, KnownFormats.Mov];
 
     private static readonly FileFormat[] TextFamily =
@@ -214,13 +216,44 @@ public static class FormatSniffer
             return KnownFormats.Rtf;
         }
 
+        // Kindle (base de datos Palm): "BOOKMOBI" en el byte 60.
+        if (h.Length >= 68 && h[60..68].SequenceEqual("BOOKMOBI"u8))
+        {
+            return DetectMobi(h, byExtension);
+        }
+
         var text = SkipBom(h);
         if (text.StartsWith("WEBVTT"u8))
         {
             return KnownFormats.Vtt;
         }
 
-        return LooksLikeText(h) && ContainsSvgRoot(text) ? KnownFormats.Svg : null;
+        if (!LooksLikeText(h) || !text.TrimStart(" \t\r\n"u8).StartsWith("<"u8))
+        {
+            return null;
+        }
+
+        return text.IndexOf("<FictionBook"u8) >= 0 ? KnownFormats.Fb2
+            : ContainsSvgRoot(text) ? KnownFormats.Svg
+            : null;
+    }
+
+    /// <summary>
+    /// MOBI y AZW3 comparten contenedor; la versión del encabezado MOBI dice cuál es (8 = KF8, AZW3).
+    /// Si el primer registro no entra en la cabecera leída, decide la extensión.
+    /// </summary>
+    private static FileFormat DetectMobi(ReadOnlySpan<byte> h, FileFormat? byExtension)
+    {
+        if (h.Length >= 82)
+        {
+            var record = (int)Math.Min(System.Buffers.Binary.BinaryPrimitives.ReadUInt32BigEndian(h[78..82]), int.MaxValue);
+            if (record <= h.Length - 40 && h[(record + 16)..(record + 20)].SequenceEqual("MOBI"u8))
+            {
+                return System.Buffers.Binary.BinaryPrimitives.ReadUInt32BigEndian(h[(record + 36)..(record + 40)]) == 8 ? KnownFormats.Azw3 : KnownFormats.Mobi;
+            }
+        }
+
+        return PreferExtension(MobiFamily, byExtension);
     }
 
     private static FileFormat DetectIsoBmff(ReadOnlySpan<byte> h, FileFormat? byExtension)

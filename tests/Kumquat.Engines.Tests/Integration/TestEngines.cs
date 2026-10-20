@@ -25,7 +25,13 @@ internal static class TestEngines
     public static readonly MupdfConverter Mupdf = new(Pdf, ImagePdf);
     public static readonly Kumquat.Engines.Ocr.TesseractEngine Tesseract = new(Runner, Locator);
     public static readonly Kumquat.Engines.Office.OfficeConverter Office = new(Kumquat.Engines.Office.OfficeApps.Detect(), Runner, Workspaces);
-    public static readonly IReadOnlyList<IConverter> All = [Ffmpeg, Vips, Mupdf, Office];
+    /// <summary>Calibre instalado, o el de <c>KUMQUAT_TEST_CALIBRE</c> (ruta a ebook-convert.exe de una copia extraída).</summary>
+    public static readonly Kumquat.Engines.Calibre.CalibreConverter Calibre = new(
+        Kumquat.Engines.Calibre.CalibreConverter.Find() ?? (Environment.GetEnvironmentVariable("KUMQUAT_TEST_CALIBRE") is { } path && File.Exists(path) ? path : null),
+        Runner,
+        Workspaces);
+
+    public static readonly IReadOnlyList<IConverter> All = [Ffmpeg, Vips, Mupdf, Office, Calibre];
 
     public static string? FfmpegExe => Locator.Find("ffmpeg", Path.Combine("bin", "ffmpeg.exe"));
 

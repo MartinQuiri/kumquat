@@ -17,6 +17,9 @@ public sealed record ProcessSpec
     /// <summary>Carpeta de trabajo; por defecto la del ejecutable.</summary>
     public string? WorkingDirectory { get; init; }
 
+    /// <summary>Variables de entorno que se agregan (o reemplazan) a las heredadas.</summary>
+    public IReadOnlyDictionary<string, string> Environment { get; init; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>Tiempo máximo de ejecución.</summary>
     public TimeSpan? Timeout { get; init; }
 

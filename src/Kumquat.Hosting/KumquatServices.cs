@@ -6,6 +6,7 @@ using Kumquat.Core.Jobs;
 using Kumquat.Core.Previews;
 using Kumquat.Core.Tools;
 using Kumquat.Engines.Archives;
+using Kumquat.Engines.Calibre;
 using Kumquat.Engines.FFmpeg;
 using Kumquat.Engines.Ocr;
 using Kumquat.Engines.Office;
@@ -79,6 +80,10 @@ public static class KumquatServices
         services.AddSingleton(_ => OfficeApps.Detect());
         services.AddSingleton<OfficeConverter>();
         services.AddSingleton<IConverter>(sp => sp.GetRequiredService<OfficeConverter>());
+
+        // Libros electrónicos con Calibre si está instalado.
+        services.AddSingleton(sp => new CalibreConverter(CalibreConverter.Find(), sp.GetRequiredService<IProcessRunner>(), sp.GetRequiredService<ITempWorkspaceFactory>()));
+        services.AddSingleton<IConverter>(sp => sp.GetRequiredService<CalibreConverter>());
         services.AddSingleton(sp => new ToolService(OrderForWheel(
         [
             .. PdfTool.CreateAll(sp.GetRequiredService<PdfEngines>(), sp.GetRequiredService<ImagePdfBuilder>(), sp.GetRequiredService<ITempWorkspaceFactory>()),

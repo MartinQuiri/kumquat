@@ -75,8 +75,8 @@ public sealed class EdgeConversionTests
             return;
         }
 
-        // Documentos (PDF → Word): el contenido lo revisa OfficeConverterTests; aquí basta el formato.
-        if (to == KnownFormats.Pdf || to.Category is FormatCategory.Document)
+        // Documentos y libros: el contenido lo revisan OfficeConverterTests y CalibreConverterTests; aquí basta el formato.
+        if (to == KnownFormats.Pdf || to.Category is FormatCategory.Document or FormatCategory.Ebook)
         {
             new FileInfo(output).Length.ShouldBeGreaterThan(200);
             return;

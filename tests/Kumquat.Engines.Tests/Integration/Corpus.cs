@@ -25,6 +25,11 @@ internal static class Corpus
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"320\" height=\"240\" viewBox=\"0 0 320 240\">" +
         "<rect width=\"320\" height=\"240\" fill=\"#ff8c00\"/><circle cx=\"160\" cy=\"120\" r=\"80\" fill=\"#2e7d32\"/></svg>\n";
 
+    private const string Fb2Sample =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<FictionBook xmlns=\"http://www.gribuser.ru/xml/fictionbook/2.0\">" +
+        "<description><title-info><genre>prose</genre><author><first-name>Kumquat</first-name></author><book-title>Muestra</book-title><lang>es</lang></title-info></description>" +
+        "<body><section><title><p>Capítulo uno</p></title><p>Kumquat convierte libros.</p></section></body></FictionBook>\n";
+
     /// <summary>Muestra del formato pedido, o <c>null</c> si el entorno no puede generarla.</summary>
     public static Task<string?> GetAsync(FileFormat format)
         => Samples.GetOrAdd(format.Id, _ => new Lazy<Task<string?>>(() => CreateAsync(format))).Value;
@@ -47,11 +52,13 @@ internal static class Corpus
                 ]);
             case "png":
                 return await LavfiAsync(path, ["-f", "lavfi", "-i", $"testsrc2=size={Width}x{Height}", "-frames:v", "1", "-update", "1"]);
-            case "svg":
-                await File.WriteAllTextAsync(path, SvgSample);
-                return path;
-            case "txt":
-                await File.WriteAllTextAsync(path, "Kumquat\nMuestra de texto con ñ y tildes: canción.\n");
+            case "svg" or "txt" or "fb2":
+                await File.WriteAllTextAsync(path, format.Id switch
+                {
+                    "svg" => SvgSample,
+                    "fb2" => Fb2Sample,
+                    _ => "Kumquat\nMuestra de texto con ñ y tildes: canción.\n",
+                });
                 return path;
             case "pdf":
                 return await TwoPagePdfAsync(path);
@@ -70,6 +77,7 @@ internal static class Corpus
             FormatCategory.Audio => KnownFormats.Wav,
             FormatCategory.Video => KnownFormats.Mp4,
             _ when format == KnownFormats.Gif => KnownFormats.Mp4,
+            FormatCategory.Ebook => KnownFormats.Epub,
             FormatCategory.Image => KnownFormats.Png,
             _ => null,
         };
