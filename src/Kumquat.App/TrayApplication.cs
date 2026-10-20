@@ -39,12 +39,20 @@ internal sealed partial class TrayApplication : IDisposable
     private readonly ToolService _tools;
     private readonly IPreviewService _previews;
     private readonly BatchNotifier _notifier;
+    private readonly bool _touchWindows;
     private AppSettings _settings;
     private WheelController? _wheel;
     private TrayIcon? _tray;
 
-    public TrayApplication(IServiceProvider services, UiThread ui)
+    /// <param name="services">Servicios de la app.</param>
+    /// <param name="ui">Hilo de UI.</param>
+    /// <param name="touchWindows">
+    /// Registrar el menú contextual y el inicio con Windows según la configuración. La prueba de
+    /// arranque (<c>--smoke-test</c>) no lo hace: correría desde cualquier carpeta.
+    /// </param>
+    public TrayApplication(IServiceProvider services, UiThread ui, bool touchWindows = true)
     {
+        _touchWindows = touchWindows;
         _services = services ?? throw new ArgumentNullException(nameof(services));
         _ui = ui ?? throw new ArgumentNullException(nameof(ui));
         _logger = services.GetRequiredService<ILogger<TrayApplication>>();
@@ -308,6 +316,11 @@ internal sealed partial class TrayApplication : IDisposable
         if (!hotkeyFree && notifyHotkeyConflict)
         {
             _tray?.Notify(Strings.HotkeyTakenTitle, Strings.HotkeyTakenBody(Hotkey.Default.Display), isError: true);
+        }
+
+        if (!_touchWindows)
+        {
+            return;
         }
 
         SyncContextMenu();

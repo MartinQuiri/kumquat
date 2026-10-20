@@ -125,11 +125,14 @@ dotnet test --solution Kumquat.slnx --filter-not-trait "Category=E2E" --ignore-e
 dotnet run --project src/Kumquat.App
 ```
 
-Para generar el paquete distribuible (self-contained, recortado, ~93 MB en zip, arranque ~0,3 s):
+Para generar el paquete distribuible (self-contained, recortado, ~230 MB en zip —casi la mitad son los modelos de OCR—, arranque ~0,3 s) y su instalador:
 
 ```powershell
-./tools/publish.ps1 -Runtime win-x64     # o win-arm64
+./tools/publish.ps1 -Runtime win-x64           # o win-arm64
+./tools/build-installer.ps1 -Runtime win-x64   # MSI por usuario, sin administrador
 ```
+
+Cómo se publica una versión (firma, winget): [docs/RELEASING.md](docs/RELEASING.md).
 
 Los tests E2E hacen un arrastre real moviendo el mouse: córrelos solo cuando no estés usando el PC (`dotnet test --project tests/Kumquat.E2E.Tests`).
 
@@ -157,7 +160,8 @@ Detalles en [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) y [CONTRIBUTING.md](CON
 - [x] Office → PDF y PDF → Word con Microsoft Office o LibreOffice (el que esté instalado; si no hay, se ofrece instalar LibreOffice).
 - [x] Libros electrónicos con Calibre: EPUB, MOBI, AZW3, FB2 y Word → EPUB/AZW3/MOBI/PDF.
 - [x] Interfaz en español e inglés (traducible: un `.resx` por idioma).
-- [ ] Fase 3: instalador firmado (SignPath), winget y Microsoft Store.
+- [x] Instalador MSI por usuario (sin administrador) y manifiesto de winget ([docs/RELEASING.md](docs/RELEASING.md)).
+- [ ] Firma de código (SignPath), envío a winget, menú moderno de Windows 11 (necesita la firma) y Microsoft Store.
 - [ ] Fase 4: sandbox de motores (baja integridad / AppContainer), fuzzing continuo.
 
 ## Licencia

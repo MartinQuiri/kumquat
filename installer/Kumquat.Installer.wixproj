@@ -1,0 +1,23 @@
+<Project Sdk="WixToolset.Sdk/5.0.2">
+  <!--
+    Instalador MSI por usuario (sin administrador) del paquete que deja tools/publish.ps1.
+    Lo arma tools/build-installer.ps1; no está en Kumquat.slnx porque necesita la carpeta publicada.
+    WiX 5 (MS-RL): desde la 6, los binarios de WiX piden aceptar un EULA de cuota de mantenimiento.
+  -->
+  <PropertyGroup>
+    <OutputName>Kumquat</OutputName>
+    <!-- Carpeta publicada (artifacts/publish/<rid>) y versión: las pasa build-installer.ps1. -->
+    <PublishDir Condition="'$(PublishDir)' == ''">..\artifacts\publish\win-x64</PublishDir>
+    <ProductVersion Condition="'$(ProductVersion)' == ''">0.1.0</ProductVersion>
+    <DefineConstants>PublishDir=$(PublishDir);ProductVersion=$(ProductVersion)</DefineConstants>
+    <!-- ICE38/ICE64/ICE91 piden KeyPath de registro por archivo para perfiles móviles; la carpeta es
+         %LOCALAPPDATA%\Programs (local, no viaja con el perfil), como en todo MSI por usuario.
+         ICE60: DLL de motores con versión pero sin idioma; solo afecta reglas de reparación/parches. -->
+    <SuppressIces>ICE38;ICE60;ICE64;ICE91</SuppressIces>
+    <!-- Sin restauración bloqueada: el SDK de WiX no usa paquetes del repositorio. -->
+    <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="WixToolset.Util.wixext" VersionOverride="5.0.2" />
+  </ItemGroup>
+</Project>
