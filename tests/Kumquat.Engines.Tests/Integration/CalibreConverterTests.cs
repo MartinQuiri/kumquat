@@ -61,11 +61,11 @@ public sealed class CalibreConverterTests : IDisposable
         var book = Path.Combine(_dir, "libro" + format.DefaultExtension);
         var epub = (await Corpus.GetAsync(KnownFormats.Epub))!;
 
-        (await Convert(epub, book, KnownFormats.Epub, format)).IsSuccess.ShouldBeTrue();
+        (await Convert(epub, book, KnownFormats.Epub, format)).ShouldSucceed();
         FormatSniffer.DetectFile(book).ShouldBe(format, "se detecta por contenido");
 
         var back = Path.Combine(_dir, "vuelta.epub");
-        (await Convert(book, back, format, KnownFormats.Epub)).IsSuccess.ShouldBeTrue();
+        (await Convert(book, back, format, KnownFormats.Epub)).ShouldSucceed();
         (await EpubTextAsync(back)).ShouldContain("Kumquat convierte libros");
     }
 
@@ -77,8 +77,8 @@ public sealed class CalibreConverterTests : IDisposable
         var epub = Path.Combine(_dir, "desde-fb2.epub");
         var pdf = Path.Combine(_dir, "desde-fb2.pdf");
 
-        (await Convert(fb2, epub, KnownFormats.Fb2, KnownFormats.Epub)).IsSuccess.ShouldBeTrue();
-        (await Convert(fb2, pdf, KnownFormats.Fb2, KnownFormats.Pdf)).IsSuccess.ShouldBeTrue();
+        (await Convert(fb2, epub, KnownFormats.Fb2, KnownFormats.Epub)).ShouldSucceed();
+        (await Convert(fb2, pdf, KnownFormats.Fb2, KnownFormats.Pdf)).ShouldSucceed();
 
         (await EpubTextAsync(epub)).ShouldContain("Kumquat convierte libros");
         FormatSniffer.DetectFile(pdf).ShouldBe(KnownFormats.Pdf);
@@ -91,7 +91,7 @@ public sealed class CalibreConverterTests : IDisposable
         Assert.SkipUnless(OfficeSamples.CanCreate(KnownFormats.Docx), "Sin Word para crear el documento.");
         var epub = Path.Combine(_dir, "documento.epub");
 
-        (await Convert((await Corpus.GetAsync(KnownFormats.Docx))!, epub, KnownFormats.Docx, KnownFormats.Epub)).IsSuccess.ShouldBeTrue();
+        (await Convert((await Corpus.GetAsync(KnownFormats.Docx))!, epub, KnownFormats.Docx, KnownFormats.Epub)).ShouldSucceed();
 
         (await EpubTextAsync(epub)).ShouldContain(OfficeSamples.Text);
     }
@@ -119,7 +119,7 @@ public sealed class CalibreConverterTests : IDisposable
         var config = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "calibre");
         Assert.SkipWhen(Directory.Exists(config), "Calibre ya se usó en este equipo: no se puede comprobar.");
 
-        (await Convert((await Corpus.GetAsync(KnownFormats.Epub))!, Path.Combine(_dir, "x.azw3"), KnownFormats.Epub, KnownFormats.Azw3)).IsSuccess.ShouldBeTrue();
+        (await Convert((await Corpus.GetAsync(KnownFormats.Epub))!, Path.Combine(_dir, "x.azw3"), KnownFormats.Epub, KnownFormats.Azw3)).ShouldSucceed();
 
         Directory.Exists(config).ShouldBeFalse();
     }
@@ -139,4 +139,11 @@ public sealed class CalibreConverterTests : IDisposable
 
         return text.ToString();
     }
+}
+
+internal static class ResultAssertions
+{
+    /// <summary>Falla mostrando el error del motor (no solo "esperaba true").</summary>
+    public static void ShouldSucceed(this Kumquat.Core.Results.Result result)
+        => result.IsSuccess.ShouldBeTrue(result.Error?.ToString());
 }

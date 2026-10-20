@@ -16,7 +16,10 @@ internal static partial class Program
     /// </summary>
     private const string SmokeTestFlag = "--smoke-test";
 
-    /// <summary><c>--unregister</c>: quita la entrada del menú contextual y sale (para desinstalar).</summary>
+    /// <summary>
+    /// <c>--unregister</c>: quita lo que Kumquat dejó en Windows (menú contextual e inicio con
+    /// Windows) y sale. Lo corre el desinstalador; la configuración y los registros quedan.
+    /// </summary>
     private const string UnregisterFlag = "--unregister";
 
     [STAThread]
@@ -26,6 +29,7 @@ internal static partial class Program
         if (args.Contains(UnregisterFlag, StringComparer.OrdinalIgnoreCase))
         {
             ExplorerMenu.Unregister();
+            Autostart.Set(enabled: false, Environment.ProcessPath ?? "Kumquat.exe");
             return 0;
         }
 
@@ -112,7 +116,7 @@ internal static partial class Program
 
         using var ui = new UiThread();
         UiThread.ErrorSink = ex => LogUiError(logger, ex);
-        using (var app = new TrayApplication(services, ui))
+        using (var app = new TrayApplication(services, ui, touchWindows: !smokeTest))
         {
             app.Start();
             if (wheelFiles.Count > 0)

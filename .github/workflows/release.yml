@@ -29,9 +29,14 @@ jobs:
         shell: pwsh
         run: ./tools/publish.ps1 -Runtime ${{ matrix.rid }} -Version ("${{ github.ref_name }}".TrimStart('v'))
 
+      # La firma va antes del MSI (los .exe/.dll de adentro) y después sobre el propio MSI.
+      - name: Instalador MSI (por usuario)
+        shell: pwsh
+        run: ./tools/build-installer.ps1 -Runtime ${{ matrix.rid }} -Version ("${{ github.ref_name }}".TrimStart('v'))
+
       # Firma de código: SignPath Foundation (gratis para proyectos OSI).
       # Requiere postular el proyecto en https://signpath.org y configurar los secretos
-      # SIGNPATH_API_TOKEN / organization-id / project-slug. Hasta entonces el zip sale sin firmar.
+      # SIGNPATH_API_TOKEN / organization-id / project-slug. Hasta entonces el zip y el MSI salen sin firmar.
       # - uses: signpath/github-action-submit-signing-request@<sha> # v1
       #   with:
       #     api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
@@ -46,6 +51,7 @@ jobs:
           name: kumquat-${{ matrix.rid }}
           path: |
             artifacts/*.zip
+            artifacts/*.msi
             artifacts/*.sha256
 
   release:
@@ -58,6 +64,19 @@ jobs:
         with:
           path: dist
           merge-multiple: true
+      # Manifiesto de winget para revisar y enviar a microsoft/winget-pkgs (docs/RELEASING.md).
+      # Identificador: variable del repositorio WINGET_PACKAGE_ID (p. ej. Usuario.Kumquat).
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: src
+      - name: Manifiesto de winget
+        if: vars.WINGET_PACKAGE_ID != ''
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force src/artifacts | Out-Null
+          Copy-Item dist/*.msi src/artifacts/
+          ./src/tools/winget-manifest.ps1 -Version ("${{ github.ref_name }}".TrimStart('v')) -Repository "${{ github.repository }}" -PackageIdentifier "${{ vars.WINGET_PACKAGE_ID }}"
+          Compress-Archive -Path src/artifacts/winget/* -DestinationPath dist/winget-manifest.zip
       - name: Crear release (borrador)
         env:
           GH_TOKEN: ${{ github.token }}

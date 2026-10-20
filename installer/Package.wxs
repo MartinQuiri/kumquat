@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  SPDX-License-Identifier: GPL-3.0-or-later
+  Copyright (C) 2026 Kumquat contributors
+
+  Kumquat para un usuario: se instala en %LOCALAPPDATA%\Programs\Kumquat sin pedir administrador,
+  con acceso en el menú Inicio y entrada en "Aplicaciones instaladas". Al terminar abre Kumquat.
+  Al desinstalar cierra Kumquat y quita lo que dejó en Windows (Kumquat.exe -unregister): el menú
+  contextual y el inicio con Windows. La configuración y los registros del usuario quedan.
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+  <Package
+    Name="Kumquat"
+    Manufacturer="Kumquat contributors"
+    Version="$(ProductVersion)"
+    UpgradeCode="37919DE3-41B0-4646-A58E-5639FCD5CD76"
+    Scope="perUser"
+    Compressed="yes">
+
+    <!-- Una versión nueva reemplaza a la anterior; no se instala una más vieja encima. -->
+    <!-- La versión nueva se instala encima (los componentes tienen GUID estables por ruta) y después
+         se quita lo que sobre de la anterior. Kumquat ya está cerrado antes de tocar archivos. -->
+    <MajorUpgrade Schedule="afterInstallExecute" DowngradeErrorMessage="Ya hay una versión más nueva de Kumquat instalada. / A newer version of Kumquat is already installed." />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <Icon Id="KumquatIcon" SourceFile="$(PublishDir)\assets\logo\kumquat.ico" />
+    <Property Id="ARPPRODUCTICON" Value="KumquatIcon" />
+    <Property Id="ARPNOMODIFY" Value="1" />
+
+    <StandardDirectory Id="LocalAppDataFolder">
+      <Directory Id="ProgramsFolder" Name="Programs">
+        <Directory Id="INSTALLFOLDER" Name="Kumquat" />
+      </Directory>
+    </StandardDirectory>
+
+    <ComponentGroup Id="AppFiles" Directory="INSTALLFOLDER">
+      <Files Include="$(PublishDir)\**" />
+    </ComponentGroup>
+
+    <!-- Acceso en el menú Inicio (por usuario: su clave de registro hace de KeyPath). -->
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Component Id="StartMenuShortcut" Guid="6A1E2E1C-8F4B-4E57-9D0C-2B7E5C0B9A11">
+        <Shortcut Id="KumquatShortcut" Name="Kumquat" Description="Arrastra un archivo y presiona Shift / Drag a file and press Shift" Target="[INSTALLFOLDER]Kumquat.exe" WorkingDirectory="INSTALLFOLDER" Icon="KumquatIcon" />
+        <RegistryValue Root="HKCU" Key="Software\Kumquat\Installer" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </StandardDirectory>
+
+    <!-- Carpetas por usuario: se borran al desinstalar (las de datos de Kumquat no son estas). -->
+    <Component Id="InstallFolderCleanup" Directory="INSTALLFOLDER" Guid="0C8E1F2D-5B3A-4C7E-8A9D-1E2F3A4B5C6D">
+      <RemoveFolder Id="RemoveInstallFolder" On="uninstall" />
+      <RemoveFolder Id="RemoveProgramsFolder" Directory="ProgramsFolder" On="uninstall" />
+      <RegistryValue Root="HKCU" Key="Software\Kumquat\Installer" Name="InstallFolder" Type="string" Value="[INSTALLFOLDER]" KeyPath="yes" />
+    </Component>
+
+    <Feature Id="Main">
+      <ComponentGroupRef Id="AppFiles" />
+      <ComponentRef Id="StartMenuShortcut" />
+      <ComponentRef Id="InstallFolderCleanup" />
+    </Feature>
+
+    <!-- Kumquat corre en la bandeja: se cierra antes de reemplazar o borrar sus archivos. -->
+    <util:CloseApplication Id="CloseKumquat" Target="Kumquat.exe" TerminateProcess="0" RebootPrompt="no" />
+
+    <!-- Desinstalar (no actualizar): quitar el menú contextual y el inicio con Windows. -->
+    <CustomAction Id="Unregister" Directory="INSTALLFOLDER" ExeCommand="&quot;[INSTALLFOLDER]Kumquat.exe&quot; --unregister" Execute="deferred" Impersonate="yes" Return="ignore" />
+
+    <!-- Al terminar de instalar o actualizar, abrir Kumquat (vuelve a registrar el menú en la ruta nueva). -->
+    <CustomAction Id="LaunchKumquat" Directory="INSTALLFOLDER" ExeCommand="&quot;[INSTALLFOLDER]Kumquat.exe&quot;" Execute="immediate" Impersonate="yes" Return="asyncNoWait" />
+
+    <InstallExecuteSequence>
+      <!-- Cerrar Kumquat antes de borrar o reemplazar archivos (si no, "archivos en uso"). -->
+      <Custom Action="override Wix4CloseApplications_$(sys.BUILDARCHSHORT)" Before="Unregister" />
+      <Custom Action="Unregister" Before="RemoveFiles" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+      <Custom Action="LaunchKumquat" After="InstallFinalize" Condition="NOT REMOVE AND NOT NOLAUNCH" />
+    </InstallExecuteSequence>
+  </Package>
+</Wix>

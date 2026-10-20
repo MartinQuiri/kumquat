@@ -84,6 +84,16 @@ Ejecuta `dotnet run --project src/Kumquat.App` y anota ✅/❌ y la versión de 
 | 48 | Alto contraste (Win+Ctrl+C o Configuración → Accesibilidad) | Rueda opaca con contorno en cada sector y el sector elegido del color de selección del sistema; ventanas sin acrílico y con los colores del tema |
 | 49 | NVDA y JAWS | Igual que con Narrador |
 
+## Instalador
+
+| # | Caso | Esperado |
+|---|---|---|
+| 50 | Abrir el MSI con un usuario sin permisos de administrador | Instala sin pedir permisos; Kumquat se abre solo; aparece en Inicio y en "Aplicaciones instaladas" con su ícono |
+| 51 | Clic derecho → Kumquat… tras instalar | Abre el buscador desde `%LOCALAPPDATA%\Programs\Kumquat` |
+| 52 | Instalar la versión siguiente con Kumquat abierto | Sin aviso de "archivos en uso"; queda una sola entrada, la nueva |
+| 53 | Instalar una versión más vieja encima | Mensaje de que ya hay una más nueva; no cambia nada |
+| 54 | Desinstalar | Se cierra Kumquat; desaparecen el menú contextual, el inicio con Windows y la carpeta del programa; `%LOCALAPPDATA%\Kumquat` (configuración) queda |
+
 ## Pantallas
 
 | # | Caso | Esperado |
