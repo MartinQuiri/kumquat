@@ -35,7 +35,7 @@ public sealed class SettingsDialog : Window
         _outputFolder = values.OutputFolder;
         _look = new DialogLook(dark, Palette.Kumquat);
         Title = Strings.SettingsWindowTitle;
-        ThemeMode = dark ? ThemeMode.Dark : ThemeMode.Light;
+        ThemeMode = _look.ThemeMode;
         FontFamily = DialogLook.Font;
         Resources["ContentControlThemeFontFamily"] = DialogLook.Font;
         Foreground = _look.Text;
@@ -57,7 +57,7 @@ public sealed class SettingsDialog : Window
         panel.Children.Add(Section(Strings.SettingsStartupSection, null, Stack(_startWithWindows)));
         panel.Children.Add(Section(Strings.SettingsLanguageSection, Strings.SettingsLanguageHint, LanguageOptions(values.Language)));
         panel.Children.Add(Buttons());
-        Content = new Grid { Background = Tint(), Children = { panel } };
+        Content = new Grid { Background = _look.WindowBackground(Tint()), Children = { panel } };
 
         WindowChrome.SetWindowChrome(this, new WindowChrome { CaptionHeight = CaptionHeight - 8, GlassFrameThickness = new Thickness(-1), UseAeroCaptionButtons = true });
         SourceInitialized += (_, _) => WindowBackdrop.TryApply(this, dark);
@@ -270,7 +270,7 @@ public sealed class SettingsDialog : Window
         var cancel = DialogLook.Pill(Strings.ButtonCancel, _look.Subtle, _look.Text);
         cancel.IsCancel = true;
         cancel.Height = 44;
-        var save = DialogLook.Pill(Strings.ButtonSave, _look.AccentGradient, Brushes.White);
+        var save = DialogLook.Pill(Strings.ButtonSave, _look.AccentGradient, _look.OnAccent);
         save.IsDefault = true;
         save.Height = 44;
         save.FontSize = 15;

@@ -22,19 +22,41 @@ internal sealed class DialogLook
     private static readonly ThreadLocal<Style> PillStyle = new(() => (Style)XamlReader.Parse(PillStyleXaml));
 
     public DialogLook(bool dark, Rgb accent)
+        : this(dark, accent, SystemParameters.HighContrast)
     {
+    }
+
+    /// <param name="dark">Tema oscuro.</param>
+    /// <param name="accent">Color de la familia.</param>
+    /// <param name="highContrast">Alto contraste de Windows: solo colores del sistema, sin vidrio ni degradados.</param>
+    internal DialogLook(bool dark, Rgb accent, bool highContrast)
+    {
+        IsHighContrast = highContrast;
         IsDark = dark;
-        Accent = ToColor(accent);
-        AccentLight = ToColor(accent.Mix(new Rgb(255, 255, 255), 0.22));
-        Text = Brush(dark ? Color.FromRgb(0xF5, 0xF5, 0xF7) : Color.FromRgb(0x1D, 0x1D, 0x1F));
-        Muted = Brush(dark ? Color.FromArgb(0xA6, 0xEB, 0xEB, 0xF5) : Color.FromArgb(0x99, 0x3C, 0x3C, 0x43));
-        Platter = Brush(dark ? Color.FromArgb(0x1F, 0xFF, 0xFF, 0xFF) : Color.FromArgb(0x8C, 0xFF, 0xFF, 0xFF));
-        PlatterBorder = Brush(dark ? Color.FromArgb(0x24, 0xFF, 0xFF, 0xFF) : Color.FromArgb(0x14, 0x00, 0x00, 0x00));
-        Subtle = Brush(dark ? Color.FromArgb(0x1A, 0xFF, 0xFF, 0xFF) : Color.FromArgb(0x0F, 0x00, 0x00, 0x00));
-        AccentBrush = Brush(Accent);
+        Accent = highContrast ? SystemColors.HighlightColor : ToColor(accent);
+        AccentLight = highContrast ? Accent : ToColor(accent.Mix(new Rgb(255, 255, 255), 0.22));
+        Text = highContrast ? SystemColors.WindowTextBrush : Brush(dark ? Color.FromRgb(0xF5, 0xF5, 0xF7) : Color.FromRgb(0x1D, 0x1D, 0x1F));
+        Muted = highContrast ? SystemColors.WindowTextBrush : Brush(dark ? Color.FromArgb(0xA6, 0xEB, 0xEB, 0xF5) : Color.FromArgb(0x99, 0x3C, 0x3C, 0x43));
+        Platter = highContrast ? SystemColors.WindowBrush : Brush(dark ? Color.FromArgb(0x1F, 0xFF, 0xFF, 0xFF) : Color.FromArgb(0x8C, 0xFF, 0xFF, 0xFF));
+        PlatterBorder = highContrast ? SystemColors.WindowTextBrush : Brush(dark ? Color.FromArgb(0x24, 0xFF, 0xFF, 0xFF) : Color.FromArgb(0x14, 0x00, 0x00, 0x00));
+        Subtle = highContrast ? SystemColors.ControlBrush : Brush(dark ? Color.FromArgb(0x1A, 0xFF, 0xFF, 0xFF) : Color.FromArgb(0x0F, 0x00, 0x00, 0x00));
+        AccentBrush = highContrast ? SystemColors.HighlightBrush : Brush(Accent);
+        OnAccent = highContrast ? SystemColors.HighlightTextBrush : Brushes.White;
         AccentGradient = new LinearGradientBrush(AccentLight, Accent, 90);
         AccentGradient.Freeze();
     }
+
+    /// <summary>Indica si Windows está en alto contraste.</summary>
+    public bool IsHighContrast { get; }
+
+    /// <summary>Texto e íconos sobre el color de acento (botón principal, mosaicos).</summary>
+    public Brush OnAccent { get; }
+
+    /// <summary>Tema de WPF: en alto contraste, el del sistema (WPF aplica sus colores).</summary>
+    public ThemeMode ThemeMode => IsHighContrast ? ThemeMode.System : IsDark ? ThemeMode.Dark : ThemeMode.Light;
+
+    /// <summary>Fondo de la ventana: el tinte sobre el acrílico, o el color de ventana en alto contraste.</summary>
+    public Brush WindowBackground(Brush tint) => IsHighContrast ? SystemColors.WindowBrush : tint;
 
     /// <summary>Tipografía de la interfaz (Inter si está junto al ejecutable; si no, Segoe UI).</summary>
     public static FontFamily Font => InterFamily.Value;
@@ -91,7 +113,7 @@ internal sealed class DialogLook
         };
         if (icon is not null)
         {
-            tile.Child = Icon(icon, size * 0.56, Brushes.White);
+            tile.Child = Icon(icon, size * 0.56, OnAccent);
         }
 
         return tile;

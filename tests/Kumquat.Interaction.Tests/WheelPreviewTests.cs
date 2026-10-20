@@ -50,6 +50,42 @@ public sealed class WheelPreviewTests
         bitmap.Save(Path.Combine(RepoRoot(), "docs", "images", "rueda-pdf.png"), ImageFormat.Png);
     }
 
+    [Fact]
+    public void AltoContraste_SoloLosColoresDelSistema()
+    {
+        const float scale = 1f;
+        var size = WheelRenderer.CanvasSize(scale);
+        var height = WheelRenderer.CanvasHeight(scale);
+        var highlight = Color.FromArgb(255, 0x1A, 0xEB, 0xFF);
+        var theme = WheelTheme.HighContrast(Color.Black, Color.White, highlight, Color.Black);
+        var state = new WheelVisualState(Rings, WheelHit.At(1, 0), null) { Caption = "PNG · 820 KB" };
+
+        using var bitmap = new Bitmap(size, height, PixelFormat.Format32bppPArgb);
+        using (var g = Graphics.FromImage(bitmap))
+        {
+            WheelRenderer.Render(g, size, scale, state, theme);
+        }
+
+        var highlighted = 0;
+        var brand = 0;
+        var kumquat = WheelTheme.Kumquat;
+        for (var y = 0; y < height; y++)
+        {
+            for (var x = 0; x < size; x++)
+            {
+                var p = bitmap.GetPixel(x, y);
+                highlighted += p.ToArgb() == highlight.ToArgb() ? 1 : 0;
+                // El logo del centro es una imagen y puede conservar sus colores.
+                var inLogo = Math.Pow(x - (size / 2.0), 2) + Math.Pow(y - (size / 2.0), 2) < Math.Pow(WheelRenderer.CenterRadiusDip * scale, 2);
+                brand += !inLogo && Math.Abs(p.R - kumquat.R) + Math.Abs(p.G - kumquat.G) + Math.Abs(p.B - kumquat.B) < 30 && p.A > 200 ? 1 : 0;
+            }
+        }
+
+        highlighted.ShouldBeGreaterThan(500, "el sector resaltado usa el color de selección del sistema");
+        brand.ShouldBe(0, "en alto contraste no van los colores de la marca");
+        bitmap.GetPixel(size / 2, size / 2).A.ShouldBe((byte)255, "todo opaco, sin vidrio");
+    }
+
     [Theory]
     [InlineData("rueda-oscura", false, 1, 0)]
     [InlineData("rueda-clara", true, 0, 0)]

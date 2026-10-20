@@ -26,7 +26,7 @@ public sealed class InstallDialog : Window
     {
         _look = new DialogLook(dark, Palette.Actions);
         Title = Strings.InstallWindowTitle(request.Name);
-        ThemeMode = dark ? ThemeMode.Dark : ThemeMode.Light;
+        ThemeMode = _look.ThemeMode;
         FontFamily = DialogLook.Font;
         Resources["ContentControlThemeFontFamily"] = DialogLook.Font;
         Foreground = _look.Text;
@@ -43,7 +43,7 @@ public sealed class InstallDialog : Window
         panel.Children.Add(Platter(
             Strings.InstallDetails(request.Publisher, request.License)));
         panel.Children.Add(Buttons());
-        Content = new Grid { Background = Tint(), Children = { panel } };
+        Content = new Grid { Background = _look.WindowBackground(Tint()), Children = { panel } };
 
         WindowChrome.SetWindowChrome(this, new WindowChrome { CaptionHeight = CaptionHeight - 8, GlassFrameThickness = new Thickness(-1), UseAeroCaptionButtons = true });
         SourceInitialized += (_, _) => WindowBackdrop.TryApply(this, dark);
@@ -108,7 +108,7 @@ public sealed class InstallDialog : Window
         var cancel = DialogLook.Pill(Strings.ButtonNotNow, _look.Subtle, _look.Text);
         cancel.IsCancel = true;
         cancel.Height = 44;
-        var install = DialogLook.Pill(Strings.ButtonInstall, _look.AccentGradient, Brushes.White);
+        var install = DialogLook.Pill(Strings.ButtonInstall, _look.AccentGradient, _look.OnAccent);
         install.IsDefault = true;
         install.Height = 44;
         install.FontSize = 15;

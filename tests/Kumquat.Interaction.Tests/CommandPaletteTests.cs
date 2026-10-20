@@ -47,6 +47,24 @@ public sealed class CommandPaletteTests
         }).ShouldBe(expected);
 
     [Fact]
+    public void LectorDePantalla_DiceLaOpcionElegidaYSuPosicion()
+    {
+        var (afterQuery, afterDown, nothing) = OnSta(palette =>
+        {
+            palette.Query = "pdf";
+            var first = Kumquat.Dialogs.Look.Announcer.Last;
+            palette.PressForTests(Key.Down);
+            var second = Kumquat.Dialogs.Look.Announcer.Last;
+            palette.Query = "zzzz";
+            return (first, second, Kumquat.Dialogs.Look.Announcer.Last);
+        });
+
+        afterQuery.ShouldBe("Convertir a PDF, Convertir, 1 de 2");
+        afterDown.ShouldBe("PDF buscable, Herramientas, 2 de 2");
+        nothing.ShouldStartWith("Nada coincide");
+    }
+
+    [Fact]
     public void Flechas_RecorrenConVuelta_YEnterElige()
     {
         var result = OnSta(palette =>

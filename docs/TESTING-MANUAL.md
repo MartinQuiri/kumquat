@@ -74,6 +74,16 @@ Ejecuta `dotnet run --project src/Kumquat.App` y anota ✅/❌ y la versión de 
 | 43 | Con Calibre abierto, convertir un MOBI | Funciona; la biblioteca de Calibre no cambia |
 | 44 | Libro de Kindle con DRM | Aviso "El libro tiene DRM"; no queda `ebook-convert.exe` |
 
+## Accesibilidad
+
+| # | Caso | Esperado |
+|---|---|---|
+| 45 | Narrador activo: arrastrar una foto y presionar Shift | Dice "Rueda de Kumquat: PNG · … N opciones"; al pasar por cada sector, "Convertir a JPG", "Comprimir"…; en el centro, "soltar aquí cancela" |
+| 46 | Narrador: Ctrl+Alt+K y flechas | Dice cada opción con su grupo y posición ("Comprimir, Herramientas, 4 de 12"); sin resultados, "Nada coincide…" |
+| 47 | Narrador: Proteger un PDF con contraseñas distintas | Dice "Las contraseñas no coinciden." sin mover el foco |
+| 48 | Alto contraste (Win+Ctrl+C o Configuración → Accesibilidad) | Rueda opaca con contorno en cada sector y el sector elegido del color de selección del sistema; ventanas sin acrílico y con los colores del tema |
+| 49 | NVDA y JAWS | Igual que con Narrador |
+
 ## Pantallas
 
 | # | Caso | Esperado |
