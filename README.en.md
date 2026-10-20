@@ -21,7 +21,7 @@ Kumquat is a free (GPL-3.0) Windows alternative inspired by the interaction of [
 
 Dropping on the center (the logo) or pressing **Esc** cancels. The gesture can be changed to Ctrl, Caps Lock or right-click in **Settings** (tray icon menu).
 
-**With the keyboard: the search.** Select one or more files in File Explorer (or on the desktop) and press **Ctrl+Alt+K**, or right-click → **Kumquat…** (on Windows 11, under "Show more options"). A search box lists everything you can do with those files: type to filter (`pdf`, `compress`, `path`… accents don't matter, Spanish and English words both work), ↑ ↓ to choose, **Enter** to apply and **Esc** to close.
+**With the keyboard: the search.** Select one or more files in File Explorer (or on the desktop) and press **Ctrl+Alt+K**, or right-click → **Kumquat…** (on Windows 11 it is in the new menu; on Windows 10, in the classic one). A search box lists everything you can do with those files: type to filter (`pdf`, `compress`, `path`… accents don't matter, Spanish and English words both work), ↑ ↓ to choose, **Enter** to apply and **Esc** to close.
 
 **Accessibility:** everything on the wheel can be done from the keyboard search. With Narrator, NVDA or JAWS, the wheel announces what was dragged, how many options there are and which sector is selected, and the search reads the selected option and its position. In high contrast, the wheel and windows use only the system colors.
 
@@ -108,7 +108,8 @@ Details (in Spanish): [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [CONTRIBU
 - [x] Keyboard search (Ctrl+Alt+K) and classic right-click menu.
 - [x] OCR, attachments and virtual files, Spanish and English UI, accessibility.
 - [x] Per-user MSI installer and winget manifest.
-- [ ] Code signing (SignPath), winget submission, Windows 11 modern context menu (needs signing) and Microsoft Store.
+- [x] "Kumquat…" in the Windows 11 modern context menu (enabled by signed releases; in development, with Developer Mode).
+- [ ] Code signing (SignPath), winget submission and Microsoft Store.
 - [ ] Engine sandboxing (low integrity / AppContainer), continuous fuzzing.
 
 ## License

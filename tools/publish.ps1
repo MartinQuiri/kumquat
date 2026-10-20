@@ -34,6 +34,15 @@ foreach ($target in @(@{ Project = 'src/Kumquat.App'; Out = $out }, @{ Project =
     if ($LASTEXITCODE -ne 0) { throw "Falló la publicación de $($target.Project)" }
 }
 
+# "Kumquat…" del menú moderno de Windows 11: DLL nativa (Native AOT) junto a Kumquat.exe. El
+# compilador nativo busca vswhere.exe en el PATH (viene con Visual Studio Build Tools).
+$vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer'
+if (Test-Path $vswhere) { $env:PATH = "$vswhere;$env:PATH" }
+$shellOut = Join-Path $repo "artifacts/shellext/$Runtime"
+dotnet publish (Join-Path $repo 'src/Kumquat.ShellExtension') -c Release -r $Runtime -p:Version=$Version -o $shellOut -nologo
+if ($LASTEXITCODE -ne 0) { throw 'Falló la publicación de Kumquat.ShellExtension (Native AOT necesita las herramientas de C++ de Visual Studio)' }
+Copy-Item (Join-Path $shellOut 'Kumquat.ShellExtension.dll') $out
+
 foreach ($doc in 'LICENSE', 'THIRD-PARTY-NOTICES.md', 'README.md') {
     Copy-Item (Join-Path $repo $doc) $out
 }

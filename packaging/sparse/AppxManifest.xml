@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  SPDX-License-Identifier: GPL-3.0-or-later
+  Copyright (C) 2026 Kumquat contributors
+
+  Paquete disperso ("packaging with external location"): no instala archivos, solo da identidad a
+  la carpeta donde ya está Kumquat (la del MSI o la del zip) para declarar "Kumquat…" en el menú
+  contextual moderno de Windows 11. tools/build-sparse-package.ps1 completa versión y arquitectura.
+  Publisher tiene que coincidir con el sujeto del certificado que firma el paquete.
+-->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap10="http://schemas.microsoft.com/appx/manifest/uap/windows10/10"
+  xmlns:desktop4="http://schemas.microsoft.com/appx/manifest/desktop/windows10/4"
+  xmlns:desktop5="http://schemas.microsoft.com/appx/manifest/desktop/windows10/5"
+  xmlns:com="http://schemas.microsoft.com/appx/manifest/com/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap uap10 desktop4 desktop5 com rescap">
+  <Identity Name="Kumquat.ContextMenu" Publisher="$Publisher$" Version="$Version$" ProcessorArchitecture="$Architecture$" />
+  <Properties>
+    <DisplayName>Kumquat</DisplayName>
+    <PublisherDisplayName>Kumquat contributors</PublisherDisplayName>
+    <Logo>assets\logo\kumquat.png</Logo>
+    <uap10:AllowExternalContent>true</uap10:AllowExternalContent>
+  </Properties>
+  <Resources>
+    <Resource Language="es-es" />
+    <Resource Language="en-us" />
+  </Resources>
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+    <rescap:Capability Name="unvirtualizedResources" />
+  </Capabilities>
+  <Applications>
+    <Application Id="Kumquat" Executable="Kumquat.exe" uap10:TrustLevel="mediumIL" uap10:RuntimeBehavior="win32App">
+      <!-- Sin entrada propia en Inicio: ya la crea el instalador. -->
+      <uap:VisualElements AppListEntry="none" DisplayName="Kumquat" Description="Kumquat" BackgroundColor="transparent"
+        Square150x150Logo="assets\logo\kumquat.png" Square44x44Logo="assets\logo\kumquat.png" />
+      <Extensions>
+        <desktop4:Extension Category="windows.fileExplorerContextMenus">
+          <desktop4:FileExplorerContextMenus>
+            <desktop5:ItemType Type="*">
+              <desktop5:Verb Id="Kumquat" Clsid="8C6B4A43-0B7E-4A57-9C3B-2C1E5F0D7A21" />
+            </desktop5:ItemType>
+            <desktop5:ItemType Type="Directory">
+              <desktop5:Verb Id="Kumquat" Clsid="8C6B4A43-0B7E-4A57-9C3B-2C1E5F0D7A21" />
+            </desktop5:ItemType>
+          </desktop4:FileExplorerContextMenus>
+        </desktop4:Extension>
+        <com:Extension Category="windows.comServer">
+          <com:ComServer>
+            <com:SurrogateServer DisplayName="Kumquat">
+              <com:Class Id="8C6B4A43-0B7E-4A57-9C3B-2C1E5F0D7A21" Path="Kumquat.ShellExtension.dll" ThreadingModel="STA" />
+            </com:SurrogateServer>
+          </com:ComServer>
+        </com:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+</Package>

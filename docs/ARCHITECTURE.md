@@ -126,6 +126,7 @@ translúcido, borde de luz, sombra y sectores con esquinas redondeadas calculada
 | Libros con Calibre instalado | El conversor de libros más completo (Kindle, FB2); GPL como Kumquat | Distribuirlo (~240 MB); librerías .NET (no escriben KF8) |
 | Office por COM en un PowerShell aparte | Si Office se cuelga o abre un diálogo, Kumquat no se traba: se cierra solo esa instancia | COM desde el proceso de Kumquat |
 | Rueda accesible con un proveedor UI Automation propio | La rueda nunca toma el foco (no puede: interrumpiría el arrastre); `UiaRaiseNotificationEvent` le permite al lector decir lo que pasa sin robar el foco | MSAA/`NotifyWinEvent` (sin texto libre); ventana WPF para la rueda (compone mal con `WS_EX_LAYERED`) |
-| Menú contextual clásico (HKCU) | Sin administrador ni paquete; funciona desde Windows 10 | `IExplorerCommand` del menú nuevo de Windows 11 (exige app empaquetada y firmada: llegará con el instalador) |
+| Menú contextual clásico (HKCU) | Sin administrador ni paquete; funciona desde Windows 10 y queda como respaldo | — |
+| Menú nuevo de Windows 11: paquete disperso + `IExplorerCommand` con Native AOT | Da identidad a la carpeta instalada sin convertir la app en MSIX; la DLL nativa no arrastra un runtime de .NET y Windows la aloja en `dllhost.exe` | Extensión .NET con comhost (runtime compartido con otras extensiones); C++ (otro lenguaje en el repo) |
 
 Investigación completa: [docs/research](research/).

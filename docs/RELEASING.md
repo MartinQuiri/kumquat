@@ -56,12 +56,29 @@ Sin firma, Windows SmartScreen avisa al abrir el MSI o el zip. Para proyectos de
 
 Después se instala con `winget install Usuario.Kumquat`.
 
-## 5. Menú moderno de Windows 11 (pendiente de la firma)
+## 5. Menú moderno de Windows 11
 
-Hoy "Kumquat…" está en el menú clásico (Mostrar más opciones). Para que aparezca en el menú nuevo, Windows exige un **`IExplorerCommand` declarado en un paquete con identidad**, es decir, firmado:
+"Kumquat…" aparece en el menú nuevo (sin entrar en "Mostrar más opciones") con un **paquete disperso** que solo da identidad a la carpeta donde está Kumquat:
 
-- **Paquete disperso** (*sparse package* / *packaging with external location*): un `AppxManifest.xml` con la extensión `desktop4:FileExplorerContextMenus` y un `com:ComServer`, que da identidad a la app instalada por el MSI sin convertirla en MSIX. Lo registra el MSI con `Add-AppxPackage -ExternalLocation`.
-- **El manejador** se carga dentro de `explorer.exe`: tiene que ser nativo (C++ o C# con Native AOT, sin runtime de .NET compartido), devolver el título y el ícono, y al invocarse lanzar `Kumquat.exe --wheel <rutas>` (lo que ya hace el menú clásico).
-- **La firma** del paquete disperso tiene que ser de un certificado en el que el equipo confíe: el de SignPath sirve. Sin eso, Windows no lo registra (con un certificado de prueba hay que instalarlo en "Personas de confianza" de cada equipo).
+- [packaging/sparse/AppxManifest.xml](../packaging/sparse/AppxManifest.xml) declara un `IExplorerCommand` para archivos y carpetas.
+- El comando es [src/Kumquat.ShellExtension](../src/Kumquat.ShellExtension): C# compilado con **Native AOT** (DLL nativa, sin runtime de .NET compartido). Windows lo carga en `dllhost.exe`, no dentro del Explorador: si fallara, el Explorador sigue funcionando. Abre `Kumquat.exe --wheel` **una sola vez** con todos los archivos elegidos.
+- El MSI lo registra si trae `Kumquat.ContextMenu.msix` **firmado**, y lo quita antes de reemplazar o borrar archivos. Al quitarlo, Windows cierra el `dllhost` y libera la DLL, así que actualizar o desinstalar no pide reiniciar.
+- Sin firma (o en Windows 10) queda el menú clásico, que sigue funcionando igual.
 
-Por eso queda para cuando haya firma: sin ella no se puede probar de punta a punta, y código que no se puede probar no entra.
+En el release, con el certificado:
+
+```powershell
+./tools/context-menu.ps1 -Build -Runtime win-x64 -Version 0.2.0 -Publisher "CN=<sujeto del certificado>" -CertificateThumbprint <huella>
+./tools/build-installer.ps1 -Runtime win-x64 -Version 0.2.0   # el MSI incluye el .msix firmado
+```
+
+Para probarlo en desarrollo sin firma (Windows con **Modo de desarrollador**):
+
+```powershell
+./tools/publish.ps1 -Runtime win-x64
+./tools/context-menu.ps1 -Build -Runtime win-x64
+./tools/context-menu.ps1 -Register -Dev -InstallDir artifacts/publish/win-x64
+./tools/context-menu.ps1 -Unregister          # para quitarlo
+```
+
+La primera vez puede hacer falta reiniciar el Explorador para que lea el paquete.

@@ -52,6 +52,13 @@ jobs:
         shell: pwsh
         run: ./tools/fetch-engines.ps1 -Runtime ${{ matrix.rid }}
 
+      # Menú moderno de Windows 11: la DLL nativa (Native AOT) que cargan los ShellExtensionTests.
+      - name: Extensión del Explorador (Native AOT)
+        shell: pwsh
+        run: |
+          $env:PATH = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer;$env:PATH"
+          dotnet publish src/Kumquat.ShellExtension -c Release -r ${{ matrix.rid }} -o artifacts/shellext/${{ matrix.rid }}
+
       - name: Restore (lock files obligatorios)
         run: dotnet restore Kumquat.slnx --locked-mode
 

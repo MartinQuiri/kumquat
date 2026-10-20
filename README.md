@@ -25,7 +25,7 @@ Soltar en el centro (el logo) o presionar **Esc** cancela. El gesto se puede cam
 
 **Idioma:** español o inglés. Por defecto, el de Windows (si Windows está en otro idioma, inglés); se cambia en Configuración. ¿Quieres traducir Kumquat a tu idioma? Ver [CONTRIBUTING.md](CONTRIBUTING.md#textos-e-idiomas).
 
-**Con el teclado: el buscador.** Selecciona uno o más archivos en el Explorador (o en el escritorio) y presiona **Ctrl+Alt+K**, o haz clic derecho → **Kumquat…** (en Windows 11, dentro de "Mostrar más opciones"). Aparece un buscador con todo lo que se puede hacer con esos archivos: escribe para filtrar (`pdf`, `comprimir`, `achicar`, `ruta`… sin importar tildes), ↑ ↓ para elegir, **Enter** para aplicar y **Esc** para cerrar. La rueda queda para arrastrar con el mouse.
+**Con el teclado: el buscador.** Selecciona uno o más archivos en el Explorador (o en el escritorio) y presiona **Ctrl+Alt+K**, o haz clic derecho → **Kumquat…** (en Windows 11 está en el menú nuevo; en Windows 10, en el clásico). Aparece un buscador con todo lo que se puede hacer con esos archivos: escribe para filtrar (`pdf`, `comprimir`, `achicar`, `ruta`… sin importar tildes), ↑ ↓ para elegir, **Enter** para aplicar y **Esc** para cerrar. La rueda queda para arrastrar con el mouse.
 
 <p align="center"><img src="docs/images/buscador-oscuro.png" width="560" alt="El buscador de acciones con la búsqueda pdf"></p>
 
@@ -163,7 +163,8 @@ Detalles en [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) y [CONTRIBUTING.md](CON
 - [x] Libros electrónicos con Calibre: EPUB, MOBI, AZW3, FB2 y Word → EPUB/AZW3/MOBI/PDF.
 - [x] Interfaz en español e inglés (traducible: un `.resx` por idioma).
 - [x] Instalador MSI por usuario (sin administrador) y manifiesto de winget ([docs/RELEASING.md](docs/RELEASING.md)).
-- [ ] Firma de código (SignPath), envío a winget, menú moderno de Windows 11 (necesita la firma) y Microsoft Store.
+- [x] "Kumquat…" en el menú moderno de Windows 11 (se activa con los releases firmados; en desarrollo, con el Modo de desarrollador).
+- [ ] Firma de código (SignPath), envío a winget y Microsoft Store.
 - [ ] Fase 4: sandbox de motores (baja integridad / AppContainer), fuzzing continuo.
 
 ## Licencia

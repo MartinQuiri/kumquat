@@ -22,6 +22,7 @@
     <Project Path="src/Kumquat.Hosting/Kumquat.Hosting.csproj" />
     <Project Path="src/Kumquat.Infrastructure/Kumquat.Infrastructure.csproj" />
     <Project Path="src/Kumquat.Interaction/Kumquat.Interaction.csproj" />
+    <Project Path="src/Kumquat.ShellExtension/Kumquat.ShellExtension.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Kumquat.Core.Tests/Kumquat.Core.Tests.csproj" />
