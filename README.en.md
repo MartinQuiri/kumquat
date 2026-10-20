@@ -9,12 +9,13 @@
   <a href="https://github.com/MartinQuiri/kumquat/releases"><img src="https://img.shields.io/github/v/release/MartinQuiri/kumquat?include_prereleases&amp;label=release" alt="Release"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows" alt="Windows 10 and 11">
+  <img src="https://img.shields.io/badge/CLI-Linux%20%7C%20macOS-FCC624?logo=linux&amp;logoColor=white" alt="CLI for Linux and macOS">
   <img src="https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet" alt=".NET 10">
 </p>
 
 **Convert files without opening anything.** Drag a file, press **Shift** and drop it on the format you want in the wheel that appears next to the pointer. Everything happens on your PC: nothing is uploaded.
 
-Kumquat is a free (GPL-3.0) Windows alternative inspired by the interaction of [Tangerine for Mac](https://tangerineformac.com). It is not affiliated with Tangerine or Leap Studio.
+Kumquat is a free (GPL-3.0) Windows alternative inspired by the interaction of [Tangerine for Mac](https://tangerineformac.com). It is not affiliated with Tangerine or Leap Studio. The same engines and conversions are also available on **Linux and macOS** as a command-line tool ([`kumquat-cli`](#linux-and-macos-cli)).
 
 > **Status: pre-alpha (0.2).** See the [roadmap](#roadmap).
 
@@ -28,6 +29,29 @@ Kumquat is a free (GPL-3.0) Windows alternative inspired by the interaction of [
 Rather not install anything? The `.zip` is portable: unzip it and open `Kumquat.exe`.
 
 > Until releases are signed, Windows SmartScreen may say "Windows protected your PC": **More info → Run anyway**. Every file ships its SHA-256 so you can verify it.
+
+### Linux and macOS (CLI)
+
+The wheel, windows and tray are Windows-only; on Linux and macOS there is `kumquat-cli`, with the same conversions and tools.
+
+**Linux** (x64 or ARM64; Ubuntu 22.04, Debian 12, Fedora 35, RHEL 9 or newer —glibc 2.34+—): download `Kumquat-<version>-linux-x64.tar.gz` (or `linux-arm64`) from [Releases](https://github.com/MartinQuiri/kumquat/releases). It ships FFmpeg, qpdf and MuPDF; OCR uses your distribution's Tesseract.
+
+```sh
+tar -xzf Kumquat-0.2.0-linux-x64.tar.gz
+sudo apt install tesseract-ocr tesseract-ocr-spa   # optional, for OCR (dnf: tesseract tesseract-langpack-spa)
+./kumquat-0.2.0-linux-x64/kumquat-cli engines      # which engines it found
+```
+
+**macOS** (Apple Silicon or Intel): download `Kumquat-<version>-osx-arm64.tar.gz` (or `osx-x64`). The engines come from [Homebrew](https://brew.sh):
+
+```sh
+brew install ffmpeg qpdf mupdf-tools tesseract tesseract-lang
+tar -xzf Kumquat-0.2.0-osx-arm64.tar.gz
+xattr -dr com.apple.quarantine kumquat-0.2.0-osx-arm64   # the package is not notarized yet
+./kumquat-0.2.0-osx-arm64/kumquat-cli engines
+```
+
+If LibreOffice or Calibre are installed, the CLI uses them too (Office → PDF, e-books). MuPDF must be 1.24 or newer: Ubuntu 22.04 and 24.04 ship older ones, which is why the Linux package brings its own.
 
 ## How to use it
 
@@ -46,12 +70,13 @@ Dropping on the center (the logo) or pressing **Esc** cancels. The gesture can b
 
 **Language:** Spanish or English. By default, the Windows language (English if Windows is in another language); change it in Settings. Want to translate Kumquat? See [CONTRIBUTING.md](CONTRIBUTING.md#textos-e-idiomas).
 
-There is also a CLI:
+There is also a CLI (the same on Windows, Linux and macOS):
 
 ```powershell
 kumquat-cli convert photo.heic --to jpg
 kumquat-cli convert *.wav --to mp3 --out D:\music
 kumquat-cli targets video.mkv      # formats it can be converted to
+kumquat-cli tools report.pdf       # available tools (compress, merge, OCR…)
 ```
 
 ## The wheel: 3 rings
@@ -110,14 +135,23 @@ dotnet run --project src/Kumquat.App
 
 Package and installer: `./tools/publish.ps1 -Runtime win-x64` and `./tools/build-installer.ps1 -Runtime win-x64` (per-user MSI, no admin rights). Releasing: [docs/RELEASING.md](docs/RELEASING.md).
 
+**On Linux or macOS** everything that is not UI (core, engines, CLI) builds and is tested with `Kumquat.Unix.slnf`. The scripts need [PowerShell 7](https://learn.microsoft.com/powershell/scripting/install/installing-powershell); on Linux also `make` (MuPDF is built the first time, in a few minutes, with a pinned zig the script downloads) and, for OCR, Tesseract with Spanish and English. On macOS, the Homebrew engines (see above).
+
+```sh
+pwsh ./tools/fetch-engines.ps1                       # Linux: FFmpeg and qpdf (SHA-256 verified) and builds MuPDF
+dotnet test --solution Kumquat.Unix.slnf
+dotnet run --project src/Kumquat.Cli -- engines
+pwsh ./tools/publish-unix.ps1 -Runtime linux-x64     # distributable .tar.gz (linux-arm64, osx-arm64, osx-x64)
+```
+
 The E2E tests perform a real drag by moving the mouse: run them only when you are not using the PC.
 
 ## Quality
 
 - Every compiler and analyzer warning is an error; dangerous APIs are banned at compile time.
 - **One integration test per direct conversion**, generated from the capability graph, with outputs checked by content.
-- Engines run as separate processes inside a Windows Job Object (bounded memory, they die with Kumquat), at low priority.
-- CI on x64 and ARM64, CodeQL, OpenSSF Scorecard, REUSE and Dependabot.
+- Engines run as separate processes inside a Windows Job Object (bounded memory, they die with Kumquat), at low priority. On Linux, memory is bounded with `prlimit`; on Linux and macOS, cancelling kills the whole process tree.
+- CI on Windows (x64 and ARM64), Linux (x64 and ARM64) and macOS, CodeQL, OpenSSF Scorecard, REUSE and Dependabot.
 
 Details (in Spanish): [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
 
@@ -128,7 +162,9 @@ Details (in Spanish): [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [CONTRIBU
 - [x] OCR, attachments and virtual files, Spanish and English UI, accessibility.
 - [x] Per-user MSI installer and winget manifest.
 - [x] "Kumquat…" in the Windows 11 modern context menu (enabled by signed releases; in development, with Developer Mode).
+- [x] `kumquat-cli` on Linux (x64, ARM64) and macOS, with the same engines (FFmpeg, qpdf and MuPDF pinned on Linux).
 - [ ] Code signing (SignPath), winget submission and Microsoft Store.
+- [ ] UI on Linux and macOS (the wheel relies on global hooks that Wayland does not allow: it needs another way to open).
 - [ ] Engine sandboxing (low integrity / AppContainer), continuous fuzzing.
 
 ## License

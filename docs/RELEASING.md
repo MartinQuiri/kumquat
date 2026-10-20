@@ -2,17 +2,22 @@
 
 ## 1. Etiqueta
 
+La versión sale de `<Version>` en `Directory.Build.props` (hoy `0.2.0`) para las compilaciones
+locales; en el release, de la etiqueta. Que coincidan:
+
 ```powershell
 git tag v0.2.0
 git push origin v0.2.0
 ```
 
-El workflow [release.yml](../.github/workflows/release.yml) arma, para x64 y ARM64:
+El workflow [release.yml](../.github/workflows/release.yml) arma:
 
 | Archivo | Qué es |
 |---|---|
-| `Kumquat-<versión>-<rid>.zip` | Portable: se descomprime y se abre `Kumquat.exe` |
-| `Kumquat-<versión>-<rid>.msi` | Instalador por usuario, sin administrador (ver abajo) |
+| `Kumquat-<versión>-win-<x64\|arm64>.zip` | Portable: se descomprime y se abre `Kumquat.exe` |
+| `Kumquat-<versión>-win-<x64\|arm64>.msi` | Instalador por usuario, sin administrador (ver abajo) |
+| `Kumquat-<versión>-linux-<x64\|arm64>.tar.gz` | `kumquat-cli` con FFmpeg, qpdf y MuPDF (glibc 2.34+) |
+| `Kumquat-<versión>-osx-<arm64\|x64>.tar.gz` | `kumquat-cli`; los motores se instalan con Homebrew |
 | `*.sha256` | Hash de cada uno |
 | `winget-manifest.zip` | Manifiesto para winget (si está definida la variable `WINGET_PACKAGE_ID`) |
 
@@ -23,7 +28,12 @@ En local es lo mismo:
 ```powershell
 ./tools/publish.ps1 -Runtime win-x64 -Version 0.2.0         # zip + prueba de arranque
 ./tools/build-installer.ps1 -Runtime win-x64 -Version 0.2.0 # MSI
+./tools/publish-unix.ps1 -Runtime linux-x64 -Version 0.2.0  # tar.gz + prueba (motores y una conversión)
 ```
+
+Los paquetes de macOS se arman en una Mac (el SDK de .NET firma el ejecutable ad hoc con `codesign`;
+sin firma, macOS en Apple Silicon no lo deja correr). No están notarizados: hasta que lo estén, hay
+que quitarles la cuarentena (`xattr -dr com.apple.quarantine`, ver el README).
 
 ## 2. El instalador
 

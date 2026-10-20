@@ -10,7 +10,7 @@ Kumquat.Hosting              composición DI (motores, cola, logging), PreviewSe
    │            │
    ▼            ▼
 Kumquat.Interaction        Kumquat.Dialogs             Kumquat.Engines.*          Kumquat.Infrastructure
- WheelSession (lógica)      ventana de opciones (WPF)   FFmpeg, MuPDF, qpdf,       ProcessRunner + Job Object
+ WheelSession (lógica)      ventana de opciones (WPF)   FFmpeg, MuPDF, qpdf,       ProcessRunner + IProcessGroup
  WheelController (Win32)    vistas previas, reproductor Tesseract, Office (proc.)  WaveOutPlayer, TempWorkspace
  hooks LL, OLE, atajo       sincronizadas con campos    libvips (en proceso)       SafeExtractor, EngineLocator
    │        │                  │                            │                          │
@@ -23,6 +23,18 @@ Kumquat.Interaction        Kumquat.Dialogs             Kumquat.Engines.*        
 ```
 
 `Kumquat.Core` no conoce Windows, ni motores, ni UI: se prueba en cualquier runner.
+
+**Plataformas:** todo lo que está a la derecha de `Kumquat.Hosting` (motores, infraestructura) y la CLI
+compila para `net10.0` y corre en Windows, Linux y macOS; la app, la rueda, las ventanas y el diseño
+son `net10.0-windows` (lista `KumquatWindowsOnly` en `Directory.Build.props`). Las diferencias por
+sistema quedan en pocos puntos:
+
+| Qué | Windows | Linux | macOS |
+|---|---|---|---|
+| Agrupar y terminar motores (`IProcessGroup`) | Job Object (memoria acotada, mueren con Kumquat) | `prlimit` + matar el árbol de procesos | matar el árbol de procesos |
+| Motores (`EngineLocator`) | los de `engines/` (hash fijado) | FFmpeg, qpdf y MuPDF propios; el resto del `PATH` | todos del `PATH` (Homebrew) |
+| MuPDF del sistema | — | se exige 1.24+ (si no, cuenta como ausente) | ídem |
+| Office | Microsoft Office por COM o LibreOffice | LibreOffice | LibreOffice |
 
 **Binarios:** toda librería es IL puro (`Directory.Build.targets` fija `PlatformTarget=AnyCPU`); la
 arquitectura la deciden los ejecutables. Una librería compilada para una arquitectura concreta en la
@@ -41,7 +53,7 @@ carpeta de salida compartida no carga en un proceso de otra (lo vigila `Arquitec
 1. `Plan`: detectar formato real → buscar ruta → errores esperados como `Result` (`unknown-format`, `no-route`…).
 2. Pasos intermedios en una carpeta temporal propia (`%TEMP%\Kumquat\<guid>`), borrada al terminar; restos de crashes se limpian al arrancar.
 3. El último paso escribe un `.kumquat-<guid>.<ext>` oculto **en la carpeta destino** y se publica con `File.Move` (atómico en el mismo volumen) al primer nombre libre (`foto.png`, `foto (2).png`…). Nunca hay archivos a medias con el nombre final y nunca se sobrescribe.
-4. Cancelación: el token llega hasta el motor; `ProcessRunner` mata el Job Object completo (incluidos procesos nietos).
+4. Cancelación: el token llega hasta el motor; `ProcessRunner` mata el Job Object completo (incluidos procesos nietos); en Linux y macOS, el árbol de procesos.
 
 ## La interacción (lo difícil)
 

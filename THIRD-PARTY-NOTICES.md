@@ -17,6 +17,13 @@ Tesseract incluye, enlazadas estáticamente, Leptonica 1.87 (BSD-2-Clause), libj
 
 Cada instalación del motor incluye un `SOURCE.txt` con su versión, licencia y enlace al código fuente.
 
+**En Linux** (paquetes `.tar.gz` de la CLI) van los mismos FFmpeg, qpdf y MuPDF:
+
+- FFmpeg: el mismo build de BtbN para Linux (variante GPL shared).
+- qpdf: el build oficial para Linux, que trae sus bibliotecas en `engines/qpdf/lib`: GnuTLS (LGPL-2.1-or-later), Nettle y Hogweed (LGPL-3.0-or-later o GPL-2.0-or-later), libidn2 y libunistring (LGPL-3.0-or-later o GPL-2.0-or-later), libtasn1 (LGPL-2.1-or-later), p11-kit (BSD-3-Clause), libffi (MIT) y libjpeg-turbo (IJG/BSD-3-Clause/Zlib). Código fuente de cada una: https://github.com/qpdf/qpdf/releases/tag/v12.4.2.
+- MuPDF: compilado por Kumquat desde el código fuente indicado arriba (`tools/build-mupdf.ps1`), con las bibliotecas de su carpeta `thirdparty/` enlazadas estáticamente, igual que el build oficial de Windows.
+- Tesseract no se distribuye en Linux ni en macOS: se usa el del sistema (ver abajo). En macOS tampoco se distribuye ningún motor: salen de Homebrew.
+
 ## Programas que Kumquat usa si están instalados (no se distribuyen)
 
 | Programa | Licencia | Cómo lo usa |
@@ -24,6 +31,8 @@ Cada instalación del motor incluye un `SOURCE.txt` con su versión, licencia y 
 | Microsoft Office (Word, Excel, PowerPoint) | Licencia de Microsoft de cada persona | Automatización COM desde un proceso de PowerShell aparte |
 | Calibre (`ebook-convert`) | GPL-3.0 | Proceso aparte con `CALIBRE_CONFIG_DIRECTORY` temporal. Si no está, Kumquat ofrece instalarlo con winget (`calibre.calibre`), solo con permiso explícito |
 | LibreOffice | MPL-2.0 | Proceso `soffice --headless` con un perfil temporal. Si no hay ni Office ni LibreOffice, Kumquat ofrece instalarlo con winget (`TheDocumentFoundation.LibreOffice`), solo con permiso explícito |
+| Tesseract y sus modelos de idioma (Linux y macOS) | Apache-2.0 | El del gestor de paquetes (`apt`, `dnf`, Homebrew…), con los modelos de español e inglés del sistema |
+| FFmpeg, qpdf y MuPDF (macOS) | Ver arriba | Los de Homebrew, encontrados en el `PATH` |
 
 ## Paquetes NuGet distribuidos con la aplicación
 
