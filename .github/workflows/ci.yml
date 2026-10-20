@@ -87,6 +87,75 @@ jobs:
             **/TestResults/**/*.cobertura.xml
           if-no-files-found: warn
 
+  # Linux y macOS: núcleo, motores y CLI (la interfaz es solo de Windows). Kumquat.Unix.slnf deja
+  # afuera los proyectos de Windows.
+  build-test-unix:
+    name: Build y tests (${{ matrix.rid }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            rid: linux-x64
+            platform: x64
+          - os: ubuntu-24.04-arm
+            rid: linux-arm64
+            platform: ARM64
+          - os: macos-15
+            rid: osx-arm64
+            platform: ARM64
+    runs-on: ${{ matrix.os }}
+    # Sin caché, compilar MuPDF (Linux) toma unos minutos; con caché, nada.
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      # Lo que Kumquat no trae en cada sistema (tools/engines.json): Tesseract con español e inglés
+      # en Linux; todos los motores en macOS (Homebrew).
+      - name: Motores del sistema (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-spa tesseract-ocr-eng
+      - name: Motores del sistema (macOS)
+        if: runner.os == 'macOS'
+        run: brew install ffmpeg qpdf mupdf-tools tesseract tesseract-lang
+
+      - name: Caché de motores nativos
+        if: runner.os == 'Linux'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: engines
+          key: engines-${{ matrix.rid }}-${{ hashFiles('tools/engines.json', 'tools/build-mupdf.ps1') }}
+
+      - name: Descargar motores (hash verificado) y compilar MuPDF
+        shell: pwsh
+        run: ./tools/fetch-engines.ps1 -Runtime ${{ matrix.rid }}
+
+      - name: Restore (lock files obligatorios)
+        run: dotnet restore Kumquat.Unix.slnf --locked-mode
+
+      - name: Build (advertencias = errores)
+        run: dotnet build Kumquat.Unix.slnf -c Release --no-restore -p:Platform=${{ matrix.platform }}
+
+      - name: Tests + cobertura
+        run: >
+          dotnet test --solution Kumquat.Unix.slnf -c Release --no-build -p:Platform=${{ matrix.platform }}
+          --coverage --coverage-output-format cobertura --coverage-output coverage.cobertura.xml
+          --report-xunit-trx --results-directory TestResults
+
+      - name: Publicar resultados
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-results-${{ matrix.rid }}
+          path: |
+            TestResults/**
+            **/TestResults/**/*.cobertura.xml
+          if-no-files-found: warn
+
   licenses:
     name: Cumplimiento de licencias (REUSE)
     runs-on: ubuntu-latest
