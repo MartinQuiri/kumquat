@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ActionCopyPath" xml:space="preserve"><value>Copiar ruta</value></data>
+  <data name="ActionCopyTo" xml:space="preserve"><value>Copiar a…</value></data>
+  <data name="ActionMoveTo" xml:space="preserve"><value>Mover a…</value></data>
+  <data name="ActionSaveIn" xml:space="preserve"><value>Guardar en {0}</value><comment>params: folder</comment></data>
+  <data name="ActionShowInFolder" xml:space="preserve"><value>Ver en carpeta</value></data>
+  <data name="ActionTerminal" xml:space="preserve"><value>Terminal aquí</value></data>
+  <data name="AddField" xml:space="preserve"><value>Agregar campo</value></data>
+  <data name="ButtonApply" xml:space="preserve"><value>Aplicar</value></data>
+  <data name="ButtonCancel" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="ButtonInstall" xml:space="preserve"><value>Instalar</value></data>
+  <data name="ButtonNotNow" xml:space="preserve"><value>Ahora no</value></data>
+  <data name="ButtonSave" xml:space="preserve"><value>Guardar</value></data>
+  <data name="CliApplyUsage" xml:space="preserve"><value>Uso: apply &lt;herramienta&gt; &lt;archivo&gt;...</value></data>
+  <data name="CliCancelled" xml:space="preserve"><value>cancelado.</value></data>
+  <data name="CliHelp" xml:space="preserve"><value>Kumquat: conversor local de archivos.
+
+Uso:
+  kumquat-cli convert &lt;archivo&gt;... --to &lt;formato&gt; [--out &lt;carpeta&gt;]
+  kumquat-cli targets &lt;archivo&gt;...     formatos a los que se puede convertir
+  kumquat-cli tools &lt;archivo&gt;...       herramientas disponibles para el archivo
+  kumquat-cli apply &lt;herramienta&gt; &lt;archivo&gt;... [--set clave=valor]...
+  kumquat-cli formats                  formatos conocidos
+  kumquat-cli engines                  estado de los motores
+
+Ejemplos:
+  kumquat-cli convert foto.heic --to jpg
+  kumquat-cli convert *.wav --to mp3 --out D:\musica
+  kumquat-cli apply media.trim video.mp4 --set start=0:10 --set end=0:45
+  kumquat-cli apply office.metadata informe.docx --set creator="María Pérez"</value></data>
+  <data name="CliMissingValue" xml:space="preserve"><value>Falta el valor de {0}.</value><comment>params: option</comment></data>
+  <data name="CliMultiStep" xml:space="preserve"><value>(* = conversión en varios pasos)</value></data>
+  <data name="CliNeedFile" xml:space="preserve"><value>Indica al menos un archivo.</value></data>
+  <data name="CliNeedTarget" xml:space="preserve"><value>Indica el formato de destino con --to.</value></data>
+  <data name="CliSetUsage" xml:space="preserve"><value>Usa --set clave=valor.</value></data>
+  <data name="CliUnknownCommand" xml:space="preserve"><value>Comando desconocido: {0}</value><comment>params: command</comment></data>
+  <data name="CliUnknownFileFormat" xml:space="preserve"><value>desconocido</value></data>
+  <data name="CliUnknownOption" xml:space="preserve"><value>Opción desconocida: {0}</value><comment>params: option</comment></data>
+  <data name="CliUnknownTarget" xml:space="preserve"><value>formato desconocido '{0}'. Usa 'kumquat-cli formats'.</value><comment>params: format</comment></data>
+  <data name="CliUsageHint" xml:space="preserve"><value>{0}  (usa 'kumquat-cli help')</value><comment>params: error</comment></data>
+  <data name="ClipboardFailed" xml:space="preserve"><value>No se pudo acceder al portapapeles</value></data>
+  <data name="Desktop" xml:space="preserve"><value>Escritorio</value></data>
+  <data name="ErrorAlreadySearchable" xml:space="preserve"><value>El PDF ya tiene texto en todas sus páginas: no hace falta OCR.</value></data>
+  <data name="ErrorArchiveBomb" xml:space="preserve"><value>La entrada '{0}' tiene una razón de compresión sospechosa.</value><comment>params: entry</comment></data>
+  <data name="ErrorArchiveDamaged" xml:space="preserve"><value>El archivo comprimido está dañado.</value></data>
+  <data name="ErrorArchiveEmpty" xml:space="preserve"><value>El archivo comprimido está vacío o dañado.</value></data>
+  <data name="ErrorArchiveEncrypted" xml:space="preserve"><value>El archivo comprimido está protegido con contraseña.</value></data>
+  <data name="ErrorArchiveInvalid" xml:space="preserve"><value>El archivo comprimido está dañado o no es de un formato soportado.</value></data>
+  <data name="ErrorArchivePathTraversal" xml:space="preserve"><value>La entrada '{0}' intenta escribir fuera de la carpeta destino.</value><comment>params: entry</comment></data>
+  <data name="ErrorArchiveSuspicious" xml:space="preserve"><value>El archivo comprimido se expande de forma sospechosa.</value></data>
+  <data name="ErrorArchiveTooLarge" xml:space="preserve"><value>El archivo comprimido supera el tamaño máximo permitido.</value></data>
+  <data name="ErrorArchiveTooManyEntries" xml:space="preserve"><value>El archivo tiene más de {0} entradas.</value><comment>params: max</comment></data>
+  <data name="ErrorBookDrm" xml:space="preserve"><value>El libro tiene DRM (protección anticopia): no se puede convertir.</value></data>
+  <data name="ErrorCalibreFailed" xml:space="preserve"><value>Calibre no pudo convertir el libro (¿está dañado?).</value></data>
+  <data name="ErrorCancelled" xml:space="preserve"><value>La operación fue cancelada.</value></data>
+  <data name="ErrorConverterMissing" xml:space="preserve"><value>El convertidor '{0}' no está registrado.</value><comment>params: converter</comment></data>
+  <data name="ErrorCopyIntoItself" xml:space="preserve"><value>No se puede copiar o mover una carpeta dentro de sí misma.</value></data>
+  <data name="ErrorEngineExit" xml:space="preserve"><value>{0} terminó con código {1}: {2}</value><comment>params: engine, code, detail</comment></data>
+  <data name="ErrorEngineMissing" xml:space="preserve"><value>{0} no está instalado.</value><comment>params: engine</comment></data>
+  <data name="ErrorEngineNoResponse" xml:space="preserve"><value>{0} no respondió a tiempo.</value><comment>params: engine</comment></data>
+  <data name="ErrorEngineTimeout" xml:space="preserve"><value>{0} superó el tiempo máximo.</value><comment>params: engine</comment></data>
+  <data name="ErrorFolderMissing" xml:space="preserve"><value>No existe la carpeta '{0}'.</value><comment>params: folder</comment></data>
+  <data name="ErrorInputMissing" xml:space="preserve"><value>No existe el archivo '{0}'.</value><comment>params: path</comment></data>
+  <data name="ErrorInvalidPageRange" xml:space="preserve"><value>Rango de páginas inválido.</value></data>
+  <data name="ErrorInvalidTimeRange" xml:space="preserve"><value>Rango de tiempo inválido.</value></data>
+  <data name="ErrorLibreOfficeFailed" xml:space="preserve"><value>LibreOffice no pudo convertir el documento (¿está protegido con contraseña o dañado?).</value></data>
+  <data name="ErrorMicrosoftDetail" xml:space="preserve"><value>Microsoft {0}: {1}</value><comment>params: app, detail</comment></data>
+  <data name="ErrorMicrosoftFailed" xml:space="preserve"><value>Microsoft {0} no pudo convertir el documento.</value><comment>params: app</comment></data>
+  <data name="ErrorNoOutput" xml:space="preserve"><value>El motor terminó sin producir archivo.</value></data>
+  <data name="ErrorNoRoute" xml:space="preserve"><value>No hay forma de convertir {0} a {1}.</value><comment>params: source, target</comment></data>
+  <data name="ErrorNoTextInImage" xml:space="preserve"><value>No se encontró texto en la imagen.</value></data>
+  <data name="ErrorNoTextScan" xml:space="preserve"><value>El documento no tiene texto seleccionable: parece un escaneo. Usa «Reconocer texto» en la rueda y conviértelo después.</value></data>
+  <data name="ErrorOcrMissing" xml:space="preserve"><value>El motor de OCR (Tesseract) no está instalado.</value></data>
+  <data name="ErrorOfficeInvalid" xml:space="preserve"><value>El documento está dañado o no es un archivo de Office válido.</value></data>
+  <data name="ErrorOfficePropertiesDamaged" xml:space="preserve"><value>Las propiedades del documento están dañadas.</value></data>
+  <data name="ErrorPdfEncrypted" xml:space="preserve"><value>El PDF está protegido con contraseña.</value></data>
+  <data name="ErrorPdfUnlockFirst" xml:space="preserve"><value>El PDF está protegido: desbloquéalo primero.</value></data>
+  <data name="ErrorPdfUnreadable" xml:space="preserve"><value>No se pudo leer el PDF (¿está protegido o dañado?).</value></data>
+  <data name="ErrorToolInputMissing" xml:space="preserve"><value>No existe '{0}'.</value><comment>params: path</comment></data>
+  <data name="ErrorToolMissing" xml:space="preserve"><value>La herramienta '{0}' no está disponible.</value><comment>params: tool</comment></data>
+  <data name="ErrorToolNoOutput" xml:space="preserve"><value>La herramienta terminó sin producir archivos.</value></data>
+  <data name="ErrorToolNotApplicable" xml:space="preserve"><value>{0} no sirve para estos archivos.</value><comment>params: tool</comment></data>
+  <data name="ErrorUnknown" xml:space="preserve"><value>Error desconocido</value></data>
+  <data name="ErrorUnknownFormat" xml:space="preserve"><value>No se reconoce el formato de '{0}'.</value><comment>params: name</comment></data>
+  <data name="ErrorVideoUnreadable" xml:space="preserve"><value>No se pudo leer el video '{0}'.</value><comment>params: name</comment></data>
+  <data name="ErrorWrongPassword" xml:space="preserve"><value>La contraseña no es correcta.</value></data>
+  <data name="FallbackFileName" xml:space="preserve"><value>archivo</value></data>
+  <data name="FieldAlbum" xml:space="preserve"><value>Álbum</value></data>
+  <data name="FieldArtist" xml:space="preserve"><value>Artista / autor</value></data>
+  <data name="FieldAuthor" xml:space="preserve"><value>Autor</value></data>
+  <data name="FieldCategory" xml:space="preserve"><value>Categoría</value></data>
+  <data name="FieldComment" xml:space="preserve"><value>Comentario</value></data>
+  <data name="FieldComments" xml:space="preserve"><value>Comentarios</value></data>
+  <data name="FieldCopyright" xml:space="preserve"><value>Copyright</value></data>
+  <data name="FieldCreator" xml:space="preserve"><value>Creado con</value></data>
+  <data name="FieldDate" xml:space="preserve"><value>Año o fecha</value></data>
+  <data name="FieldDescription" xml:space="preserve"><value>Descripción</value></data>
+  <data name="FieldGenre" xml:space="preserve"><value>Género</value></data>
+  <data name="FieldKeywords" xml:space="preserve"><value>Palabras clave</value></data>
+  <data name="FieldLastModifiedBy" xml:space="preserve"><value>Modificado por</value></data>
+  <data name="FieldName" xml:space="preserve"><value>Nombre del campo</value></data>
+  <data name="FieldProducer" xml:space="preserve"><value>Productor</value></data>
+  <data name="FieldSubject" xml:space="preserve"><value>Asunto</value></data>
+  <data name="FieldTitle" xml:space="preserve"><value>Título</value></data>
+  <data name="FieldValue" xml:space="preserve"><value>Valor del campo</value></data>
+  <data name="FilesCount" xml:space="preserve"><value>{0} archivos</value><comment>params: count</comment></data>
+  <data name="GenericFile" xml:space="preserve"><value>Archivo</value></data>
+  <data name="GenericFolder" xml:space="preserve"><value>Carpeta</value></data>
+  <data name="GroupActions" xml:space="preserve"><value>Acciones</value></data>
+  <data name="GroupConvert" xml:space="preserve"><value>Convertir</value></data>
+  <data name="GroupTools" xml:space="preserve"><value>Herramientas</value></data>
+  <data name="HintFrameTime" xml:space="preserve"><value>Minutos:segundos, p. ej. 0:12</value></data>
+  <data name="HintPages" xml:space="preserve"><value>Ej.: 1-3, 5, 8-fin</value></data>
+  <data name="HintTotalDuration" xml:space="preserve"><value>Duración total: {0}</value><comment>params: duration</comment></data>
+  <data name="HintTrimStart" xml:space="preserve"><value>Minutos:segundos, p. ej. 0:15</value></data>
+  <data name="HintUnlockPassword" xml:space="preserve"><value>Déjala vacía si el PDF se abre sin contraseña y solo tiene restricciones (imprimir, copiar...).</value></data>
+  <data name="HotkeyTakenBody" xml:space="preserve"><value>Otra aplicación ya usa {0}.</value><comment>params: hotkey</comment></data>
+  <data name="HotkeyTakenTitle" xml:space="preserve"><value>Atajo no disponible</value></data>
+  <data name="InstallBody" xml:space="preserve"><value>Para esto hace falta {0}, un programa gratuito que Kumquat usa para {1}. No está en este equipo.</value><comment>params: name, purpose</comment></data>
+  <data name="InstallDetails" xml:space="preserve"><value>Se instala con winget, el instalador de Windows, desde el paquete oficial de {0}. Al instalarlo aceptas su licencia ({1}). Vas a ver el progreso en una ventana; al terminar, Kumquat se reinicia solo.</value><comment>params: publisher, license</comment></data>
+  <data name="InstallFailed" xml:space="preserve"><value>No se instaló {0}. Puedes volver a intentarlo desde la rueda.</value><comment>params: name</comment></data>
+  <data name="InstallItem" xml:space="preserve"><value>Instalar {0}</value><comment>params: name</comment></data>
+  <data name="InstallManually" xml:space="preserve"><value>Instala {0} desde su sitio oficial y vuelve a abrir Kumquat.</value><comment>params: name</comment></data>
+  <data name="InstallWindowTitle" xml:space="preserve"><value>Kumquat · Instalar {0}</value><comment>params: name</comment></data>
+  <data name="Installed" xml:space="preserve"><value>{0} quedó instalado. Kumquat se reinicia para usarlo.</value><comment>params: name</comment></data>
+  <data name="ItemsCount" xml:space="preserve"><value>{0} elementos</value><comment>params: count</comment></data>
+  <data name="JobCopy" xml:space="preserve"><value>Copiar</value></data>
+  <data name="JobMove" xml:space="preserve"><value>Mover</value></data>
+  <data name="JobSave" xml:space="preserve"><value>Guardar</value></data>
+  <data name="MenuExit" xml:space="preserve"><value>Salir</value></data>
+  <data name="MenuLicenses" xml:space="preserve"><value>Licencias de terceros</value></data>
+  <data name="MenuLogs" xml:space="preserve"><value>Abrir carpeta de registros</value></data>
+  <data name="MenuSettings" xml:space="preserve"><value>Configuración…</value></data>
+  <data name="MetadataClearHint" xml:space="preserve"><value>Deja un campo vacío para borrarlo.</value></data>
+  <data name="NothingSelectedElsewhere" xml:space="preserve"><value>Funciona en el Explorador y el escritorio: selecciona archivos y presiona {0}.</value><comment>params: hotkey</comment></data>
+  <data name="NothingSelectedExplorer" xml:space="preserve"><value>Selecciona uno o más archivos y vuelve a presionar {0}.</value><comment>params: hotkey</comment></data>
+  <data name="NothingSelectedTitle" xml:space="preserve"><value>Nada seleccionado</value></data>
+  <data name="NotifyConvertedMany" xml:space="preserve"><value>{0} archivos convertidos a {1}</value><comment>params: count, target</comment></data>
+  <data name="NotifyConvertedOne" xml:space="preserve"><value>{0} convertido a {1}</value><comment>params: file, target</comment></data>
+  <data name="NotifyCopiedMany" xml:space="preserve"><value>{0} archivos copiados a {1}</value><comment>params: count, folder</comment></data>
+  <data name="NotifyCopiedOne" xml:space="preserve"><value>{0} copiado a {1}</value><comment>params: file, folder</comment></data>
+  <data name="NotifyDone" xml:space="preserve"><value>Listo</value></data>
+  <data name="NotifyFailedAll" xml:space="preserve"><value>No se pudo completar</value></data>
+  <data name="NotifyMovedMany" xml:space="preserve"><value>{0} archivos movidos a {1}</value><comment>params: count, folder</comment></data>
+  <data name="NotifyMovedOne" xml:space="preserve"><value>{0} movido a {1}</value><comment>params: file, folder</comment></data>
+  <data name="NotifyPartial" xml:space="preserve"><value>{0} de {1} listos</value><comment>params: done, total</comment></data>
+  <data name="NotifySavedMany" xml:space="preserve"><value>{0} archivos guardados</value><comment>params: count</comment></data>
+  <data name="NotifySavedOne" xml:space="preserve"><value>{0} guardado</value><comment>params: file</comment></data>
+  <data name="NotifyToolMany" xml:space="preserve"><value>{0} archivos listos ({1})</value><comment>params: count, tool</comment></data>
+  <data name="NotifyToolOne" xml:space="preserve"><value>{0} listo ({1})</value><comment>params: file, tool</comment></data>
+  <data name="OfferCalibrePurpose" xml:space="preserve"><value>convertir libros electrónicos entre EPUB, Kindle (MOBI, AZW3) y PDF</value></data>
+  <data name="OfferLibreOfficePurpose" xml:space="preserve"><value>convertir documentos de Word, Excel y PowerPoint a PDF, y PDF a Word</value></data>
+  <data name="OutputInFolder" xml:space="preserve"><value> en {0}</value><comment>params: folder</comment></data>
+  <data name="PageCountMany" xml:space="preserve"><value>{0} páginas</value><comment>params: count</comment></data>
+  <data name="PageCountOne" xml:space="preserve"><value>1 página</value></data>
+  <data name="PagesChosenMany" xml:space="preserve"><value>{0} páginas elegidas</value><comment>params: count</comment></data>
+  <data name="PagesChosenOne" xml:space="preserve"><value>1 página elegida</value></data>
+  <data name="PagesPickHint" xml:space="preserve"><value>Haz clic en las páginas que quieres extraer</value></data>
+  <data name="PaletteConvertTo" xml:space="preserve"><value>Convertir a {0}</value><comment>params: format</comment></data>
+  <data name="PaletteEmpty" xml:space="preserve"><value>Nada coincide. Prueba con otra palabra (p. ej. pdf, comprimir, ruta).</value></data>
+  <data name="PaletteKeys" xml:space="preserve"><value>↑ ↓ elegir   ·   Enter aplicar   ·   Esc cerrar</value></data>
+  <data name="PaletteSearch" xml:space="preserve"><value>Buscar acción</value></data>
+  <data name="PaletteWindowTitle" xml:space="preserve"><value>Kumquat · Buscar acción</value></data>
+  <data name="ParamConfirmPassword" xml:space="preserve"><value>Repetir contraseña</value></data>
+  <data name="ParamCustomFields" xml:space="preserve"><value>Campos personalizados</value></data>
+  <data name="ParamEnd" xml:space="preserve"><value>Hasta</value></data>
+  <data name="ParamPages" xml:space="preserve"><value>Páginas</value></data>
+  <data name="ParamPassword" xml:space="preserve"><value>Contraseña</value></data>
+  <data name="ParamStart" xml:space="preserve"><value>Desde</value></data>
+  <data name="ParamTime" xml:space="preserve"><value>Instante</value></data>
+  <data name="PathCopied" xml:space="preserve"><value>Ruta copiada</value></data>
+  <data name="PathsCopied" xml:space="preserve"><value>{0} rutas copiadas</value><comment>params: count</comment></data>
+  <data name="Pause" xml:space="preserve"><value>Pausa</value></data>
+  <data name="PickCopyHere" xml:space="preserve"><value>Copiar aquí</value></data>
+  <data name="PickMoveHere" xml:space="preserve"><value>Mover aquí</value></data>
+  <data name="Play" xml:space="preserve"><value>Reproducir</value></data>
+  <data name="Preview" xml:space="preserve"><value>Vista previa</value></data>
+  <data name="PreviewFrameAt" xml:space="preserve"><value>Fotograma en {0}</value><comment>params: time</comment></data>
+  <data name="PreviewLoading" xml:space="preserve"><value>Preparando vista previa…</value></data>
+  <data name="PreviewNone" xml:space="preserve"><value>Sin vista previa para este archivo</value></data>
+  <data name="PreviewRange" xml:space="preserve"><value>Tramo: {0} – {1}  ·  {2}</value><comment>params: start, end, length</comment></data>
+  <data name="Remove" xml:space="preserve"><value>Quitar</value></data>
+  <data name="RemoveField" xml:space="preserve"><value>Quitar campo</value></data>
+  <data name="SelectAll" xml:space="preserve"><value>Todas</value></data>
+  <data name="SelectNone" xml:space="preserve"><value>Ninguna</value></data>
+  <data name="SettingsChangeFolder" xml:space="preserve"><value>Cambiar…</value></data>
+  <data name="SettingsContextMenu" xml:space="preserve"><value>«Kumquat…» en el menú del clic derecho del Explorador</value></data>
+  <data name="SettingsHotkey" xml:space="preserve"><value>Ctrl+Alt+K abre el buscador sobre los archivos seleccionados</value></data>
+  <data name="SettingsKeyboardSection" xml:space="preserve"><value>Con el teclado</value></data>
+  <data name="SettingsLanguageAuto" xml:space="preserve"><value>Automático (el de Windows)</value></data>
+  <data name="SettingsLanguageHint" xml:space="preserve"><value>Si lo cambias, Kumquat se reinicia al guardar.</value></data>
+  <data name="SettingsLanguageSection" xml:space="preserve"><value>Idioma</value></data>
+  <data name="SettingsOutputHint" xml:space="preserve"><value>Adjuntos de Outlook, archivos de dentro de un .zip o imágenes de una página web: los resultados se guardan en</value></data>
+  <data name="SettingsOutputSection" xml:space="preserve"><value>Archivos sin carpeta</value></data>
+  <data name="SettingsPickFolderTitle" xml:space="preserve"><value>Carpeta para los resultados de archivos sin carpeta</value></data>
+  <data name="SettingsStartWithWindows" xml:space="preserve"><value>Abrir Kumquat al iniciar Windows</value></data>
+  <data name="SettingsStartupSection" xml:space="preserve"><value>Inicio</value></data>
+  <data name="SettingsTitle" xml:space="preserve"><value>Configuración</value></data>
+  <data name="SettingsUseDesktop" xml:space="preserve"><value>Usar el Escritorio</value></data>
+  <data name="SettingsWheelHint" xml:space="preserve"><value>Arrastra un archivo y, sin soltarlo, presiona:</value></data>
+  <data name="SettingsWheelSection" xml:space="preserve"><value>Abrir la rueda al arrastrar</value></data>
+  <data name="SettingsWindowTitle" xml:space="preserve"><value>Kumquat · Configuración</value></data>
+  <data name="StartedBody" xml:space="preserve"><value>Arrastra un archivo y, sin soltarlo, presiona {0}.{1}</value><comment>params: trigger, hotkeyHint</comment></data>
+  <data name="StartedHotkeyHint" xml:space="preserve"><value> O selecciona archivos y presiona {0}.</value><comment>params: hotkey</comment></data>
+  <data name="StartedTitle" xml:space="preserve"><value>Kumquat está activo</value></data>
+  <data name="SuffixCompressed" xml:space="preserve"><value>comprimido</value></data>
+  <data name="SuffixExtract" xml:space="preserve"><value>extracto</value></data>
+  <data name="SuffixFlipped" xml:space="preserve"><value>volteado</value></data>
+  <data name="SuffixFrame" xml:space="preserve"><value>fotograma</value></data>
+  <data name="SuffixGrayscale" xml:space="preserve"><value>byn</value></data>
+  <data name="SuffixMerged" xml:space="preserve"><value>unido</value></data>
+  <data name="SuffixMetadata" xml:space="preserve"><value>metadatos</value></data>
+  <data name="SuffixMuted" xml:space="preserve"><value>sin audio</value></data>
+  <data name="SuffixNormalized" xml:space="preserve"><value>normalizado</value></data>
+  <data name="SuffixPages" xml:space="preserve"><value>páginas</value></data>
+  <data name="SuffixProtected" xml:space="preserve"><value>protegido</value></data>
+  <data name="SuffixRotated" xml:space="preserve"><value>rotado</value></data>
+  <data name="SuffixStripped" xml:space="preserve"><value>sin metadatos</value></data>
+  <data name="SuffixText" xml:space="preserve"><value>texto</value></data>
+  <data name="SuffixTrimmed" xml:space="preserve"><value>recortado</value></data>
+  <data name="SuffixUnlocked" xml:space="preserve"><value>desbloqueado</value></data>
+  <data name="ToolCompress" xml:space="preserve"><value>Comprimir</value></data>
+  <data name="ToolCreateZip" xml:space="preserve"><value>Crear ZIP</value></data>
+  <data name="ToolExtract" xml:space="preserve"><value>Extraer</value></data>
+  <data name="ToolExtractPages" xml:space="preserve"><value>Extraer páginas</value></data>
+  <data name="ToolFit1920" xml:space="preserve"><value>Máx. 1920 px</value></data>
+  <data name="ToolFlip" xml:space="preserve"><value>Voltear</value></data>
+  <data name="ToolFrame" xml:space="preserve"><value>Fotograma</value></data>
+  <data name="ToolGrayscale" xml:space="preserve"><value>Blanco y negro</value></data>
+  <data name="ToolImagesToPdf" xml:space="preserve"><value>Unir en PDF</value></data>
+  <data name="ToolMergeAudio" xml:space="preserve"><value>Unir audios</value></data>
+  <data name="ToolMergeVideos" xml:space="preserve"><value>Unir videos</value></data>
+  <data name="ToolMetadata" xml:space="preserve"><value>Metadatos</value></data>
+  <data name="ToolMute" xml:space="preserve"><value>Quitar audio</value></data>
+  <data name="ToolNormalize" xml:space="preserve"><value>Normalizar</value></data>
+  <data name="ToolOcrPdf" xml:space="preserve"><value>PDF buscable</value></data>
+  <data name="ToolOcrText" xml:space="preserve"><value>Extraer texto</value></data>
+  <data name="ToolOpenFailed" xml:space="preserve"><value>No se pudo abrir la herramienta</value></data>
+  <data name="ToolPagesToJpg" xml:space="preserve"><value>Páginas a JPG</value></data>
+  <data name="ToolPdfOcr" xml:space="preserve"><value>Reconocer texto</value></data>
+  <data name="ToolProtect" xml:space="preserve"><value>Proteger</value></data>
+  <data name="ToolRotate90" xml:space="preserve"><value>Rotar 90°</value></data>
+  <data name="ToolSplitPages" xml:space="preserve"><value>Dividir páginas</value></data>
+  <data name="ToolStripMetadata" xml:space="preserve"><value>Sin metadatos</value></data>
+  <data name="ToolTrim" xml:space="preserve"><value>Recortar</value></data>
+  <data name="ToolUnlock" xml:space="preserve"><value>Desbloquear</value></data>
+  <data name="ToolWindowTitle" xml:space="preserve"><value>Kumquat · {0}</value><comment>params: tool</comment></data>
+  <data name="TrayTooltip" xml:space="preserve"><value>Kumquat: arrastra un archivo y presiona {0}</value><comment>params: trigger</comment></data>
+  <data name="TriggerCapsLock" xml:space="preserve"><value>Bloq Mayús</value></data>
+  <data name="TriggerRightClick" xml:space="preserve"><value>Clic derecho</value></data>
+  <data name="TriggerRightClickInSentence" xml:space="preserve"><value>el clic derecho</value></data>
+  <data name="TriggerShiftRecommended" xml:space="preserve"><value>Shift (recomendado)</value></data>
+  <data name="ValidateFieldName" xml:space="preserve"><value>El nombre de campo '{0}' solo puede tener letras, números, guion o guion bajo.</value><comment>params: name</comment></data>
+  <data name="ValidateFrameTime" xml:space="preserve"><value>El instante no es un tiempo válido (usa minutos:segundos, p. ej. 0:12).</value></data>
+  <data name="ValidatePages" xml:space="preserve"><value>Escribe páginas como 1-3, 5, 8-fin.</value></data>
+  <data name="ValidatePasswordEmpty" xml:space="preserve"><value>Escribe una contraseña.</value></data>
+  <data name="ValidatePasswordMismatch" xml:space="preserve"><value>Las contraseñas no coinciden.</value></data>
+  <data name="ValidatePasswordNewline" xml:space="preserve"><value>La contraseña no puede tener saltos de línea.</value></data>
+  <data name="ValidateRequired" xml:space="preserve"><value>Completa «{0}».</value><comment>params: field</comment></data>
+  <data name="ValidateTrimEnd" xml:space="preserve"><value>El final no es un tiempo válido (usa minutos:segundos, p. ej. 2:30).</value></data>
+  <data name="ValidateTrimOrder" xml:space="preserve"><value>El final tiene que ser después del inicio.</value></data>
+  <data name="ValidateTrimStart" xml:space="preserve"><value>El inicio no es un tiempo válido (usa minutos:segundos, p. ej. 1:05).</value></data>
+  <data name="VirtualCaption" xml:space="preserve"><value>{0} · se guarda en {1}</value><comment>params: what, folder</comment></data>
+  <data name="WheelNothingToDo" xml:space="preserve"><value>Nada que hacer con este archivo</value></data>
+</root>

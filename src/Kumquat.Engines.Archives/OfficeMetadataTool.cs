@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Xml;
 using System.Xml.Linq;
 using Kumquat.Core.Formats;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Results;
 using Kumquat.Core.Tools;
 
@@ -27,25 +28,25 @@ public sealed class OfficeMetadataTool : ITool
     private static readonly FileFormat[] Supported = [KnownFormats.Docx, KnownFormats.Xlsx, KnownFormats.Pptx];
 
     /// <summary>Clave → (elemento XML, etiqueta visible).</summary>
-    private static readonly (string Key, XName Element, string Label)[] Fields =
+    private static (string Key, XName Element, string Label)[] Fields =>
     [
-        ("title", Dc + "title", "Título"),
-        ("creator", Dc + "creator", "Autor"),
-        ("subject", Dc + "subject", "Asunto"),
-        ("keywords", Cp + "keywords", "Palabras clave"),
-        ("description", Dc + "description", "Comentarios"),
-        ("category", Cp + "category", "Categoría"),
-        ("lastModifiedBy", Cp + "lastModifiedBy", "Modificado por"),
+        ("title", Dc + "title", Strings.FieldTitle),
+        ("creator", Dc + "creator", Strings.FieldAuthor),
+        ("subject", Dc + "subject", Strings.FieldSubject),
+        ("keywords", Cp + "keywords", Strings.FieldKeywords),
+        ("description", Dc + "description", Strings.FieldComments),
+        ("category", Cp + "category", Strings.FieldCategory),
+        ("lastModifiedBy", Cp + "lastModifiedBy", Strings.FieldLastModifiedBy),
     ];
 
     /// <inheritdoc />
     public string Id => "office.metadata";
 
     /// <inheritdoc />
-    public string Label => "Metadatos";
+    public string Label => Strings.ToolMetadata;
 
     /// <inheritdoc />
-    public string OutputSuffix => "metadatos";
+    public string OutputSuffix => Strings.SuffixMetadata;
 
     /// <inheritdoc />
     public bool IsAvailable => true;
@@ -93,11 +94,11 @@ public sealed class OfficeMetadataTool : ITool
         }
         catch (InvalidDataException)
         {
-            return new Error("office-invalid", "El documento está dañado o no es un archivo de Office válido.");
+            return new Error("office-invalid", Strings.ErrorOfficeInvalid);
         }
         catch (XmlException)
         {
-            return new Error("office-invalid", "Las propiedades del documento están dañadas.");
+            return new Error("office-invalid", Strings.ErrorOfficePropertiesDamaged);
         }
     }
 

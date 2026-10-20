@@ -2,6 +2,7 @@
 // Copyright (C) 2026 Kumquat contributors
 
 using System.Globalization;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Results;
 
 namespace Kumquat.Infrastructure.Files;
@@ -116,18 +117,18 @@ public static class FileTransfer
     {
         if (!Exists(source))
         {
-            return new Error("input-missing", $"No existe '{source}'.");
+            return new Error("input-missing", Strings.ErrorToolInputMissing(source));
         }
 
         if (!Directory.Exists(folder))
         {
-            return new Error("destination-missing", $"No existe la carpeta '{folder}'.");
+            return new Error("destination-missing", Strings.ErrorFolderMissing(folder));
         }
 
         // Copiar una carpeta dentro de sí misma no termina nunca.
         var inside = Directory.Exists(source)
             && (folder + Path.DirectorySeparatorChar).StartsWith(source + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
-        return inside ? new Error("destination-inside-source", "No se puede copiar o mover una carpeta dentro de sí misma.") : null;
+        return inside ? new Error("destination-inside-source", Strings.ErrorCopyIntoItself) : null;
     }
 
     private static async Task CopyRecursiveAsync(string source, string target, CancellationToken cancellationToken)

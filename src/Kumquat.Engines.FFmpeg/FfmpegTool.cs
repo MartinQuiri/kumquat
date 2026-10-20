@@ -2,6 +2,7 @@
 // Copyright (C) 2026 Kumquat contributors
 
 using Kumquat.Core.Formats;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Results;
 using Kumquat.Core.Text;
 using Kumquat.Core.Tools;
@@ -66,37 +67,37 @@ public sealed class FfmpegTool : ITool
         ArgumentNullException.ThrowIfNull(ffmpeg);
         return
         [
-            Simple(ffmpeg, "video.compress", "Comprimir", "comprimido", FfmpegProfiles.Video, KeepContainerOrMp4, CompressArguments),
-            Simple(ffmpeg, "video.mute", "Quitar audio", "sin audio", FfmpegProfiles.Video, f => f, _ => ["-map", "0:v", "-c", "copy", "-an", "-sn", "-dn"]),
+            Simple(ffmpeg, "video.compress", Strings.ToolCompress, Strings.SuffixCompressed, FfmpegProfiles.Video, KeepContainerOrMp4, CompressArguments),
+            Simple(ffmpeg, "video.mute", Strings.ToolMute, Strings.SuffixMuted, FfmpegProfiles.Video, f => f, _ => ["-map", "0:v", "-c", "copy", "-an", "-sn", "-dn"]),
 
             // Rotar 90° (horario): hay que recodificar; se mantiene el contenedor si es razonable.
-            Simple(ffmpeg, "video.rotate", "Rotar 90°", "rotado", FfmpegProfiles.Video, KeepContainerOrMp4, f => ["-vf", "transpose=1", .. FfmpegProfiles.For(KeepContainerOrMp4(f))!]),
+            Simple(ffmpeg, "video.rotate", Strings.ToolRotate90, Strings.SuffixRotated, FfmpegProfiles.Video, KeepContainerOrMp4, f => ["-vf", "transpose=1", .. FfmpegProfiles.For(KeepContainerOrMp4(f))!]),
 
             // Fotograma representativo (filtro thumbnail: elige el más "típico" de los primeros 100).
             // Fotograma: el instante se elige en la vista previa (por defecto, el medio del video).
-            new FfmpegTool(ffmpeg, "video.frame", "Fotograma", "fotograma", [.. FfmpegProfiles.Video, KnownFormats.Gif], _ => KnownFormats.Jpg, (step, progress, ct) => FrameAsync(ffmpeg, step, progress, ct))
+            new FfmpegTool(ffmpeg, "video.frame", Strings.ToolFrame, Strings.SuffixFrame, [.. FfmpegProfiles.Video, KnownFormats.Gif], _ => KnownFormats.Jpg, (step, progress, ct) => FrameAsync(ffmpeg, step, progress, ct))
             {
                 ParameterSource = (inputs, ct) => FrameParametersAsync(ffmpeg, inputs, ct),
-                Validator = options => TimeText.TryParse(options.GetValueOrDefault("time"), out _) ? null : "El instante no es un tiempo válido (usa minutos:segundos, p. ej. 0:12).",
+                Validator = options => TimeText.TryParse(options.GetValueOrDefault("time"), out _) ? null : Strings.ValidateFrameTime,
             },
 
-            new FfmpegTool(ffmpeg, "video.merge", "Unir videos", "unido", FfmpegProfiles.Video, KeepContainerOrMp4, (step, progress, ct) => MergeVideosAsync(ffmpeg, step, progress, ct), ToolMode.Combine, minInputs: 2),
+            new FfmpegTool(ffmpeg, "video.merge", Strings.ToolMergeVideos, Strings.SuffixMerged, FfmpegProfiles.Video, KeepContainerOrMp4, (step, progress, ct) => MergeVideosAsync(ffmpeg, step, progress, ct), ToolMode.Combine, minInputs: 2),
 
             // Normalizar al estándar de streaming (EBU R128, -16 LUFS). loudnorm trabaja internamente
             // a 192 kHz: se vuelve a 48 kHz (si no, WMA falla y WAV/FLAC salen 4x más pesados).
-            Simple(ffmpeg, "audio.normalize", "Normalizar", "normalizado", FfmpegProfiles.Audio, f => f, f => [.. FfmpegProfiles.For(f)!, "-af", "loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000"]),
+            Simple(ffmpeg, "audio.normalize", Strings.ToolNormalize, Strings.SuffixNormalized, FfmpegProfiles.Audio, f => f, f => [.. FfmpegProfiles.For(f)!, "-af", "loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000"]),
 
-            new FfmpegTool(ffmpeg, "audio.merge", "Unir audios", "unido", FfmpegProfiles.Audio, f => f, (step, progress, ct) => MergeAudioAsync(ffmpeg, step, progress, ct), ToolMode.Combine, minInputs: 2),
+            new FfmpegTool(ffmpeg, "audio.merge", Strings.ToolMergeAudio, Strings.SuffixMerged, FfmpegProfiles.Audio, f => f, (step, progress, ct) => MergeAudioAsync(ffmpeg, step, progress, ct), ToolMode.Combine, minInputs: 2),
 
             // Recortar: se recodifica para cortar exacto (copiar cortaría en el fotograma clave más cercano).
-            new FfmpegTool(ffmpeg, "media.trim", "Recortar", "recortado", [.. FfmpegProfiles.Video, .. FfmpegProfiles.Audio], TrimOutput, (step, progress, ct) => TrimAsync(ffmpeg, step, progress, ct))
+            new FfmpegTool(ffmpeg, "media.trim", Strings.ToolTrim, Strings.SuffixTrimmed, [.. FfmpegProfiles.Video, .. FfmpegProfiles.Audio], TrimOutput, (step, progress, ct) => TrimAsync(ffmpeg, step, progress, ct))
             {
                 ParameterSource = (inputs, ct) => TrimParametersAsync(ffmpeg, inputs, ct),
                 Validator = ValidateTrim,
             },
 
             // Metadatos: sin recodificar; los campos vacíos se borran.
-            new FfmpegTool(ffmpeg, "media.metadata", "Metadatos", "metadatos", [.. FfmpegProfiles.Video, .. FfmpegProfiles.Audio], f => f, (step, progress, ct) => ffmpeg.RunAsync(step.InputPath, MediaMetadata.Arguments(step.InputFormat, step.Options), step.OutputPath, progress, ct))
+            new FfmpegTool(ffmpeg, "media.metadata", Strings.ToolMetadata, Strings.SuffixMetadata, [.. FfmpegProfiles.Video, .. FfmpegProfiles.Audio], f => f, (step, progress, ct) => ffmpeg.RunAsync(step.InputPath, MediaMetadata.Arguments(step.InputFormat, step.Options), step.OutputPath, progress, ct))
             {
                 ParameterSource = async (inputs, ct) => MediaMetadata.Parameters(await ffmpeg.ProbeTagsAsync(inputs[0].Path, ct), inputs[0].Format!),
                 Validator = MediaMetadata.Validate,
@@ -141,8 +142,8 @@ public sealed class FfmpegTool : ITool
         var duration = info?.Duration is { } d ? TimeText.Format(d) : string.Empty;
         return
         [
-            new ToolParameter("start", "Desde", ToolParameterKind.Time, "0:00", "Minutos:segundos, p. ej. 0:15", Required: true),
-            new ToolParameter("end", "Hasta", ToolParameterKind.Time, duration, duration.Length > 0 ? $"Duración total: {duration}" : null, Required: true),
+            new ToolParameter("start", Strings.ParamStart, ToolParameterKind.Time, "0:00", Strings.HintTrimStart, Required: true),
+            new ToolParameter("end", Strings.ParamEnd, ToolParameterKind.Time, duration, duration.Length > 0 ? Strings.HintTotalDuration(duration) : null, Required: true),
         ];
     }
 
@@ -150,8 +151,8 @@ public sealed class FfmpegTool : ITool
     {
         var info = await ffmpeg.ProbeAsync(inputs[0].Path, cancellationToken);
         var middle = info?.Duration is { } d ? TimeText.Format(d / 2) : "0:00";
-        var hint = info?.Duration is { } total ? $"Duración total: {TimeText.Format(total)}" : "Minutos:segundos, p. ej. 0:12";
-        return [new ToolParameter("time", "Instante", ToolParameterKind.Time, middle, hint, Required: true)];
+        var hint = info?.Duration is { } total ? Strings.HintTotalDuration(TimeText.Format(total)) : Strings.HintFrameTime;
+        return [new ToolParameter("time", Strings.ParamTime, ToolParameterKind.Time, middle, hint, Required: true)];
     }
 
     private static Task<Result> FrameAsync(FfmpegRunner ffmpeg, ToolStep step, IProgress<double>? progress, CancellationToken cancellationToken)
@@ -169,15 +170,15 @@ public sealed class FfmpegTool : ITool
     {
         if (!TimeText.TryParse(options.GetValueOrDefault("start"), out var start))
         {
-            return "El inicio no es un tiempo válido (usa minutos:segundos, p. ej. 1:05).";
+            return Strings.ValidateTrimStart;
         }
 
         if (!TimeText.TryParse(options.GetValueOrDefault("end"), out var end))
         {
-            return "El final no es un tiempo válido (usa minutos:segundos, p. ej. 2:30).";
+            return Strings.ValidateTrimEnd;
         }
 
-        return end > start ? null : "El final tiene que ser después del inicio.";
+        return end > start ? null : Strings.ValidateTrimOrder;
     }
 
     private static Task<Result> TrimAsync(FfmpegRunner ffmpeg, ToolStep step, IProgress<double>? progress, CancellationToken cancellationToken)
@@ -185,7 +186,7 @@ public sealed class FfmpegTool : ITool
         // Las opciones ya pasaron por ValidateTrim (ToolService valida antes de ejecutar).
         if (!TimeText.TryParse(step.Option("start"), out var start) || !TimeText.TryParse(step.Option("end"), out var end) || end <= start)
         {
-            return Task.FromResult(Result.Failure(new Error("invalid-options", "Rango de tiempo inválido.")));
+            return Task.FromResult(Result.Failure(new Error("invalid-options", Strings.ErrorInvalidTimeRange)));
         }
 
         var profile = FfmpegProfiles.For(step.OutputFormat!)!;
@@ -210,7 +211,7 @@ public sealed class FfmpegTool : ITool
             var info = await ffmpeg.ProbeAsync(input.Path, cancellationToken);
             if (info is null || !info.HasVideo)
             {
-                return new Error("engine-failed", $"No se pudo leer el video '{Path.GetFileName(input.Path)}'.");
+                return new Error("engine-failed", Strings.ErrorVideoUnreadable(Path.GetFileName(input.Path)));
             }
 
             clips.Add(info);

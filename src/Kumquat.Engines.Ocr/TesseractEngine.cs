@@ -2,6 +2,7 @@
 // Copyright (C) 2026 Kumquat contributors
 
 using System.Globalization;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Results;
 using Kumquat.Infrastructure.Engines;
 using Kumquat.Infrastructure.Processes;
@@ -53,7 +54,7 @@ public sealed class TesseractEngine
     {
         if (!IsAvailable)
         {
-            return new Error("engine-missing", "El motor de OCR (Tesseract) no está instalado.");
+            return new Error("engine-missing", Strings.ErrorOcrMissing);
         }
 
         if (format is not ("txt" or "pdf"))
@@ -80,7 +81,7 @@ public sealed class TesseractEngine
             cancellationToken);
         if (outcome.TimedOut)
         {
-            return new Error("engine-timeout", "Tesseract superó el tiempo máximo.");
+            return new Error("engine-timeout", Strings.ErrorEngineTimeout("Tesseract"));
         }
 
         var output = outputBase + "." + format;
@@ -90,6 +91,6 @@ public sealed class TesseractEngine
         }
 
         var detail = outcome.StandardErrorTail.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries).LastOrDefault() ?? string.Empty;
-        return new Error("engine-failed", $"Tesseract terminó con código {outcome.ExitCode}: {detail}");
+        return new Error("engine-failed", Strings.ErrorEngineExit("Tesseract", outcome.ExitCode, detail));
     }
 }

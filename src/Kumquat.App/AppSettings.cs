@@ -2,6 +2,7 @@
 // Copyright (C) 2026 Kumquat contributors
 
 using System.Text.Json;
+using Kumquat.Core.Localization;
 using Kumquat.Interaction.Input;
 
 namespace Kumquat.App;
@@ -26,6 +27,17 @@ internal sealed record AppSettings
     /// de un .zip, imágenes de una web). <c>null</c>: el Escritorio.
     /// </summary>
     public string? OutputFolder { get; init; }
+
+    /// <summary>Idioma de la interfaz: "auto" (el de Windows) o un código de <c>Strings.Languages</c>.</summary>
+    public string Language { get; init; } = "auto";
+
+    /// <summary>Aplica el idioma a todo el proceso (antes de crear cualquier texto).</summary>
+    public void ApplyLanguage()
+    {
+        var culture = Strings.Resolve(Language, System.Globalization.CultureInfo.CurrentUICulture);
+        System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = culture;
+        System.Globalization.CultureInfo.CurrentUICulture = culture;
+    }
 
     /// <summary>El Escritorio del usuario (la carpeta por defecto).</summary>
     public static string DefaultOutputFolder => Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);

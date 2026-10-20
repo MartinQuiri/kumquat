@@ -3,6 +3,7 @@
 
 using Kumquat.Core.Conversion;
 using Kumquat.Core.Formats;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Text;
 using Kumquat.Core.Tools;
 using Kumquat.Interaction.Wheel;
@@ -28,7 +29,7 @@ internal sealed class WheelTargets(ConversionGraph graph, ToolService tools)
         {
             var folder = OutputFolder();
             return string.Equals(folder, AppSettings.DefaultOutputFolder, StringComparison.OrdinalIgnoreCase)
-                ? "Escritorio"
+                ? Strings.Desktop
                 : Path.GetFileName(Path.TrimEndingDirectorySeparator(folder));
         }
     }
@@ -89,7 +90,7 @@ internal sealed class WheelTargets(ConversionGraph graph, ToolService tools)
     /// </summary>
     private IReadOnlyList<WheelRing> ForVirtual(IReadOnlyList<string> names)
     {
-        var save = new WheelRing(WheelRingKind.Actions, [WheelItem.Action(FileActions.Save, $"Guardar en {OutputFolderName}")]);
+        var save = new WheelRing(WheelRingKind.Actions, [WheelItem.Action(FileActions.Save, Strings.ActionSaveIn(OutputFolderName))]);
         var formats = names.Take(MaxSniffedFiles).Select(n => KnownFormats.FindByExtension(Path.GetExtension(n))).ToList();
         if (formats.Any(f => f is null))
         {
@@ -120,10 +121,10 @@ internal sealed class WheelTargets(ConversionGraph graph, ToolService tools)
         }
 
         var formats = paths.Select(p => KnownFormats.FindByExtension(Path.GetExtension(p))?.DisplayName).Distinct(StringComparer.Ordinal).ToList();
-        var what = paths.Count == 1 ? formats[0] ?? "Archivo"
+        var what = paths.Count == 1 ? formats[0] ?? Strings.GenericFile
             : formats.Count == 1 && formats[0] is { } single ? $"{paths.Count} {single}"
-            : $"{paths.Count} archivos";
-        return $"{what} · se guarda en {OutputFolderName}";
+            : Strings.FilesCount(paths.Count);
+        return Strings.VirtualCaption(what, OutputFolderName);
     }
 
     /// <summary>
@@ -140,7 +141,7 @@ internal sealed class WheelTargets(ConversionGraph graph, ToolService tools)
 
         if (paths.Count == 1 && Directory.Exists(paths[0]))
         {
-            return "Carpeta";
+            return Strings.GenericFolder;
         }
 
         var files = paths.Where(File.Exists).ToList();
@@ -151,9 +152,9 @@ internal sealed class WheelTargets(ConversionGraph graph, ToolService tools)
         }
 
         var formats = files.Take(MaxSniffedFiles).Select(FormatName).Distinct(StringComparer.Ordinal).ToList();
-        var label = files.Count < paths.Count ? $"{paths.Count} elementos"
+        var label = files.Count < paths.Count ? Strings.ItemsCount(paths.Count)
             : formats.Count == 1 ? $"{paths.Count} {formats[0]}"
-            : $"{paths.Count} archivos";
+            : Strings.FilesCount(paths.Count);
         return $"{label} · {size}";
     }
 
@@ -184,7 +185,7 @@ internal sealed class WheelTargets(ConversionGraph graph, ToolService tools)
     private static string FormatName(string path)
     {
         var extension = Path.GetExtension(path).TrimStart('.').ToUpperInvariant();
-        return FormatSniffer.DetectFile(path)?.DisplayName ?? (extension.Length is > 0 and <= 5 ? extension : "Archivo");
+        return FormatSniffer.DetectFile(path)?.DisplayName ?? (extension.Length is > 0 and <= 5 ? extension : Strings.GenericFile);
     }
 
     private static IReadOnlyList<ToolInput>? SafeDescribe(IReadOnlyList<string> paths)

@@ -6,6 +6,7 @@ using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shell;
+using Kumquat.Core.Localization;
 using Kumquat.Design;
 using Kumquat.Dialogs.Look;
 
@@ -20,6 +21,7 @@ public sealed class SettingsDialog : Window
     private readonly SettingsValues _initial;
     private readonly string _defaultFolder;
     private readonly List<(string Id, RadioButton Button)> _triggers = [];
+    private readonly List<(string Code, RadioButton Button)> _languages = [];
     private readonly CheckBox _hotkey;
     private readonly CheckBox _contextMenu;
     private readonly CheckBox _startWithWindows;
@@ -32,7 +34,7 @@ public sealed class SettingsDialog : Window
         _defaultFolder = defaultFolder;
         _outputFolder = values.OutputFolder;
         _look = new DialogLook(dark, Palette.Kumquat);
-        Title = "Kumquat · Configuración";
+        Title = Strings.SettingsWindowTitle;
         ThemeMode = dark ? ThemeMode.Dark : ThemeMode.Light;
         FontFamily = DialogLook.Font;
         Resources["ContentControlThemeFontFamily"] = DialogLook.Font;
@@ -42,17 +44,18 @@ public sealed class SettingsDialog : Window
         ResizeMode = ResizeMode.NoResize;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
-        _hotkey = Check("Ctrl+Alt+K abre el buscador sobre los archivos seleccionados", values.Hotkey);
-        _contextMenu = Check("«Kumquat…» en el menú del clic derecho del Explorador", values.ContextMenu);
-        _startWithWindows = Check("Abrir Kumquat al iniciar Windows", values.StartWithWindows);
+        _hotkey = Check(Strings.SettingsHotkey, values.Hotkey);
+        _contextMenu = Check(Strings.SettingsContextMenu, values.ContextMenu);
+        _startWithWindows = Check(Strings.SettingsStartWithWindows, values.StartWithWindows);
         _folder = new TextBlock { Text = values.OutputFolder, TextTrimming = TextTrimming.CharacterEllipsis, FontSize = 13, ToolTip = values.OutputFolder, VerticalAlignment = VerticalAlignment.Center };
 
         var panel = new StackPanel { Margin = new Thickness(24, CaptionHeight, 24, 22) };
         panel.Children.Add(Header());
-        panel.Children.Add(Section("Abrir la rueda al arrastrar", "Arrastra un archivo y, sin soltarlo, presiona:", TriggerOptions(triggers, values.Trigger)));
-        panel.Children.Add(Section("Con el teclado", null, Stack(_hotkey, _contextMenu)));
-        panel.Children.Add(Section("Archivos sin carpeta", "Adjuntos de Outlook, archivos de dentro de un .zip o imágenes de una página web: los resultados se guardan en", FolderRow()));
-        panel.Children.Add(Section("Inicio", null, Stack(_startWithWindows)));
+        panel.Children.Add(Section(Strings.SettingsWheelSection, Strings.SettingsWheelHint, TriggerOptions(triggers, values.Trigger)));
+        panel.Children.Add(Section(Strings.SettingsKeyboardSection, null, Stack(_hotkey, _contextMenu)));
+        panel.Children.Add(Section(Strings.SettingsOutputSection, Strings.SettingsOutputHint, FolderRow()));
+        panel.Children.Add(Section(Strings.SettingsStartupSection, null, Stack(_startWithWindows)));
+        panel.Children.Add(Section(Strings.SettingsLanguageSection, Strings.SettingsLanguageHint, LanguageOptions(values.Language)));
         panel.Children.Add(Buttons());
         Content = new Grid { Background = Tint(), Children = { panel } };
 
@@ -85,7 +88,8 @@ public sealed class SettingsDialog : Window
         _hotkey.IsChecked == true,
         _contextMenu.IsChecked == true,
         _startWithWindows.IsChecked == true,
-        _outputFolder);
+        _outputFolder,
+        _languages.FirstOrDefault(l => l.Button.IsChecked == true).Code ?? _initial.Language);
 
     /// <summary>Renderiza la ventana a un PNG (documentación); el acrílico se simula con un degradado.</summary>
     internal static void RenderPreview(SettingsDialog dialog, string pngPath, bool dark)
@@ -157,7 +161,7 @@ public sealed class SettingsDialog : Window
         header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         header.Children.Add(_look.IconTile("settings", 48));
-        var title = new TextBlock { Text = "Configuración", FontSize = 22, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(14, 0, 0, 0) };
+        var title = new TextBlock { Text = Strings.SettingsTitle, FontSize = 22, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(14, 0, 0, 0) };
         Grid.SetColumn(title, 1);
         header.Children.Add(title);
         return header;
@@ -199,6 +203,29 @@ public sealed class SettingsDialog : Window
         return options;
     }
 
+    /// <summary>Elige un idioma (pruebas).</summary>
+    internal void ChooseLanguageForTests(string code) => _languages.Single(l => string.Equals(l.Code, code, StringComparison.Ordinal)).Button.IsChecked = true;
+
+    /// <summary>Automático y cada idioma con su nombre en ese idioma (así lo encuentra quien no entiende el actual).</summary>
+    private System.Windows.Controls.Primitives.UniformGrid LanguageOptions(string current)
+    {
+        var options = new System.Windows.Controls.Primitives.UniformGrid { Columns = 3 };
+        foreach (var (code, label) in Strings.Languages.Prepend(("auto", Strings.SettingsLanguageAuto)))
+        {
+            var button = new RadioButton { Content = label, GroupName = "language", IsChecked = string.Equals(code, current, StringComparison.OrdinalIgnoreCase), FontSize = 13.5, Margin = new Thickness(0, 4, 18, 4) };
+            AutomationProperties.SetName(button, label);
+            _languages.Add((code, button));
+            options.Children.Add(button);
+        }
+
+        if (!_languages.Any(l => l.Button.IsChecked == true))
+        {
+            _languages[0].Button.IsChecked = true;
+        }
+
+        return options;
+    }
+
     private Grid FolderRow()
     {
         var row = new Grid();
@@ -213,9 +240,9 @@ public sealed class SettingsDialog : Window
         row.Children.Add(_folder);
 
         var buttons = new StackPanel { Orientation = Orientation.Horizontal };
-        var change = SmallPill("Cambiar…");
+        var change = SmallPill(Strings.SettingsChangeFolder);
         change.Click += (_, _) => PickFolder();
-        var reset = SmallPill("Usar el Escritorio");
+        var reset = SmallPill(Strings.SettingsUseDesktop);
         reset.Click += (_, _) => SetFolder(_defaultFolder);
         buttons.Children.Add(change);
         buttons.Children.Add(reset);
@@ -240,10 +267,10 @@ public sealed class SettingsDialog : Window
         buttons.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         buttons.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(10) });
         buttons.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1.4, GridUnitType.Star) });
-        var cancel = DialogLook.Pill("Cancelar", _look.Subtle, _look.Text);
+        var cancel = DialogLook.Pill(Strings.ButtonCancel, _look.Subtle, _look.Text);
         cancel.IsCancel = true;
         cancel.Height = 44;
-        var save = DialogLook.Pill("Guardar", _look.AccentGradient, Brushes.White);
+        var save = DialogLook.Pill(Strings.ButtonSave, _look.AccentGradient, Brushes.White);
         save.IsDefault = true;
         save.Height = 44;
         save.FontSize = 15;
@@ -262,7 +289,7 @@ public sealed class SettingsDialog : Window
     {
         var picker = new Microsoft.Win32.OpenFolderDialog
         {
-            Title = "Carpeta para los resultados de archivos sin carpeta",
+            Title = Strings.SettingsPickFolderTitle,
             InitialDirectory = Directory.Exists(_outputFolder) ? _outputFolder : _defaultFolder,
         };
         if (picker.ShowDialog(this) == true)

@@ -2,6 +2,7 @@
 // Copyright (C) 2026 Kumquat contributors
 
 using System.Text;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Results;
 using Kumquat.Core.Text;
 using Kumquat.Infrastructure.Engines;
@@ -161,7 +162,7 @@ public sealed class FfmpegRunner
     {
         if (_ffmpeg is null)
         {
-            return new Error("engine-missing", "FFmpeg no está instalado.");
+            return new Error("engine-missing", Strings.ErrorEngineMissing("FFmpeg"));
         }
 
         var parser = new FfmpegProgressParser(duration, p => progress?.Report(p));
@@ -179,12 +180,12 @@ public sealed class FfmpegRunner
 
         if (outcome.TimedOut)
         {
-            return new Error("engine-timeout", "FFmpeg superó el tiempo máximo.");
+            return new Error("engine-timeout", Strings.ErrorEngineTimeout("FFmpeg"));
         }
 
         return outcome.Succeeded
             ? Result.Success
-            : new Error("engine-failed", $"FFmpeg terminó con código {outcome.ExitCode}: {LastLines(outcome.StandardErrorTail, 3)}");
+            : new Error("engine-failed", Strings.ErrorEngineExit("FFmpeg", outcome.ExitCode, LastLines(outcome.StandardErrorTail, 3)));
     }
 
     private static string LastLines(string text, int count)

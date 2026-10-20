@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Kumquat contributors
 
+using Kumquat.Core.Localization;
 using Kumquat.Interaction.Input;
 using Kumquat.Interaction.Native;
 
@@ -31,8 +32,6 @@ internal sealed class WheelSession
     /// este margen y la rueda se abre una sola vez con todos.
     /// </summary>
     public const uint RequestGatherMilliseconds = 250;
-
-    private const string NothingToDo = "Nada que hacer con este archivo";
 
     private readonly IWheelSurface _surface;
     private readonly DragGestureTracker _tracker;
@@ -272,7 +271,7 @@ internal sealed class WheelSession
     {
         var rings = _ringsForFiles(files).Where(r => r.Items.Count > 0).ToList();
         var state = rings.Count == 0
-            ? new WheelVisualState([], WheelHit.Center, NothingToDo)
+            ? new WheelVisualState([], WheelHit.Center, Strings.WheelNothingToDo)
             : new WheelVisualState(rings, WheelHit.Center, null);
         return state with { Caption = CaptionFor(files) };
     }

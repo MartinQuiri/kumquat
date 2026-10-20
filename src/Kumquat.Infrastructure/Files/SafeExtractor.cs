@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Kumquat contributors
 
+using Kumquat.Core.Localization;
 using Kumquat.Core.Results;
 using SharpCompress.Archives;
 using SharpCompress.Common;
@@ -51,19 +52,19 @@ public static class SafeExtractor
         }
         catch (ArchiveOperationException)
         {
-            return new Error("archive-invalid", "El archivo comprimido está dañado o no es de un formato soportado.");
+            return new Error("archive-invalid", Strings.ErrorArchiveInvalid);
         }
         catch (InvalidDataException)
         {
-            return new Error("archive-invalid", "El archivo comprimido está dañado.");
+            return new Error("archive-invalid", Strings.ErrorArchiveDamaged);
         }
         catch (InvalidFormatException)
         {
-            return new Error("archive-invalid", "El archivo comprimido está dañado o no es de un formato soportado.");
+            return new Error("archive-invalid", Strings.ErrorArchiveInvalid);
         }
         catch (CryptographicException)
         {
-            return new Error("archive-encrypted", "El archivo comprimido está protegido con contraseña.");
+            return new Error("archive-encrypted", Strings.ErrorArchiveEncrypted);
         }
     }
 
@@ -71,7 +72,7 @@ public static class SafeExtractor
     private static async Task<Result<string>> GunzipAsync(string archivePath, string rootWithSeparator, ExtractionLimits limits, CancellationToken cancellationToken)
     {
         var name = Path.GetFileNameWithoutExtension(archivePath);
-        var target = Path.Combine(rootWithSeparator, string.IsNullOrEmpty(name) ? "archivo" : name);
+        var target = Path.Combine(rootWithSeparator, string.IsNullOrEmpty(name) ? Strings.FallbackFileName : name);
         var compressedLength = Math.Max(1, new FileInfo(archivePath).Length);
 
         await using var input = new FileStream(archivePath, FileMode.Open, FileAccess.Read, FileShare.Read, 81920, useAsync: true);
@@ -85,14 +86,14 @@ public static class SafeExtractor
             total += read;
             if (total > limits.MaxTotalBytes || (total > 64 * 1024 * 1024 && (double)total / compressedLength > limits.MaxCompressionRatio))
             {
-                return new Error(total > limits.MaxTotalBytes ? "archive-too-large" : "archive-bomb", "El archivo comprimido se expande de forma sospechosa.");
+                return new Error(total > limits.MaxTotalBytes ? "archive-too-large" : "archive-bomb", Strings.ErrorArchiveSuspicious);
             }
 
             await output.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
         }
 
         // Un GZIP truncado puede "terminar" sin datos en vez de fallar.
-        return total == 0 ? new Error("archive-invalid", "El archivo comprimido está vacío o dañado.") : target;
+        return total == 0 ? new Error("archive-invalid", Strings.ErrorArchiveEmpty) : target;
     }
 
     private static async Task<Result<IReadOnlyList<string>>> ExtractArchiveAsync(string archivePath, string rootWithSeparator, ExtractionLimits limits, CancellationToken cancellationToken)
@@ -126,7 +127,7 @@ public static class SafeExtractor
                 total += read;
                 if (total > limits.MaxTotalBytes)
                 {
-                    return new Error("archive-too-large", "El archivo comprimido supera el tamaño máximo permitido.");
+                    return new Error("archive-too-large", Strings.ErrorArchiveTooLarge);
                 }
 
                 await output.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
@@ -142,7 +143,7 @@ public static class SafeExtractor
     {
         if (entries.Count > limits.MaxEntries)
         {
-            return new Error("archive-too-many-entries", $"El archivo tiene más de {limits.MaxEntries} entradas.");
+            return new Error("archive-too-many-entries", Strings.ErrorArchiveTooManyEntries(limits.MaxEntries));
         }
 
         var plan = new List<(IArchiveEntry, string)>(entries.Count);
@@ -154,19 +155,19 @@ public static class SafeExtractor
             var target = Path.GetFullPath(Path.Combine(rootWithSeparator, key.Replace('/', Path.DirectorySeparatorChar)));
             if (!target.StartsWith(rootWithSeparator, StringComparison.OrdinalIgnoreCase))
             {
-                return new Error("archive-path-traversal", $"La entrada '{key}' intenta escribir fuera de la carpeta destino.");
+                return new Error("archive-path-traversal", Strings.ErrorArchivePathTraversal(key));
             }
 
             declaredTotal += Math.Max(0, entry.Size);
             if (declaredTotal > limits.MaxTotalBytes)
             {
-                return new Error("archive-too-large", "El archivo comprimido supera el tamaño máximo permitido.");
+                return new Error("archive-too-large", Strings.ErrorArchiveTooLarge);
             }
 
             // En archivos sólidos (7z) el tamaño comprimido por entrada no existe (0): no se puede medir la razón.
             if (entry.CompressedSize > 0 && (double)entry.Size / entry.CompressedSize > limits.MaxCompressionRatio)
             {
-                return new Error("archive-bomb", $"La entrada '{key}' tiene una razón de compresión sospechosa.");
+                return new Error("archive-bomb", Strings.ErrorArchiveBomb(key));
             }
 
             plan.Add((entry, target));

@@ -4,6 +4,7 @@
 using System.Text;
 using System.Text.RegularExpressions;
 using Kumquat.Core.Formats;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Results;
 using Kumquat.Core.Tools;
 using NetVips;
@@ -21,17 +22,17 @@ public sealed partial class ImageMetadataTool : ITool
 {
     private static readonly FileFormat[] Supported = [KnownFormats.Jpg, KnownFormats.Png, KnownFormats.WebP, KnownFormats.Tiff, KnownFormats.Avif];
 
-    private static readonly (string Key, string Label)[] Fields =
-        [("author", "Autor"), ("title", "Título"), ("description", "Descripción"), ("copyright", "Copyright")];
+    private static (string Key, string Label)[] Fields =>
+        [("author", Strings.FieldAuthor), ("title", Strings.FieldTitle), ("description", Strings.FieldDescription), ("copyright", Strings.FieldCopyright)];
 
     /// <inheritdoc />
     public string Id => "image.metadata";
 
     /// <inheritdoc />
-    public string Label => "Metadatos";
+    public string Label => Strings.ToolMetadata;
 
     /// <inheritdoc />
-    public string OutputSuffix => "metadatos";
+    public string OutputSuffix => Strings.SuffixMetadata;
 
     /// <inheritdoc />
     public bool IsAvailable => VipsConverter.IsLibraryAvailable;

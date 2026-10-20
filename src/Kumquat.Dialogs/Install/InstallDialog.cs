@@ -6,6 +6,7 @@ using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shell;
+using Kumquat.Core.Localization;
 using Kumquat.Design;
 using Kumquat.Dialogs.Look;
 
@@ -24,7 +25,7 @@ public sealed class InstallDialog : Window
     private InstallDialog(InstallRequest request, bool dark)
     {
         _look = new DialogLook(dark, Palette.Actions);
-        Title = $"Kumquat · Instalar {request.Name}";
+        Title = Strings.InstallWindowTitle(request.Name);
         ThemeMode = dark ? ThemeMode.Dark : ThemeMode.Light;
         FontFamily = DialogLook.Font;
         Resources["ContentControlThemeFontFamily"] = DialogLook.Font;
@@ -37,11 +38,10 @@ public sealed class InstallDialog : Window
 
         var panel = new StackPanel { Margin = new Thickness(24, CaptionHeight, 24, 22) };
         panel.Children.Add(Header(request.Name));
-        Body = $"Para esto hace falta {request.Name}, un programa gratuito que Kumquat usa para {request.Purpose}. No está en este equipo.";
+        Body = Strings.InstallBody(request.Name, request.Purpose);
         panel.Children.Add(Paragraph(Body, _look.Text, 14));
         panel.Children.Add(Platter(
-            $"Se instala con winget, el instalador de Windows, desde el paquete oficial de {request.Publisher}. " +
-            $"Al instalarlo aceptas su licencia ({request.License}). Vas a ver el progreso en una ventana; al terminar, Kumquat se reinicia solo."));
+            Strings.InstallDetails(request.Publisher, request.License)));
         panel.Children.Add(Buttons());
         Content = new Grid { Background = Tint(), Children = { panel } };
 
@@ -82,7 +82,7 @@ public sealed class InstallDialog : Window
         header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         header.Children.Add(_look.IconTile("install", 48));
-        var title = new TextBlock { Text = $"Instalar {name}", FontSize = 22, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(14, 0, 0, 0) };
+        var title = new TextBlock { Text = Strings.InstallItem(name), FontSize = 22, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(14, 0, 0, 0) };
         Grid.SetColumn(title, 1);
         header.Children.Add(title);
         return header;
@@ -105,14 +105,14 @@ public sealed class InstallDialog : Window
         buttons.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         buttons.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(10) });
         buttons.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1.4, GridUnitType.Star) });
-        var cancel = DialogLook.Pill("Ahora no", _look.Subtle, _look.Text);
+        var cancel = DialogLook.Pill(Strings.ButtonNotNow, _look.Subtle, _look.Text);
         cancel.IsCancel = true;
         cancel.Height = 44;
-        var install = DialogLook.Pill("Instalar", _look.AccentGradient, Brushes.White);
+        var install = DialogLook.Pill(Strings.ButtonInstall, _look.AccentGradient, Brushes.White);
         install.IsDefault = true;
         install.Height = 44;
         install.FontSize = 15;
-        AutomationProperties.SetName(install, "Instalar");
+        AutomationProperties.SetName(install, Strings.ButtonInstall);
         install.Click += (_, _) => DialogResult = true;
         Grid.SetColumn(install, 2);
         buttons.Children.Add(cancel);

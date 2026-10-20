@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shell;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Tools;
 using Kumquat.Design;
 using Kumquat.Dialogs.Look;
@@ -37,7 +38,7 @@ public sealed partial class ToolOptionsDialog : Window
         _request = request;
         _parameters = request.Parameters;
         _look = new DialogLook(dark, Palette.ForItem(request.ToolId));
-        Title = $"Kumquat · {request.Title}";
+        Title = Strings.ToolWindowTitle(request.Title);
         ThemeMode = dark ? ThemeMode.Dark : ThemeMode.Light;
         FontFamily = DialogLook.Font;
         Resources["ContentControlThemeFontFamily"] = DialogLook.Font;
@@ -188,7 +189,7 @@ public sealed partial class ToolOptionsDialog : Window
         }
 
         var missing = _parameters.FirstOrDefault(p => p.Required && string.IsNullOrWhiteSpace(full.GetValueOrDefault(p.Key)));
-        var error = missing is not null ? $"Completa «{missing.Label}»." : _request.Validate(full);
+        var error = missing is not null ? Strings.ValidateRequired(missing.Label) : _request.Validate(full);
         if (error is not null)
         {
             _error.Text = error;

@@ -6,4 +6,9 @@
   <PropertyGroup Condition="'$(OutputType)' == 'Library'">
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
+
+  <!-- Todos los tests corren en español, sea cual sea el idioma del equipo o del runner. -->
+  <ItemGroup Condition="'$(IsTestProject)' == 'true'">
+    <Compile Include="$(MSBuildThisFileDirectory)tests\Shared\SpanishCulture.cs" Link="Shared\SpanishCulture.cs" />
+  </ItemGroup>
 </Project>

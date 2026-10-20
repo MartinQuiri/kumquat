@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Kumquat.Core.Conversion;
 using Kumquat.Core.Formats;
 using Kumquat.Core.Jobs;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Previews;
 using Kumquat.Core.Tools;
 using Kumquat.Dialogs;
@@ -26,7 +27,8 @@ namespace Kumquat.App;
 /// <summary>Aplicación de bandeja: une la rueda, la cola de trabajos y las notificaciones.</summary>
 internal sealed partial class TrayApplication : IDisposable
 {
-    private static readonly string SettingsPath = Path.Combine(KumquatServices.DataDirectory, "settings.json");
+    /// <summary>Archivo de configuración (también lo lee Program para el idioma).</summary>
+    internal static readonly string SettingsPath = Path.Combine(KumquatServices.DataDirectory, "settings.json");
 
     private readonly IServiceProvider _services;
     private readonly UiThread _ui;
@@ -62,7 +64,7 @@ internal sealed partial class TrayApplication : IDisposable
 
         DialogDiagnostics.Error = (activity, ex) => LogDialogError(activity, ex);
         VirtualDrops.CleanupStale(TimeSpan.FromDays(1));
-        _tray = new TrayIcon("Kumquat: arrastra un archivo y presiona Shift", BuildMenu);
+        _tray = new TrayIcon(Strings.TrayTooltip(TriggerName(_settings.Trigger)), BuildMenu);
         _wheel = new WheelController(_targets.For, OnChosen, _settings.Trigger) { Trace = LogInteraction, NothingSelected = OnNothingSelected, CaptionForFiles = _targets.CaptionFor };
         _wheel.KeyboardPicker = files => _ui.Post(() => ShowPalette(files));
         _wheel.Start();
@@ -71,8 +73,8 @@ internal sealed partial class TrayApplication : IDisposable
         LogStarted(_settings.Trigger);
 
         // Kumquat no tiene ventana: sin este aviso, abrir el .exe parece no hacer nada.
-        var hotkeyHint = hotkeyActive ? $" O selecciona archivos y presiona {Hotkey.Default.Display}." : string.Empty;
-        _tray.Notify("Kumquat está activo", $"Arrastra un archivo y, sin soltarlo, presiona {TriggerName(_settings.Trigger)}.{hotkeyHint}");
+        var hotkeyHint = hotkeyActive ? Strings.StartedHotkeyHint(Hotkey.Default.Display) : string.Empty;
+        _tray.Notify(Strings.StartedTitle, Strings.StartedBody(TriggerName(_settings.Trigger), hotkeyHint));
     }
 
     /// <summary>Abre la rueda con estos archivos (Kumquat se abrió desde el menú contextual).</summary>
@@ -90,11 +92,11 @@ internal sealed partial class TrayApplication : IDisposable
         switch (item.Ring)
         {
             case WheelRingKind.Convert:
-                Enqueue(files.Select(f => _conversions.CreateJob(new ConversionRequest(f, item.Target!, output?.Directory))), "convertido", $"a {item.Label}{output?.Suffix}", item.Id, output?.Cleanup);
+                Enqueue(files.Select(f => _conversions.CreateJob(new ConversionRequest(f, item.Target!, output?.Directory))), BatchText.Converted(item.Label, output?.Suffix ?? string.Empty), item.Id, output?.Cleanup);
                 break;
             case WheelRingKind.Actions when string.Equals(item.Id, FileActions.Save, StringComparison.Ordinal) && output is { } target:
-                var jobs = files.Select(f => new JobRequest(f, "Guardar", (_, ct) => FileTransfer.CopyAsync(f, target.Directory, ct)));
-                Enqueue(jobs, "guardado", target.Suffix.Trim(), item.Id, target.Cleanup);
+                var jobs = files.Select(f => new JobRequest(f, Strings.JobSave, (_, ct) => FileTransfer.CopyAsync(f, target.Directory, ct)));
+                Enqueue(jobs, BatchText.Saved(target.Suffix), item.Id, target.Cleanup);
                 break;
             case WheelRingKind.Tools:
                 // Fuera del Drop: puede abrir la ventana de opciones.
@@ -135,14 +137,14 @@ internal sealed partial class TrayApplication : IDisposable
         {
             output?.Cleanup();
             LogToolFailed(item.Id, parameters.Exception);
-            _tray?.Notify("No se pudo abrir la herramienta", item.Label, isError: true);
+            _tray?.Notify(Strings.ToolOpenFailed, item.Label, isError: true);
             return;
         }
 
         IReadOnlyDictionary<string, string>? options = null;
         if (parameters.Result.Count > 0)
         {
-            var subtitle = files.Count == 1 ? Path.GetFileName(files[0]) : $"{files.Count} archivos";
+            var subtitle = files.Count == 1 ? Path.GetFileName(files[0]) : Strings.FilesCount(files.Count);
             options = ToolOptionsDialog.Ask(new ToolDialogRequest(item.Id, item.Label, subtitle, parameters.Result, chosen => _tools.Validate(item.Id, chosen))
             {
                 Preview = HasPreview(files) ? ct => _previews.CreateAsync(files[0], ct) : null,
@@ -154,7 +156,7 @@ internal sealed partial class TrayApplication : IDisposable
             }
         }
 
-        Enqueue(_tools.CreateJobs(files, item.Id, options, output?.Directory), "listo", $"({item.Label}){output?.Suffix}", item.Id, output?.Cleanup);
+        Enqueue(_tools.CreateJobs(files, item.Id, options, output?.Directory), BatchText.ToolDone(item.Label, output?.Suffix ?? string.Empty), item.Id, output?.Cleanup);
     }
 
     /// <summary>Vista previa solo para un archivo de una familia que la tiene (PDF, foto, audio, video).</summary>
@@ -187,7 +189,7 @@ internal sealed partial class TrayApplication : IDisposable
     {
         if (EngineOffers.Winget is not { } winget)
         {
-            _tray?.Notify("Kumquat", $"Instala {offer.Name} desde su sitio oficial y vuelve a abrir Kumquat.", isError: true);
+            _tray?.Notify("Kumquat", Strings.InstallManually(offer.Name), isError: true);
             return;
         }
 
@@ -207,18 +209,18 @@ internal sealed partial class TrayApplication : IDisposable
         if (install.IsFaulted || !EngineInstaller.Succeeded(install.Result))
         {
             LogInstallFailed(offer.WingetId, install.IsFaulted ? null : install.Result, install.Exception);
-            _tray?.Notify("Kumquat", $"No se instaló {offer.Name}. Puedes volver a intentarlo desde la rueda.", isError: true);
+            _tray?.Notify("Kumquat", Strings.InstallFailed(offer.Name), isError: true);
             return;
         }
 
-        _tray?.Notify("Kumquat", $"{offer.Name} quedó instalado. Kumquat se reinicia para usarlo.");
+        _tray?.Notify("Kumquat", Strings.Installed(offer.Name));
         EngineInstaller.Relaunch();
         _ui.Quit();
     }
 
     private void TransferTo(IReadOnlyList<string> files, bool move)
     {
-        var folder = FolderPicker.PickFolder(move ? "Mover a…" : "Copiar a…", move ? "Mover aquí" : "Copiar aquí");
+        var folder = FolderPicker.PickFolder(move ? Strings.ActionMoveTo : Strings.ActionCopyTo, move ? Strings.PickMoveHere : Strings.PickCopyHere);
         if (folder is null)
         {
             return;
@@ -226,9 +228,9 @@ internal sealed partial class TrayApplication : IDisposable
 
         var jobs = files.Select(f => new JobRequest(
             f,
-            move ? "Mover" : "Copiar",
+            move ? Strings.JobMove : Strings.JobCopy,
             (_, ct) => move ? FileTransfer.MoveAsync(f, folder, ct) : FileTransfer.CopyAsync(f, folder, ct)));
-        Enqueue(jobs, move ? "movido" : "copiado", $"a {Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar))}", move ? FileActions.MoveTo : FileActions.CopyTo);
+        Enqueue(jobs, BatchText.Transferred(move, Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar))), move ? FileActions.MoveTo : FileActions.CopyTo);
     }
 
     /// <summary>
@@ -237,13 +239,13 @@ internal sealed partial class TrayApplication : IDisposable
     /// </summary>
     private VirtualOutput? OutputFor(IReadOnlyList<string> files)
         => files.Count > 0 && VirtualDrops.IsExtracted(files[0])
-            ? new VirtualOutput(_settings.ResolvedOutputFolder, $" en {_targets.OutputFolderName}", () => VirtualDrops.Discard(files))
+            ? new VirtualOutput(_settings.ResolvedOutputFolder, Strings.OutputInFolder(_targets.OutputFolderName), () => VirtualDrops.Discard(files))
             : null;
 
-    private void Enqueue(IEnumerable<JobRequest> jobs, string verb, string detail, string id, Action? completed = null)
+    private void Enqueue(IEnumerable<JobRequest> jobs, BatchText text, string id, Action? completed = null)
     {
         var ids = jobs.Select(_jobs.Enqueue).ToList();
-        _notifier.Track(ids, verb, detail, completed);
+        _notifier.Track(ids, text, completed);
         LogEnqueued(ids.Count, id);
     }
 
@@ -251,26 +253,26 @@ internal sealed partial class TrayApplication : IDisposable
     [
         new($"Kumquat {typeof(TrayApplication).Assembly.GetName().Version?.ToString(3)}", null),
         TrayMenuItem.Separator,
-        new("Configuración…", () => _ui.Post(OpenSettings)),
+        new(Strings.MenuSettings, () => _ui.Post(OpenSettings)),
         TrayMenuItem.Separator,
-        new("Abrir carpeta de registros", () => OpenFolder(KumquatServices.LogDirectory)),
-        new("Licencias de terceros", () => OpenFolder(AppContext.BaseDirectory)),
+        new(Strings.MenuLogs, () => OpenFolder(KumquatServices.LogDirectory)),
+        new(Strings.MenuLicenses, () => OpenFolder(AppContext.BaseDirectory)),
         TrayMenuItem.Separator,
-        new("Salir", _ui.Quit),
+        new(Strings.MenuExit, _ui.Quit),
     ];
 
     /// <summary>Gestos para la rueda, en el orden de la ventana (el primero es el recomendado).</summary>
-    private static readonly (string Id, string Label)[] TriggerChoices =
+    private static (string Id, string Label)[] TriggerChoices =>
     [
-        (nameof(TriggerKey.Shift), "Shift (recomendado)"),
+        (nameof(TriggerKey.Shift), Strings.TriggerShiftRecommended),
         (nameof(TriggerKey.Control), "Ctrl"),
-        (nameof(TriggerKey.CapsLock), "Bloq Mayús"),
-        (nameof(TriggerKey.RightClick), "Clic derecho"),
+        (nameof(TriggerKey.CapsLock), Strings.TriggerCapsLock),
+        (nameof(TriggerKey.RightClick), Strings.TriggerRightClick),
     ];
 
     private void OpenSettings()
     {
-        var current = new SettingsValues(_settings.Trigger.ToString(), _settings.HotkeyEnabled, _settings.ContextMenuEnabled, _settings.StartWithWindows, _settings.ResolvedOutputFolder);
+        var current = new SettingsValues(_settings.Trigger.ToString(), _settings.HotkeyEnabled, _settings.ContextMenuEnabled, _settings.StartWithWindows, _settings.ResolvedOutputFolder, _settings.Language);
         if (SettingsDialog.Ask(current, TriggerChoices, AppSettings.DefaultOutputFolder) is not { } chosen)
         {
             return;
@@ -283,8 +285,17 @@ internal sealed partial class TrayApplication : IDisposable
             ContextMenuEnabled = chosen.ContextMenu,
             StartWithWindows = chosen.StartWithWindows,
             OutputFolder = string.Equals(chosen.OutputFolder, AppSettings.DefaultOutputFolder, StringComparison.OrdinalIgnoreCase) ? null : chosen.OutputFolder,
+            Language = chosen.Language,
         };
         _settings.Save(SettingsPath);
+        if (!string.Equals(chosen.Language, current.Language, StringComparison.OrdinalIgnoreCase))
+        {
+            // Los textos se crean al arrancar (rueda, menús, herramientas): el idioma nuevo, al reiniciar.
+            EngineInstaller.Relaunch();
+            _ui.Quit();
+            return;
+        }
+
         ApplySettings(notifyHotkeyConflict: true);
         LogStarted(_settings.Trigger);
     }
@@ -296,7 +307,7 @@ internal sealed partial class TrayApplication : IDisposable
         var hotkeyFree = _wheel.SetHotkey(_settings.HotkeyEnabled ? Hotkey.Default : null);
         if (!hotkeyFree && notifyHotkeyConflict)
         {
-            _tray?.Notify("Atajo no disponible", $"Otra aplicación ya usa {Hotkey.Default.Display}.", isError: true);
+            _tray?.Notify(Strings.HotkeyTakenTitle, Strings.HotkeyTakenBody(Hotkey.Default.Display), isError: true);
         }
 
         SyncContextMenu();
@@ -337,7 +348,7 @@ internal sealed partial class TrayApplication : IDisposable
         var rings = _targets.For(files);
         var items = rings.SelectMany(r => r.Items).ToList();
         var request = new PaletteRequest(
-            files.Count == 1 ? Path.GetFileName(files[0]) : $"{files.Count} archivos",
+            files.Count == 1 ? Path.GetFileName(files[0]) : Strings.FilesCount(files.Count),
             SafeCaption(files),
             WheelTargets.CategoryIcon(files),
             [.. items.Select(PaletteItems.From)]);
@@ -367,16 +378,14 @@ internal sealed partial class TrayApplication : IDisposable
 
     private void OnNothingSelected(bool explorerInFront)
         => _tray?.Notify(
-            "Nada seleccionado",
-            explorerInFront
-                ? "Selecciona uno o más archivos y vuelve a presionar " + Hotkey.Default.Display + "."
-                : "Funciona en el Explorador y el escritorio: selecciona archivos y presiona " + Hotkey.Default.Display + ".");
+            Strings.NothingSelectedTitle,
+            explorerInFront ? Strings.NothingSelectedExplorer(Hotkey.Default.Display) : Strings.NothingSelectedElsewhere(Hotkey.Default.Display));
 
     private static string TriggerName(TriggerKey key) => key switch
     {
         TriggerKey.Control => "Ctrl",
-        TriggerKey.CapsLock => "Bloq Mayús",
-        TriggerKey.RightClick => "el clic derecho",
+        TriggerKey.CapsLock => Strings.TriggerCapsLock,
+        TriggerKey.RightClick => Strings.TriggerRightClickInSentence,
         _ => "Shift",
     };
 

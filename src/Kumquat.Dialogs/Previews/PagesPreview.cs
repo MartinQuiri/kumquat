@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Kumquat contributors
 
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Effects;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Previews;
 using Kumquat.Dialogs.Look;
 
@@ -98,7 +98,7 @@ internal sealed class PagesPreview : DockPanel
         var title = new StackPanel();
         title.Children.Add(new TextBlock
         {
-            Text = PageCount == 1 ? "1 página" : string.Create(CultureInfo.CurrentCulture, $"{PageCount} páginas"),
+            Text = PageCount == 1 ? Strings.PageCountOne : Strings.PageCountMany(PageCount),
             FontWeight = FontWeights.SemiBold,
             FontSize = 15,
             Foreground = _look.Text,
@@ -108,8 +108,8 @@ internal sealed class PagesPreview : DockPanel
         if (_selectable)
         {
             var actions = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
-            actions.Children.Add(SmallButton("Todas", () => SetAll(true)));
-            actions.Children.Add(SmallButton("Ninguna", () => SetAll(false)));
+            actions.Children.Add(SmallButton(Strings.SelectAll, () => SetAll(true)));
+            actions.Children.Add(SmallButton(Strings.SelectNone, () => SetAll(false)));
             Grid.SetColumn(actions, 1);
             bar.Children.Add(actions);
         }
@@ -163,10 +163,10 @@ internal sealed class PagesPreview : DockPanel
 
     private void UpdateSummary()
     {
-        _summary.Text = !_selectable ? "Vista previa"
-            : _selected.Count == 0 ? "Haz clic en las páginas que quieres extraer"
-            : _selected.Count == 1 ? "1 página elegida"
-            : string.Create(CultureInfo.CurrentCulture, $"{_selected.Count} páginas elegidas");
+        _summary.Text = !_selectable ? Strings.Preview
+            : _selected.Count == 0 ? Strings.PagesPickHint
+            : _selected.Count == 1 ? Strings.PagesChosenOne
+            : Strings.PagesChosenMany(_selected.Count);
     }
 
     /// <summary>Sombra suave de las tarjetas de página.</summary>

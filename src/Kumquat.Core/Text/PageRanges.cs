@@ -24,6 +24,8 @@ public static partial class PageRanges
             .Replace("fin", "z", StringComparison.Ordinal)
             .Replace("última", "z", StringComparison.Ordinal)
             .Replace("ultima", "z", StringComparison.Ordinal)
+            .Replace("end", "z", StringComparison.Ordinal)
+            .Replace("last", "z", StringComparison.Ordinal)
             .Replace(';', ',');
         if (!Valid().IsMatch(cleaned) || cleaned.Split(',', '-').Any(n => string.Equals(n, "0", StringComparison.Ordinal)))
         {

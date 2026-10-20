@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Kumquat.Core.Conversion;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Results;
 using Kumquat.Core.Text;
 using Kumquat.Core.Tools;
@@ -19,14 +20,14 @@ namespace Kumquat.Engines.Pdf;
 internal sealed partial class PdfSecureTools(PdfEngines engines, ITempWorkspaceFactory workspaces)
 {
     /// <summary>Campos estándar del diccionario Info: clave PDF → etiqueta.</summary>
-    public static readonly (string Key, string Label)[] MetadataFields =
+    public static (string Key, string Label)[] MetadataFields =>
     [
-        ("Title", "Título"),
-        ("Author", "Autor"),
-        ("Subject", "Asunto"),
-        ("Keywords", "Palabras clave"),
-        ("Creator", "Creado con"),
-        ("Producer", "Productor"),
+        ("Title", Strings.FieldTitle),
+        ("Author", Strings.FieldAuthor),
+        ("Subject", Strings.FieldSubject),
+        ("Keywords", Strings.FieldKeywords),
+        ("Creator", Strings.FieldCreator),
+        ("Producer", Strings.FieldProducer),
     ];
 
     /// <summary>Claves que gestiona el propio PDF y no se ofrecen para editar.</summary>
@@ -69,16 +70,16 @@ internal sealed partial class PdfSecureTools(PdfEngines engines, ITempWorkspaceF
     // ---------- Extraer páginas ----------
 
     public static IReadOnlyList<ToolParameter> ExtractParameters() =>
-        [new ToolParameter("pages", "Páginas", ToolParameterKind.Pages, "1", "Ej.: 1-3, 5, 8-fin", Required: true)];
+        [new ToolParameter("pages", Strings.ParamPages, ToolParameterKind.Pages, "1", Strings.HintPages, Required: true)];
 
     public static string? ValidateExtract(IReadOnlyDictionary<string, string> options)
-        => PageRanges.TryNormalize(options.GetValueOrDefault("pages"), out _) ? null : "Escribe páginas como 1-3, 5, 8-fin.";
+        => PageRanges.TryNormalize(options.GetValueOrDefault("pages"), out _) ? null : Strings.ValidatePages;
 
     public Task<Result> ExtractAsync(ToolStep step, CancellationToken cancellationToken)
     {
         if (!PageRanges.TryNormalize(step.Option("pages"), out var pages))
         {
-            return Task.FromResult(Result.Failure(new Error("invalid-options", "Rango de páginas inválido.")));
+            return Task.FromResult(Result.Failure(new Error("invalid-options", Strings.ErrorInvalidPageRange)));
         }
 
         return engines.RunQpdfAsync([PdfEngines.Abs(step.InputPath), "--pages", ".", pages, "--", PdfEngines.Abs(step.OutputPath)], cancellationToken);
@@ -88,8 +89,8 @@ internal sealed partial class PdfSecureTools(PdfEngines engines, ITempWorkspaceF
 
     public static IReadOnlyList<ToolParameter> ProtectParameters() =>
     [
-        new ToolParameter("password", "Contraseña", ToolParameterKind.Password, Required: true),
-        new ToolParameter("confirm", "Repetir contraseña", ToolParameterKind.Password, Required: true),
+        new ToolParameter("password", Strings.ParamPassword, ToolParameterKind.Password, Required: true),
+        new ToolParameter("confirm", Strings.ParamConfirmPassword, ToolParameterKind.Password, Required: true),
     ];
 
     public static string? ValidateProtect(IReadOnlyDictionary<string, string> options)
@@ -97,15 +98,15 @@ internal sealed partial class PdfSecureTools(PdfEngines engines, ITempWorkspaceF
         var password = options.GetValueOrDefault("password") ?? string.Empty;
         if (password.Length == 0)
         {
-            return "Escribe una contraseña.";
+            return Strings.ValidatePasswordEmpty;
         }
 
         if (password.Contains('\n', StringComparison.Ordinal) || password.Contains('\r', StringComparison.Ordinal))
         {
-            return "La contraseña no puede tener saltos de línea.";
+            return Strings.ValidatePasswordNewline;
         }
 
-        return string.Equals(password, options.GetValueOrDefault("confirm"), StringComparison.Ordinal) ? null : "Las contraseñas no coinciden.";
+        return string.Equals(password, options.GetValueOrDefault("confirm"), StringComparison.Ordinal) ? null : Strings.ValidatePasswordMismatch;
     }
 
     public Task<Result> ProtectAsync(ToolStep step, CancellationToken cancellationToken)
@@ -117,19 +118,19 @@ internal sealed partial class PdfSecureTools(PdfEngines engines, ITempWorkspaceF
     }
 
     public static IReadOnlyList<ToolParameter> UnlockParameters() =>
-        [new ToolParameter("password", "Contraseña", ToolParameterKind.Password, Hint: "Déjala vacía si el PDF se abre sin contraseña y solo tiene restricciones (imprimir, copiar...).")];
+        [new ToolParameter("password", Strings.ParamPassword, ToolParameterKind.Password, Hint: Strings.HintUnlockPassword)];
 
     public static string? ValidateUnlock(IReadOnlyDictionary<string, string> options)
     {
         var password = options.GetValueOrDefault("password") ?? string.Empty;
-        return password.Contains('\n', StringComparison.Ordinal) || password.Contains('\r', StringComparison.Ordinal) ? "La contraseña no puede tener saltos de línea." : null;
+        return password.Contains('\n', StringComparison.Ordinal) || password.Contains('\r', StringComparison.Ordinal) ? Strings.ValidatePasswordNewline : null;
     }
 
     public async Task<Result> UnlockAsync(ToolStep step, CancellationToken cancellationToken)
     {
         var password = step.Option("password") ?? string.Empty;
         var result = await RunQpdfWithArgumentFileAsync([$"--password={password}", "--decrypt", PdfEngines.Abs(step.InputPath), PdfEngines.Abs(step.OutputPath)], cancellationToken);
-        return string.Equals(result.Error?.Code, "pdf-encrypted", StringComparison.Ordinal) ? new Error("wrong-password", "La contraseña no es correcta.") : result;
+        return string.Equals(result.Error?.Code, "pdf-encrypted", StringComparison.Ordinal) ? new Error("wrong-password", Strings.ErrorWrongPassword) : result;
     }
 
     // ---------- Metadatos ----------
@@ -141,13 +142,13 @@ internal sealed partial class PdfSecureTools(PdfEngines engines, ITempWorkspaceF
         var custom = current
             .Where(kv => !Technical.Contains(kv.Key) && !MetadataFields.Any(f => string.Equals(f.Key, kv.Key, StringComparison.Ordinal)))
             .Select(kv => new ToolParameter(ToolParameter.CustomPrefix + kv.Key, kv.Key, ToolParameterKind.Text, kv.Value));
-        return [.. known, .. custom, new ToolParameter("custom", "Campos personalizados", ToolParameterKind.CustomFields)];
+        return [.. known, .. custom, new ToolParameter("custom", Strings.ParamCustomFields, ToolParameterKind.CustomFields)];
     }
 
     public static string? ValidateMetadata(IReadOnlyDictionary<string, string> options)
     {
         var bad = options.Keys.Select(Key).FirstOrDefault(k => !PdfName().IsMatch(k));
-        return bad is null ? null : $"El nombre de campo '{bad}' solo puede tener letras, números, guion o guion bajo.";
+        return bad is null ? null : Strings.ValidateFieldName(bad);
     }
 
     public async Task<Result> WriteMetadataAsync(ToolStep step, CancellationToken cancellationToken)
@@ -160,7 +161,7 @@ internal sealed partial class PdfSecureTools(PdfEngines engines, ITempWorkspaceF
         await File.WriteAllTextAsync(changes, JsonSerializer.Serialize(map, PdfJson.Default.DictionaryStringString), new UTF8Encoding(false), cancellationToken);
         var result = await engines.RunMutoolAsync(["run", script, "write", PdfEngines.Abs(step.InputPath), PdfEngines.Abs(step.OutputPath), changes], cancellationToken);
         return string.Equals(result.Error?.Code, "pdf-encrypted", StringComparison.Ordinal)
-            ? new Error("pdf-encrypted", "El PDF está protegido: desbloquéalo primero.")
+            ? new Error("pdf-encrypted", Strings.ErrorPdfUnlockFirst)
             : result;
     }
 

@@ -19,6 +19,8 @@ Kumquat es una alternativa libre (GPL-3.0) para Windows inspirada en la interacc
 
 Soltar en el centro (el logo) o presionar **Esc** cancela. El gesto se puede cambiar a Ctrl, Bloq Mayús o clic derecho en **Configuración** (menú del ícono).
 
+**Idioma:** español o inglés. Por defecto, el de Windows (si Windows está en otro idioma, inglés); se cambia en Configuración. ¿Quieres traducir Kumquat a tu idioma? Ver [CONTRIBUTING.md](CONTRIBUTING.md#textos-e-idiomas).
+
 **Con el teclado: el buscador.** Selecciona uno o más archivos en el Explorador (o en el escritorio) y presiona **Ctrl+Alt+K**, o haz clic derecho → **Kumquat…** (en Windows 11, dentro de "Mostrar más opciones"). Aparece un buscador con todo lo que se puede hacer con esos archivos: escribe para filtrar (`pdf`, `comprimir`, `achicar`, `ruta`… sin importar tildes), ↑ ↓ para elegir, **Enter** para aplicar y **Esc** para cerrar. La rueda queda para arrastrar con el mouse.
 
 <p align="center"><img src="docs/images/buscador-oscuro.png" width="560" alt="El buscador de acciones con la búsqueda pdf"></p>
@@ -152,6 +154,7 @@ Detalles en [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) y [CONTRIBUTING.md](CON
 - [x] OCR con Tesseract (compilado por Kumquat): imagen → texto, imagen → PDF buscable, PDF escaneado → PDF buscable.
 - [x] Office → PDF y PDF → Word con Microsoft Office o LibreOffice (el que esté instalado; si no hay, se ofrece instalar LibreOffice).
 - [x] Libros electrónicos con Calibre: EPUB, MOBI, AZW3, FB2 y Word → EPUB/AZW3/MOBI/PDF.
+- [x] Interfaz en español e inglés (traducible: un `.resx` por idioma).
 - [ ] Fase 3: instalador firmado (SignPath), winget y Microsoft Store.
 - [ ] Fase 4: sandbox de motores (baja integridad / AppContainer), fuzzing continuo.
 

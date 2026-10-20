@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Previews;
 using Kumquat.Core.Text;
 using Kumquat.Core.Tools;
@@ -220,7 +221,7 @@ public sealed partial class ToolOptionsDialog
             panel.Children.Add(tile);
         }
 
-        panel.Children.Add(new TextBlock { Text = loading ? "Preparando vista previa…" : "Sin vista previa para este archivo", Foreground = _look.Muted, FontSize = 13, HorizontalAlignment = HorizontalAlignment.Center });
+        panel.Children.Add(new TextBlock { Text = loading ? Strings.PreviewLoading : Strings.PreviewNone, Foreground = _look.Muted, FontSize = 13, HorizontalAlignment = HorizontalAlignment.Center });
         _previewHost.Child = panel;
     }
 

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Kumquat contributors
 
-using System.Globalization;
 using Kumquat.Core.Jobs;
+using Kumquat.Core.Localization;
 
 namespace Kumquat.App;
 
@@ -15,19 +15,19 @@ internal sealed class BatchNotifier(Action<string, string, bool> notify)
     private readonly Dictionary<Guid, Batch> _byJob = [];
 
     /// <param name="jobIds">Trabajos del drop.</param>
-    /// <param name="verb">Participio en singular ("convertido", "listo").</param>
-    /// <param name="detail">Complemento ("a PNG", "(Comprimir)").</param>
+    /// <param name="text">Aviso de éxito: para un archivo (con su nombre) y para varios (con la cantidad).</param>
     /// <param name="completed">Se llama una vez al terminar el lote (p. ej. borrar copias temporales).</param>
-    public void Track(IReadOnlyCollection<Guid> jobIds, string verb, string detail, Action? completed = null)
+    public void Track(IReadOnlyCollection<Guid> jobIds, BatchText text, Action? completed = null)
     {
         ArgumentNullException.ThrowIfNull(jobIds);
+        ArgumentNullException.ThrowIfNull(text);
         if (jobIds.Count == 0)
         {
             completed?.Invoke();
             return;
         }
 
-        var batch = new Batch(verb, detail, jobIds.Count) { Completed = completed };
+        var batch = new Batch(text, jobIds.Count) { Completed = completed };
         foreach (var id in jobIds)
         {
             _byJob[id] = batch;
@@ -52,29 +52,25 @@ internal sealed class BatchNotifier(Action<string, string, bool> notify)
         batch.Completed?.Invoke();
         if (batch.Failed == 0)
         {
-            var message = batch.Succeeded == 1
-                ? $"{Path.GetFileName(batch.LastOutput)} {batch.Verb} {batch.Detail}"
-                : string.Create(CultureInfo.CurrentCulture, $"{batch.Succeeded} archivos {batch.Verb}s {batch.Detail}");
-            notify("Listo", message, false);
+            var message = batch.Succeeded == 1 ? batch.Text.One(Path.GetFileName(batch.LastOutput) ?? string.Empty) : batch.Text.Many(batch.Succeeded);
+            notify(Strings.NotifyDone, message, false);
         }
         else
         {
             notify(
-                batch.Succeeded == 0 ? "No se pudo convertir" : string.Create(CultureInfo.CurrentCulture, $"{batch.Succeeded} de {batch.Total} convertidos"),
-                batch.FirstError ?? "Error desconocido",
+                batch.Succeeded == 0 ? Strings.NotifyFailedAll : Strings.NotifyPartial(batch.Succeeded, batch.Total),
+                batch.FirstError ?? Strings.ErrorUnknown,
                 true);
         }
     }
 
-    private sealed class Batch(string verb, string detail, int total)
+    private sealed class Batch(BatchText text, int total)
     {
         private int _done;
 
-        public string Verb { get; } = verb;
+        public BatchText Text { get; } = text;
 
         public Action? Completed { get; init; }
-
-        public string Detail { get; } = detail;
 
         public int Total { get; } = total;
 

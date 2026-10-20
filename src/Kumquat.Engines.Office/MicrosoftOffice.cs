@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using Kumquat.Core.Conversion;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Results;
 using Kumquat.Infrastructure.Processes;
 
@@ -119,11 +120,11 @@ internal sealed class MicrosoftOffice(IProcessRunner runner, ITempWorkspaceFacto
         if (outcome.TimedOut)
         {
             KillOurs(officeProcess);
-            return new Error("engine-timeout", $"Microsoft {app} no respondió a tiempo.");
+            return new Error("engine-timeout", Strings.ErrorEngineNoResponse($"Microsoft {app}"));
         }
 
         return done && File.Exists(output)
             ? Result.Success
-            : new Error("engine-failed", error is null ? $"Microsoft {app} no pudo convertir el documento." : $"Microsoft {app}: {error}");
+            : new Error("engine-failed", error is null ? Strings.ErrorMicrosoftFailed(app) : Strings.ErrorMicrosoftDetail(app, error));
     }
 }

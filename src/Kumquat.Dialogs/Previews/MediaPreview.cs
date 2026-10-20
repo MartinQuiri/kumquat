@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Previews;
 using Kumquat.Core.Text;
 using Kumquat.Dialogs.Look;
@@ -200,7 +201,7 @@ internal sealed class MediaPreview : Grid, IDisposable
         var button = DialogLook.Pill(DialogLook.Icon("play", 16, Brushes.White), look.AccentGradient, Brushes.White);
         button.Width = 40;
         button.Padding = new Thickness(0);
-        System.Windows.Automation.AutomationProperties.SetName(button, "Reproducir");
+        System.Windows.Automation.AutomationProperties.SetName(button, Strings.Play);
         button.Click += (_, _) => TogglePlay();
         return button;
     }
@@ -227,7 +228,7 @@ internal sealed class MediaPreview : Grid, IDisposable
         using var playing = CancellationTokenSource.CreateLinkedTokenSource(_life.Token);
         _playing = playing;
         _play.Content = DialogLook.Icon("pause", 16, Brushes.White);
-        System.Windows.Automation.AutomationProperties.SetName(_play, "Pausa");
+        System.Windows.Automation.AutomationProperties.SetName(_play, Strings.Pause);
         try
         {
             await Task.Run(() => _playback!.PlayAsync(from, to, OnFrame, OnPosition, playing.Token), playing.Token);
@@ -253,7 +254,7 @@ internal sealed class MediaPreview : Grid, IDisposable
         }
 
         _play.Content = DialogLook.Icon("play", 16, Brushes.White);
-        System.Windows.Automation.AutomationProperties.SetName(_play, "Reproducir");
+        System.Windows.Automation.AutomationProperties.SetName(_play, Strings.Play);
         if (_mode == TimelineMode.Point)
         {
             // Pausar en un momento elige ese fotograma.
@@ -378,8 +379,8 @@ internal sealed class MediaPreview : Grid, IDisposable
         _clock.Text = $"{TimeText.Format(_timeline.Position)} / {TimeText.Format(_timeline.Duration)}";
         _selection.Text = _mode switch
         {
-            TimelineMode.Range => $"Tramo: {TimeText.Format(_timeline.Start)} – {TimeText.Format(_timeline.End)}  ·  {TimeText.Format(_timeline.End - _timeline.Start)}",
-            TimelineMode.Point => $"Fotograma en {TimeText.Format(_timeline.Position)}",
+            TimelineMode.Range => Strings.PreviewRange(TimeText.Format(_timeline.Start), TimeText.Format(_timeline.End), TimeText.Format(_timeline.End - _timeline.Start)),
+            TimelineMode.Point => Strings.PreviewFrameAt(TimeText.Format(_timeline.Position)),
             _ => string.Empty,
         };
     }

@@ -4,6 +4,7 @@
 using System.Text;
 using Kumquat.Core.Conversion;
 using Kumquat.Core.Formats;
+using Kumquat.Core.Localization;
 using Kumquat.Core.Results;
 using Kumquat.Core.Tools;
 using Kumquat.Engines.Pdf;
@@ -51,9 +52,9 @@ public sealed class OcrTool : ITool
         bool CanReadPdf() => tesseract.IsAvailable && pdf.Mutool is not null && pdf.Qpdf is not null;
         return
         [
-            new OcrTool("image.ocr-text", "Extraer texto", "texto", OcrImage.Supported, KnownFormats.Txt, () => tesseract.IsAvailable, (step, _, ct) => RecognizeImageAsync(tesseract, workspaces, step, "txt", ct)),
-            new OcrTool("image.ocr-pdf", "PDF buscable", "OCR", OcrImage.Supported, KnownFormats.Pdf, () => tesseract.IsAvailable, (step, _, ct) => RecognizeImageAsync(tesseract, workspaces, step, "pdf", ct)),
-            new OcrTool("pdf.ocr", "Reconocer texto", "OCR", [KnownFormats.Pdf], KnownFormats.Pdf, CanReadPdf, (step, progress, ct) => pdfOcr.RunAsync(step.InputPath, step.OutputPath, progress, ct)),
+            new OcrTool("image.ocr-text", Strings.ToolOcrText, Strings.SuffixText, OcrImage.Supported, KnownFormats.Txt, () => tesseract.IsAvailable, (step, _, ct) => RecognizeImageAsync(tesseract, workspaces, step, "txt", ct)),
+            new OcrTool("image.ocr-pdf", Strings.ToolOcrPdf, "OCR", OcrImage.Supported, KnownFormats.Pdf, () => tesseract.IsAvailable, (step, _, ct) => RecognizeImageAsync(tesseract, workspaces, step, "pdf", ct)),
+            new OcrTool("pdf.ocr", Strings.ToolPdfOcr, "OCR", [KnownFormats.Pdf], KnownFormats.Pdf, CanReadPdf, (step, progress, ct) => pdfOcr.RunAsync(step.InputPath, step.OutputPath, progress, ct)),
         ];
     }
 
@@ -86,7 +87,7 @@ public sealed class OcrTool : ITool
         var text = (await File.ReadAllTextAsync(step.OutputPath, cancellationToken)).Replace("\f", string.Empty, StringComparison.Ordinal).Trim();
         if (text.Length == 0)
         {
-            return new Error("no-text-found", "No se encontró texto en la imagen.");
+            return new Error("no-text-found", Strings.ErrorNoTextInImage);
         }
 
         await File.WriteAllTextAsync(step.OutputPath, text + Environment.NewLine, new UTF8Encoding(false), cancellationToken);

@@ -2,6 +2,7 @@
 // Copyright (C) 2026 Kumquat contributors
 
 using Kumquat.Core.Formats;
+using Kumquat.Core.Localization;
 using Kumquat.Engines.Calibre;
 using Kumquat.Engines.Office;
 using Kumquat.Interaction.Wheel;
@@ -17,25 +18,25 @@ internal static class EngineOffers
     /// <summary>Prefijo de los ids de "Instalar …".</summary>
     public const string Prefix = "action.install.";
 
-    public static readonly EngineOffer LibreOffice = new(
+    public static EngineOffer LibreOffice => new(
         Prefix + "libreoffice",
         "LibreOffice",
         "TheDocumentFoundation.LibreOffice",
-        "convertir documentos de Word, Excel y PowerPoint a PDF, y PDF a Word",
+        Strings.OfferLibreOfficePurpose,
         "The Document Foundation",
         "MPL 2.0",
         [.. OfficeConverter.TextDocuments, .. OfficeConverter.Spreadsheets, .. OfficeConverter.Presentations]);
 
-    public static readonly EngineOffer Calibre = new(
+    public static EngineOffer Calibre => new(
         Prefix + "calibre",
         "Calibre",
         "calibre.calibre",
-        "convertir libros electrónicos entre EPUB, Kindle (MOBI, AZW3) y PDF",
+        Strings.OfferCalibrePurpose,
         "Kovid Goyal",
         "GPL-3.0",
         [.. CalibreConverter.Inputs.Where(f => f != KnownFormats.Docx)]);
 
-    public static IReadOnlyList<EngineOffer> All { get; } = [LibreOffice, Calibre];
+    public static IReadOnlyList<EngineOffer> All => [LibreOffice, Calibre];
 
     /// <summary>winget (App Installer), que trae Windows 10/11; <c>null</c> si no está.</summary>
     public static string? Winget
@@ -62,5 +63,5 @@ internal static class EngineOffers
     }
 
     /// <summary>Sector "Instalar …" para la rueda.</summary>
-    public static WheelItem Item(EngineOffer offer) => WheelItem.Action(offer.ActionId, $"Instalar {offer.Name}");
+    public static WheelItem Item(EngineOffer offer) => WheelItem.Action(offer.ActionId, Strings.InstallItem(offer.Name));
 }

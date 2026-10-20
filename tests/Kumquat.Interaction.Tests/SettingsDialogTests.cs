@@ -34,6 +34,21 @@ public sealed class SettingsDialogTests
         result.Hotkey.ShouldBeTrue();
     }
 
+    [Fact]
+    public void Idioma_AutomaticoPorDefectoYSeElige()
+    {
+        var (initial, chosen) = OnSta(() =>
+        {
+            var dialog = SettingsDialog.CreateForTests(Values, Triggers, @"C:\Users\ana\Desktop");
+            var before = dialog.Collect().Language;
+            dialog.ChooseLanguageForTests("en");
+            return (before, dialog.Collect().Language);
+        });
+
+        initial.ShouldBe("auto");
+        chosen.ShouldBe("en");
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
