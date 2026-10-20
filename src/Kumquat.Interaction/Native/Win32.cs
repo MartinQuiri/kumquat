@@ -241,6 +241,10 @@ internal static unsafe partial class Win32
     [LibraryImport("user32.dll")]
     public static partial uint GetSysColor(int index);
 
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool GetLastInputInfo(LASTINPUTINFO* info);
+
     /// <summary>Indica si el alto contraste de Windows está activo.</summary>
     public static bool IsHighContrastOn()
     {

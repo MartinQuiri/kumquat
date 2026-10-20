@@ -54,7 +54,7 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
         };
         _window.PathRequestHandler = _session.OnPathRequested;
         _dropTarget = new DropTarget(this);
-        _hook = new GlobalInputHook(_tracker, PostGesture);
+        _hook = new GlobalInputHook(_tracker, PostGesture) { Trace = message => Trace?.Invoke(message) };
     }
 
     /// <summary>Texto bajo la rueda para estos archivos (formato y tamaño), o <c>null</c> para no mostrarlo.</summary>
