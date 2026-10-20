@@ -17,6 +17,13 @@ Tesseract incluye, enlazadas estáticamente, Leptonica 1.87 (BSD-2-Clause), libj
 
 Cada instalación del motor incluye un `SOURCE.txt` con su versión, licencia y enlace al código fuente.
 
+## Programas que Kumquat usa si están instalados (no se distribuyen)
+
+| Programa | Licencia | Cómo lo usa |
+|---|---|---|
+| Microsoft Office (Word, Excel, PowerPoint) | Licencia de Microsoft de cada persona | Automatización COM desde un proceso de PowerShell aparte |
+| LibreOffice | MPL-2.0 | Proceso `soffice --headless` con un perfil temporal. Si no hay ni Office ni LibreOffice, Kumquat ofrece instalarlo con winget (`TheDocumentFoundation.LibreOffice`), solo con permiso explícito |
+
 ## Paquetes NuGet distribuidos con la aplicación
 
 | Paquete | Licencia | Proyecto |

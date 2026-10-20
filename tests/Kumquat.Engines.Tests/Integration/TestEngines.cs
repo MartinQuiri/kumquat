@@ -24,7 +24,8 @@ internal static class TestEngines
     public static readonly ImagePdfBuilder ImagePdf = new(Pdf, Workspaces);
     public static readonly MupdfConverter Mupdf = new(Pdf, ImagePdf);
     public static readonly Kumquat.Engines.Ocr.TesseractEngine Tesseract = new(Runner, Locator);
-    public static readonly IReadOnlyList<IConverter> All = [Ffmpeg, Vips, Mupdf];
+    public static readonly Kumquat.Engines.Office.OfficeConverter Office = new(Kumquat.Engines.Office.OfficeApps.Detect(), Runner, Workspaces);
+    public static readonly IReadOnlyList<IConverter> All = [Ffmpeg, Vips, Mupdf, Office];
 
     public static string? FfmpegExe => Locator.Find("ffmpeg", Path.Combine("bin", "ffmpeg.exe"));
 

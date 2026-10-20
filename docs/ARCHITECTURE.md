@@ -11,7 +11,7 @@ Kumquat.Hosting              composición DI (motores, cola, logging), PreviewSe
    ▼            ▼
 Kumquat.Interaction        Kumquat.Dialogs             Kumquat.Engines.*          Kumquat.Infrastructure
  WheelSession (lógica)      ventana de opciones (WPF)   FFmpeg, MuPDF, qpdf,       ProcessRunner + Job Object
- WheelController (Win32)    vistas previas, reproductor Tesseract (procesos)       WaveOutPlayer, TempWorkspace
+ WheelController (Win32)    vistas previas, reproductor Tesseract, Office (proc.)  WaveOutPlayer, TempWorkspace
  hooks LL, OLE, atajo       sincronizadas con campos    libvips (en proceso)       SafeExtractor, EngineLocator
    │        │                  │                            │                          │
    │        └──── Kumquat.Design: íconos, trazados SVG, paleta, Inter, logo (sin UI) ───┤
@@ -122,6 +122,8 @@ translúcido, borde de luz, sombra y sectores con esquinas redondeadas calculada
 | GPL-3.0-or-later | Permite x264/x265, MuPDF, Ghostscript, Calibre; impide forks cerrados | MIT |
 | Reproducir con FFmpeg + waveOut | Cualquier formato que Kumquat acepta; fotograma exacto; sin componentes opcionales de Windows | `MediaElement` (depende del Reproductor de Windows heredado y de sus códecs: no abre MKV, WebM, Opus…) |
 | OCR con Tesseract compilado por Kumquat | PDF buscable nativo con texto Unicode, más de 100 idiomas, mismo resultado en toda PC y en CI | OCR de Windows (depende de los idiomas instalados; el texto del PDF habría que armarlo a mano) |
+| Office: usar lo instalado (Microsoft Office, si no LibreOffice) | Fidelidad máxima con Word/Excel/PowerPoint; sin cargar ~350 MB en el paquete | Distribuir LibreOffice (enorme); convertir con librerías .NET (pierden diseño) |
+| Office por COM en un PowerShell aparte | Si Office se cuelga o abre un diálogo, Kumquat no se traba: se cierra solo esa instancia | COM desde el proceso de Kumquat |
 | Menú contextual clásico (HKCU) | Sin administrador ni paquete; funciona desde Windows 10 | `IExplorerCommand` del menú nuevo de Windows 11 (exige app empaquetada y firmada: llegará con el instalador) |
 
 Investigación completa: [docs/research](research/).

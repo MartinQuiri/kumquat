@@ -44,6 +44,7 @@ ICONS = {
     "ocr-pdf": "file-magnifying-glass",
     "ocr": "scan",
     "save": "download-simple",
+    "install": "download",
     "copy-path": "link-simple",
     "copy-to": "copy",
     "move-to": "arrow-square-out",

@@ -55,6 +55,16 @@ Ejecuta `dotnet run --project src/Kumquat.App` y anota ✅/❌ y la versión de 
 | 34 | Cerrar la ventana durante la reproducción | El sonido para al instante; no quedan `ffmpeg.exe` |
 | 35 | Sin parlantes conectados | El video se reproduce igual, sin sonido |
 
+## Documentos de Office
+
+| # | Caso | Esperado |
+|---|---|---|
+| 36 | Con Word abierto con un documento sin guardar, convertir un DOCX a PDF | El PDF sale; tu Word sigue abierto y tu documento intacto |
+| 37 | PDF → DOCX con Word | Word no muestra el aviso "convertirá el PDF"; el aviso sigue igual al abrir PDFs a mano |
+| 38 | DOCX protegido con contraseña | Aviso de error, sin ventana pidiendo la contraseña; no queda `WINWORD.EXE` |
+| 39 | Equipo sin Office ni LibreOffice: arrastrar un DOCX | Primer sector de acciones: "Instalar LibreOffice"; "Ahora no" no instala nada |
+| 40 | Ídem → Instalar | Se ve la consola de winget; al terminar Kumquat se reinicia y ofrece PDF |
+
 ## Pantallas
 
 | # | Caso | Esperado |

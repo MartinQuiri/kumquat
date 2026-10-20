@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Documentos de oficina con lo que haya instalado: Microsoft Office (automatización COM en un
+       proceso aparte) o LibreOffice (soffice sin interfaz). Nada de esto se distribuye con Kumquat. -->
+  <ItemGroup>
+    <ProjectReference Include="..\Kumquat.Core\Kumquat.Core.csproj" />
+    <ProjectReference Include="..\Kumquat.Infrastructure\Kumquat.Infrastructure.csproj" />
+    <EmbeddedResource Include="OfficeConvert.ps1" LogicalName="Kumquat.OfficeConvert.ps1" />
+    <InternalsVisibleTo Include="Kumquat.Engines.Tests" />
+  </ItemGroup>
+</Project>

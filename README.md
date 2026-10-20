@@ -50,7 +50,8 @@ Cada herramienta tiene su ícono y el color de su familia (PDF rojo, imagen verd
 | Imágenes | JPG, PNG, WebP, GIF, HEIC, AVIF, TIFF, BMP, SVG | JPG, PNG, WebP, GIF, AVIF, TIFF, BMP, PDF |
 | Audio | MP3, M4A, WAV, FLAC, OGG, Opus, AIFF, WMA | las mismas |
 | Video | MP4, MOV, MKV, WebM, AVI, WMV, GIF | las mismas + extraer audio + GIF |
-| PDF / EPUB | PDF, EPUB | TXT; EPUB → PDF |
+| PDF / EPUB | PDF, EPUB | TXT; EPUB → PDF; **PDF → Word (DOCX)** |
+| Office | DOCX, DOC, ODT, RTF · XLSX, XLS, ODS · PPTX, PPT, ODP | PDF |
 
 Las conversiones de varios pasos se planifican solas (p. ej. HEIC → JPG → PDF), y nunca se ofrecen destinos sin sentido (una foto no se convierte a MP3).
 
@@ -87,6 +88,14 @@ Con [Tesseract](https://github.com/tesseract-ocr/tesseract), en español e ingl�
 - **Extraer texto:** una foto o captura → `.txt`.
 - **PDF buscable:** una foto → PDF con la imagen y el texto encima, invisible: se puede seleccionar, copiar y buscar.
 - **Reconocer texto:** un PDF escaneado → PDF buscable. Solo se reconocen las páginas que no tienen texto; las que ya lo tienen quedan exactamente como estaban.
+
+### Documentos de Office
+
+Kumquat convierte con **lo que ya tienes instalado**: si hay Microsoft Office usa Word, Excel y PowerPoint (la mejor fidelidad con sus propios formatos); si no, [LibreOffice](https://www.libreoffice.org). Ninguno de los dos viene con Kumquat. Si no hay ninguno, la rueda ofrece **Instalar LibreOffice**: pide permiso, lo instala con winget desde el paquete oficial y Kumquat se reinicia solo.
+
+- Office se abre invisible, con las macros desactivadas y en solo lectura, sobre una copia del archivo; una conversión a la vez.
+- Un documento con contraseña falla con un aviso en vez de pedirla.
+- Si Office no responde en 5 minutos se cierra solo la ventana de Office que abrió Kumquat, nunca una tuya.
 
 ### Adjuntos, archivos de un .zip e imágenes de una web
 
@@ -135,7 +144,8 @@ Detalles en [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) y [CONTRIBUTING.md](CON
 - [x] Atajo Ctrl+Alt+K sobre la selección del Explorador (pestañas de Windows 11 y escritorio incluidos).
 - [x] Menú del clic derecho del Explorador (menú clásico; el nuevo de Windows 11 llega con el instalador firmado).
 - [x] OCR con Tesseract (compilado por Kumquat): imagen → texto, imagen → PDF buscable, PDF escaneado → PDF buscable.
-- [ ] Fase 3: Office (LibreOffice), ebooks (Calibre), rueda de acciones (copiar ruta, mover, compartir, terminal), instalador firmado (SignPath), winget y Microsoft Store.
+- [x] Office → PDF y PDF → Word con Microsoft Office o LibreOffice (el que esté instalado; si no hay, se ofrece instalar LibreOffice).
+- [ ] Fase 3: ebooks (Calibre), instalador firmado (SignPath), winget y Microsoft Store.
 - [ ] Fase 4: sandbox de motores (baja integridad / AppContainer), fuzzing continuo.
 
 ## Licencia

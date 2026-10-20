@@ -18,6 +18,9 @@ internal sealed class WheelTargets(ConversionGraph graph, ToolService tools)
     /// <summary>Carpeta donde van los resultados de archivos sin carpeta (la de Configuración).</summary>
     public Func<string> OutputFolder { get; set; } = () => AppSettings.DefaultOutputFolder;
 
+    /// <summary>Si hay winget para ofrecer instalar motores (reemplazable en pruebas).</summary>
+    public Func<bool> WingetAvailable { get; set; } = () => EngineOffers.Winget is not null;
+
     /// <summary>Nombre visible de esa carpeta ("Escritorio" o el nombre de la carpeta elegida).</summary>
     public string OutputFolderName
     {
@@ -63,9 +66,14 @@ internal sealed class WheelTargets(ConversionGraph graph, ToolService tools)
 
         var toolItems = tools.ToolsFor(inputs).Take(WheelLayout.MaxToolSectors).Select(t => WheelItem.Tool(t.Id, t.Label)).ToList();
         var formats = inputs.Where(i => !i.IsDirectory).Select(i => i.Format!).ToList();
-        var convert = formats.Count == inputs.Count
-            ? WheelItemOrdering.Arrange(formats[0].Category, graph.CommonTargets(formats))
-            : [];
+        var targets = formats.Count == inputs.Count ? graph.CommonTargets(formats) : [];
+        var convert = targets.Count > 0 ? WheelItemOrdering.Arrange(formats[0].Category, targets) : [];
+
+        // Nada puede convertirlo pero un programa gratuito sí: se ofrece instalarlo.
+        if (formats.Count == inputs.Count && WingetAvailable() && EngineOffers.For(formats, targets) is { } offer)
+        {
+            actions = new WheelRing(WheelRingKind.Actions, [EngineOffers.Item(offer), .. FileActions.Items]);
+        }
 
         return
         [

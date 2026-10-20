@@ -16,11 +16,11 @@ public static class FormatSniffer
     public const int HeaderLength = 1024;
 
     private static readonly FileFormat[] ZipFamily =
-        [KnownFormats.Zip, KnownFormats.Docx, KnownFormats.Xlsx, KnownFormats.Pptx, KnownFormats.Epub, KnownFormats.Odt, KnownFormats.Ods];
+        [KnownFormats.Zip, KnownFormats.Docx, KnownFormats.Xlsx, KnownFormats.Pptx, KnownFormats.Epub, KnownFormats.Odt, KnownFormats.Ods, KnownFormats.Odp];
 
     private static readonly FileFormat[] AsfFamily = [KnownFormats.Wmv, KnownFormats.Wma];
 
-    private static readonly FileFormat[] OleFamily = [KnownFormats.Xls, KnownFormats.Ppt];
+    private static readonly FileFormat[] OleFamily = [KnownFormats.Doc, KnownFormats.Xls, KnownFormats.Ppt];
 
     private static readonly FileFormat[] IsoBmffFamily = [KnownFormats.Mp4, KnownFormats.M4a, KnownFormats.Mov];
 

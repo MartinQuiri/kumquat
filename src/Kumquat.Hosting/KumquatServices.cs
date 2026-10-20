@@ -8,6 +8,7 @@ using Kumquat.Core.Tools;
 using Kumquat.Engines.Archives;
 using Kumquat.Engines.FFmpeg;
 using Kumquat.Engines.Ocr;
+using Kumquat.Engines.Office;
 using Kumquat.Engines.Pdf;
 using Kumquat.Engines.Vips;
 using Kumquat.Infrastructure.Engines;
@@ -73,6 +74,11 @@ public static class KumquatServices
         services.AddSingleton<ImagePdfBuilder>();
         services.AddSingleton<TesseractEngine>();
         services.AddSingleton<IConverter, MupdfConverter>();
+
+        // Documentos de oficina con lo instalado (Microsoft Office o LibreOffice): se detecta al arrancar.
+        services.AddSingleton(_ => OfficeApps.Detect());
+        services.AddSingleton<OfficeConverter>();
+        services.AddSingleton<IConverter>(sp => sp.GetRequiredService<OfficeConverter>());
         services.AddSingleton(sp => new ToolService(OrderForWheel(
         [
             .. PdfTool.CreateAll(sp.GetRequiredService<PdfEngines>(), sp.GetRequiredService<ImagePdfBuilder>(), sp.GetRequiredService<ITempWorkspaceFactory>()),

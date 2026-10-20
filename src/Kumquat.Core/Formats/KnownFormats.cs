@@ -39,6 +39,7 @@ public static class KnownFormats
     public static readonly FileFormat Pdf = new("pdf", "PDF", FormatCategory.Pdf, ["pdf"]);
 
     public static readonly FileFormat Docx = new("docx", "DOCX", FormatCategory.Document, ["docx"]);
+    public static readonly FileFormat Doc = new("doc", "DOC", FormatCategory.Document, ["doc"]);
     public static readonly FileFormat Odt = new("odt", "ODT", FormatCategory.Document, ["odt"]);
     public static readonly FileFormat Rtf = new("rtf", "RTF", FormatCategory.Document, ["rtf"]);
     public static readonly FileFormat Markdown = new("md", "Markdown", FormatCategory.Document, ["md", "markdown"]);
@@ -53,6 +54,7 @@ public static class KnownFormats
 
     public static readonly FileFormat Pptx = new("pptx", "PPTX", FormatCategory.Slides, ["pptx"]);
     public static readonly FileFormat Ppt = new("ppt", "PPT", FormatCategory.Slides, ["ppt"]);
+    public static readonly FileFormat Odp = new("odp", "ODP", FormatCategory.Slides, ["odp"]);
 
     public static readonly FileFormat Epub = new("epub", "EPUB", FormatCategory.Ebook, ["epub"]);
 
@@ -77,9 +79,9 @@ public static class KnownFormats
             Mp3, M4a, Wav, Flac, Ogg, Opus, Aiff, Wma,
             Mp4, Mov, Mkv, WebM, Avi, Wmv,
             Pdf,
-            Docx, Odt, Rtf, Markdown, Txt, Html,
+            Docx, Doc, Odt, Rtf, Markdown, Txt, Html,
             Xlsx, Xls, Ods, Csv, Tsv,
-            Pptx, Ppt,
+            Pptx, Ppt, Odp,
             Epub,
             Srt, Vtt,
             Zip, Tar, Gzip, Rar, SevenZip,

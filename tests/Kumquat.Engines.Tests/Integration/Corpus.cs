@@ -58,9 +58,8 @@ internal static class Corpus
             case "epub":
                 MinimalEpub(path);
                 return path;
-            case "docx" or "xlsx" or "pptx":
-                await OfficeSkeletonAsync(format, path);
-                return path;
+            case "docx" or "xlsx" or "pptx" or "doc" or "odt" or "rtf" or "xls" or "ods" or "ppt" or "odp":
+                return await OfficeDocumentAsync(format, path);
             case "zip" or "tar" or "gz":
                 return await ArchiveAsync(format, path);
         }
@@ -88,6 +87,26 @@ internal static class Corpus
 
         var result = await TestEngines.ById(edge.ConverterId).ConvertAsync(new ConversionStep(source, path, edge), null, CancellationToken.None);
         return result.IsSuccess ? path : null;
+    }
+
+    /// <summary>
+    /// Con Office instalado, un documento real hecho por Office (Excel y PowerPoint rechazan el
+    /// esqueleto). Sin Office, el esqueleto para DOCX/XLSX/PPTX y nada para el resto.
+    /// </summary>
+    private static async Task<string?> OfficeDocumentAsync(FileFormat format, string path)
+    {
+        if (await OfficeSamples.CreateAsync(format, path) is { } real)
+        {
+            return real;
+        }
+
+        if (format.Id is not ("docx" or "xlsx" or "pptx"))
+        {
+            return null;
+        }
+
+        await OfficeSkeletonAsync(format, path);
+        return path;
     }
 
     /// <summary>PDF de 2 páginas con imagen y texto: dividir, renderizar y extraer texto tienen qué hacer.</summary>
