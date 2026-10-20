@@ -40,6 +40,13 @@
     <Version>0.1.0</Version>
   </PropertyGroup>
 
+  <!-- Proyectos de test: xUnit v3 sobre Microsoft.Testing.Platform (global.json lo pide para
+       `dotnet test`); sin esto el ejecutable usa el runner propio de xUnit y rechaza las opciones
+       de cobertura, filtros por rasgo y códigos de salida que usa la CI. -->
+  <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('.Tests'))">
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Meziantou.Analyzer" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" PrivateAssets="all" />

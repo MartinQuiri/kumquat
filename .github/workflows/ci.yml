@@ -75,7 +75,7 @@ jobs:
           dotnet test --solution Kumquat.slnx -c Release --no-build -p:Platform=${{ matrix.platform }}
           --filter-not-trait "Category=E2E" --ignore-exit-code 8
           --coverage --coverage-output-format cobertura --coverage-output coverage.cobertura.xml
-          --report-trx --results-directory TestResults
+          --report-xunit-trx --results-directory TestResults
 
       - name: Publicar resultados
         if: always()
