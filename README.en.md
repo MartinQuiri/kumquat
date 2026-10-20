@@ -1,8 +1,16 @@
-<p align="center"><img src="assets/logo/kumquat.png" width="96" alt="Kumquat logo"></p>
+<p align="center"><img src="assets/logo/kumquat.png" width="112" alt="Kumquat logo"></p>
 
-# Kumquat
+<h1 align="center">Kumquat</h1>
 
 <p align="center"><a href="README.md">Español</a> · <b>English</b></p>
+
+<p align="center">
+  <a href="https://github.com/MartinQuiri/kumquat/actions/workflows/ci.yml"><img src="https://github.com/MartinQuiri/kumquat/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/MartinQuiri/kumquat/releases"><img src="https://img.shields.io/github/v/release/MartinQuiri/kumquat?include_prereleases&amp;label=release" alt="Release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
+  <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows" alt="Windows 10 and 11">
+  <img src="https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet" alt=".NET 10">
+</p>
 
 **Convert files without opening anything.** Drag a file, press **Shift** and drop it on the format you want in the wheel that appears next to the pointer. Everything happens on your PC: nothing is uploaded.
 
@@ -11,6 +19,15 @@ Kumquat is a free (GPL-3.0) Windows alternative inspired by the interaction of [
 > **Status: pre-alpha (0.1).** See the [roadmap](#roadmap).
 
 <p align="center"><img src="docs/images/rueda-pdf.png" width="420" alt="The Kumquat wheel with the PDF tools"></p>
+
+## Install
+
+1. Download **`Kumquat-<version>-win-x64.msi`** from [Releases](https://github.com/MartinQuiri/kumquat/releases) (or `win-arm64` for ARM PCs).
+2. Open it: it installs for your user only, **without admin rights**, and Kumquat opens when it finishes.
+
+Rather not install anything? The `.zip` is portable: unzip it and open `Kumquat.exe`.
+
+> Until releases are signed, Windows SmartScreen may say "Windows protected your PC": **More info → Run anyway**. Every file ships its SHA-256 so you can verify it.
 
 ## How to use it
 

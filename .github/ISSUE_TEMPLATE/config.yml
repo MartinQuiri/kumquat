@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+blank_issues_enabled: false
+contact_links:
+  - name: Reportar una vulnerabilidad / Report a vulnerability
+    url: https://github.com/MartinQuiri/kumquat/security/advisories/new
+    about: En privado, no en un issue público. / Privately, not in a public issue.
+  - name: Preguntas e ideas / Questions and ideas
+    url: https://github.com/MartinQuiri/kumquat/discussions
+    about: Para conversar sin abrir un issue. / To talk without opening an issue.
