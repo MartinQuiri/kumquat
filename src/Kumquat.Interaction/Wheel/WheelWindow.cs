@@ -5,6 +5,8 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
+using Kumquat.Core.Localization;
+using Kumquat.Interaction.Accessibility;
 using Kumquat.Interaction.Native;
 
 namespace Kumquat.Interaction.Wheel;
@@ -20,6 +22,7 @@ internal sealed unsafe class WheelWindow : NativeWindow, IWheelSurface
     /// <summary>Clase de la ventana (la busca <see cref="WheelRequests"/> desde otro proceso).</summary>
     internal const string ClassName = "KumquatWheel";
 
+    private readonly WindowAutomation _automation;
     private WheelTheme _theme = WheelTheme.FromSystem();
     private float _scale = 1f;
     private POINT _center;
@@ -27,6 +30,7 @@ internal sealed unsafe class WheelWindow : NativeWindow, IWheelSurface
     public WheelWindow()
     {
         Create(ClassName, Win32.WS_POPUP, Win32.WS_EX_LAYERED | Win32.WS_EX_TOPMOST | Win32.WS_EX_NOACTIVATE | Win32.WS_EX_TOOLWINDOW);
+        _automation = new WindowAutomation(Handle, Strings.WheelName);
         Park();
         Win32.ShowWindow(Handle, Win32.SW_SHOWNOACTIVATE);
     }
@@ -88,8 +92,16 @@ internal sealed unsafe class WheelWindow : NativeWindow, IWheelSurface
     /// <summary>Detiene un timer.</summary>
     public void StopTimer(nuint id) => Win32.KillTimer(Handle, id);
 
+    /// <summary>Lo dice el lector de pantalla (Narrador, NVDA, JAWS), si hay uno.</summary>
+    public void Announce(string text) => _automation.Announce(text);
+
     protected override nint? WndProc(uint message, nint wParam, nint lParam)
     {
+        if (message == Win32.WM_GETOBJECT && _automation.OnGetObject(wParam, lParam) is { } provider)
+        {
+            return provider;
+        }
+
         if (message == Win32.WM_TIMER && TimerHandler is not null)
         {
             TimerHandler((nuint)wParam);
@@ -114,6 +126,16 @@ internal sealed unsafe class WheelWindow : NativeWindow, IWheelSurface
         }
 
         return null;
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _automation.Dispose();
+        }
+
+        base.Dispose(disposing);
     }
 
     private static POINT ParkingSpot(int size)

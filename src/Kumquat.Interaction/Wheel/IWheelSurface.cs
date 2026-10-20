@@ -31,4 +31,7 @@ internal interface IWheelSurface
 
     /// <summary>Detiene un timer.</summary>
     void StopTimer(nuint id);
+
+    /// <summary>Hace que el lector de pantalla diga un texto (UI Automation); no hace nada si no hay ninguno.</summary>
+    void Announce(string text);
 }

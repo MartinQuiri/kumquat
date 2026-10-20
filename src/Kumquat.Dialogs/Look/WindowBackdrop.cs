@@ -27,6 +27,11 @@ internal static partial class WindowBackdrop
     /// <summary>Aplica el material. Llamar con la ventana ya creada (SourceInitialized o después).</summary>
     public static bool TryApply(Window window, bool dark)
     {
+        if (SystemParameters.HighContrast)
+        {
+            return false; // En alto contraste, ventana opaca con los colores del sistema.
+        }
+
         ArgumentNullException.ThrowIfNull(window);
         var handle = new WindowInteropHelper(window).Handle;
         if (handle == 0)

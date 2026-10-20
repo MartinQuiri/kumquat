@@ -25,6 +25,11 @@ internal static unsafe partial class Win32
     public const uint WM_DPICHANGED = 0x02E0;
     public const uint WM_APP = 0x8000;
     public const uint WM_HOTKEY = 0x0312;
+    public const uint WM_GETOBJECT = 0x003D;
+    public const int COLOR_WINDOW = 5;
+    public const int COLOR_WINDOWTEXT = 8;
+    public const int COLOR_HIGHLIGHT = 13;
+    public const int COLOR_HIGHLIGHTTEXT = 14;
     public const uint MOD_ALT = 0x1;
     public const uint MOD_CONTROL = 0x2;
     public const uint MOD_SHIFT = 0x4;
@@ -232,4 +237,28 @@ internal static unsafe partial class Win32
     [LibraryImport("shell32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static partial bool Shell_NotifyIconW(uint message, NOTIFYICONDATAW* data);
+
+    [LibraryImport("user32.dll")]
+    public static partial uint GetSysColor(int index);
+
+    /// <summary>Indica si el alto contraste de Windows está activo.</summary>
+    public static bool IsHighContrastOn()
+    {
+        const uint SpiGetHighContrast = 0x0042;
+        const uint HcfHighContrastOn = 0x1;
+        var info = new HIGHCONTRASTW { CbSize = (uint)sizeof(HIGHCONTRASTW) };
+        return SystemParametersInfoW(SpiGetHighContrast, info.CbSize, &info, 0) && (info.DwFlags & HcfHighContrastOn) != 0;
+    }
+
+    [LibraryImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool SystemParametersInfoW(uint action, uint param, void* data, uint winIni);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct HIGHCONTRASTW
+    {
+        public uint CbSize;
+        public uint DwFlags;
+        public nint LpszDefaultScheme;
+    }
 }

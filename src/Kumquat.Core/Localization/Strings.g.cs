@@ -442,6 +442,9 @@ public static partial class Strings
     /// <summary>Nada coincide. Prueba con otra palabra (p. ej. pdf, comprimir, ruta).</summary>
     public static string PaletteEmpty => Get("PaletteEmpty");
 
+    /// <summary>{0}, {1}, {2} de {3}</summary>
+    public static string PaletteItemPosition(object? title, object? group, object? position, object? count) => Format("PaletteItemPosition", title, group, position, count);
+
     /// <summary>↑ ↓ elegir   ·   Enter aplicar   ·   Esc cerrar</summary>
     public static string PaletteKeys => Get("PaletteKeys");
 
@@ -751,6 +754,18 @@ public static partial class Strings
     /// <summary>{0} · se guarda en {1}</summary>
     public static string VirtualCaption(object? what, object? folder) => Format("VirtualCaption", what, folder);
 
+    /// <summary>Centro: soltar aquí cancela</summary>
+    public static string WheelCenter => Get("WheelCenter");
+
+    /// <summary>Rueda de Kumquat</summary>
+    public static string WheelName => Get("WheelName");
+
     /// <summary>Nada que hacer con este archivo</summary>
     public static string WheelNothingToDo => Get("WheelNothingToDo");
+
+    /// <summary>Rueda de Kumquat: {0}. {1} opciones. Mueve el cursor sobre una y suelta.</summary>
+    public static string WheelOpened(object? caption, object? count) => Format("WheelOpened", caption, count);
+
+    /// <summary>Rueda de Kumquat: {0} opciones. Mueve el cursor sobre una y suelta.</summary>
+    public static string WheelOpenedNoCaption(object? count) => Format("WheelOpenedNoCaption", count);
 }

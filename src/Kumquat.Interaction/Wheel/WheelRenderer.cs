@@ -146,7 +146,7 @@ internal static class WheelRenderer
             var start = -90f - (sweep / 2) + (i * sweep);
             using (var sector = SectorGeometry.Rounded(c, inner, outer, start, sweep, gap, corner))
             {
-                DrawSector(g, sector, IsHighlighted(state, ring, i) ? items[i] : null, rest, scale);
+                DrawSector(g, sector, IsHighlighted(state, ring, i) ? items[i] : null, rest, theme, scale);
             }
 #pragma warning restore CA2000
         }
@@ -155,15 +155,30 @@ internal static class WheelRenderer
     }
 
     /// <summary>Rellena un sector: en reposo, vidrio tenue; resaltado, el color de su ítem en degradado.</summary>
-    private static void DrawSector(Graphics g, GraphicsPath sector, WheelItem? highlighted, Brush rest, float scale)
+    private static void DrawSector(Graphics g, GraphicsPath sector, WheelItem? highlighted, Brush rest, WheelTheme theme, float scale)
     {
         if (highlighted is null)
         {
             g.FillPath(rest, sector);
+            if (theme.IsHighContrast)
+            {
+                // Sin vidrio, cada sector necesita su contorno para distinguirse.
+                using var outline = new Pen(theme.Text, 1f * scale);
+                g.DrawPath(outline, sector);
+            }
+
             return;
         }
 
-        var accent = WheelTheme.AccentFor(highlighted);
+        if (theme.IsHighContrast)
+        {
+            // Color plano del sistema, sin degradado ni brillo.
+            using var solid = new SolidBrush(theme.HighlightFill(highlighted));
+            g.FillPath(solid, sector);
+            return;
+        }
+
+        var accent = theme.HighlightFill(highlighted);
         var bounds = sector.GetBounds();
         using var fill = new LinearGradientBrush(RectangleF.Inflate(bounds, 1, 1), Lighten(accent, 0.22), accent, LinearGradientMode.Vertical);
         g.FillPath(fill, sector);
@@ -199,7 +214,7 @@ internal static class WheelRenderer
 
     private static void DrawLabel(Graphics g, WheelItem item, bool withIcon, bool highlighted, PointF center, float width, float thickness, Font font, StringFormat format, WheelTheme theme, float scale)
     {
-        using var text = new SolidBrush(highlighted ? Color.White : theme.Text);
+        using var text = new SolidBrush(highlighted ? theme.HighlightedText : theme.Text);
 
         // Si una palabra no entra ni achicada, una sola línea con "…": GDI+ la partiría a la mitad.
         using var oneLine = new StringFormat(format) { FormatFlags = StringFormatFlags.NoWrap, Trimming = StringTrimming.EllipsisCharacter };
@@ -220,7 +235,7 @@ internal static class WheelRenderer
         var textSize = g.MeasureString(item.Label, font, new SizeF(width, thickness), format);
         var textHeight = Math.Min(textSize.Height, thickness - iconSize - (6 * scale));
         var top = center.Y - ((iconSize + scale + textHeight) / 2);
-        var iconColor = highlighted ? Color.White : WheelTheme.AccentFor(item);
+        var iconColor = highlighted ? theme.HighlightedText : theme.IconColor(item);
         IconPainter.Fill(g, icon, new RectangleF(center.X - (iconSize / 2), top, iconSize, iconSize), iconColor);
         g.DrawString(item.Label, font, text, new RectangleF(center.X - (width / 2), top + iconSize + scale, width, textHeight), format);
     }

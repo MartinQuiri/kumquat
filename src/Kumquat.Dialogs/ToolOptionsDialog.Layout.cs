@@ -4,7 +4,6 @@
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
-using System.Windows.Media;
 using Kumquat.Core.Localization;
 using Kumquat.Core.Tools;
 using Kumquat.Design;
@@ -160,7 +159,7 @@ public sealed partial class ToolOptionsDialog
         var cancel = DialogLook.Pill(Strings.ButtonCancel, _look.Subtle, _look.Text);
         cancel.IsCancel = true;
         cancel.Height = 44;
-        var apply = DialogLook.Pill(Strings.ButtonApply, _look.AccentGradient, Brushes.White);
+        var apply = DialogLook.Pill(Strings.ButtonApply, _look.AccentGradient, _look.OnAccent);
         apply.IsDefault = true;
         apply.Height = 44;
         apply.FontSize = 15;

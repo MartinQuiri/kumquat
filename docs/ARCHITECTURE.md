@@ -125,6 +125,7 @@ translúcido, borde de luz, sombra y sectores con esquinas redondeadas calculada
 | Office: usar lo instalado (Microsoft Office, si no LibreOffice) | Fidelidad máxima con Word/Excel/PowerPoint; sin cargar ~350 MB en el paquete | Distribuir LibreOffice (enorme); convertir con librerías .NET (pierden diseño) |
 | Libros con Calibre instalado | El conversor de libros más completo (Kindle, FB2); GPL como Kumquat | Distribuirlo (~240 MB); librerías .NET (no escriben KF8) |
 | Office por COM en un PowerShell aparte | Si Office se cuelga o abre un diálogo, Kumquat no se traba: se cierra solo esa instancia | COM desde el proceso de Kumquat |
+| Rueda accesible con un proveedor UI Automation propio | La rueda nunca toma el foco (no puede: interrumpiría el arrastre); `UiaRaiseNotificationEvent` le permite al lector decir lo que pasa sin robar el foco | MSAA/`NotifyWinEvent` (sin texto libre); ventana WPF para la rueda (compone mal con `WS_EX_LAYERED`) |
 | Menú contextual clásico (HKCU) | Sin administrador ni paquete; funciona desde Windows 10 | `IExplorerCommand` del menú nuevo de Windows 11 (exige app empaquetada y firmada: llegará con el instalador) |
 
 Investigación completa: [docs/research](research/).

@@ -61,6 +61,23 @@ public sealed class WheelSessionTests
     }
 
     [Fact]
+    public void LectorDePantalla_DiceQueHayYQueSectorQuedaElegido()
+    {
+        _session.OnSignal(GestureSignal.Trigger, Center);
+        _session.OnDragEnter(Files, Center);
+        _session.OnDragOver(NorthOfInnerRing);
+        _session.OnDragOver(NorthOfInnerRing); // sin cambio: no se repite
+        _session.OnDragOver(Center);
+
+        _surface.Announcements.ShouldBe(
+        [
+            "Rueda de Kumquat: 1 archivo(s). 2 opciones. Mueve el cursor sobre una y suelta.",
+            "Convertir a JPG",
+            "Centro: soltar aquí cancela",
+        ]);
+    }
+
+    [Fact]
     public void Arrastre_SoltarEnElCentro_CierraSinEsperar()
     {
         _session.OnSignal(GestureSignal.Trigger, Center);
@@ -307,5 +324,9 @@ public sealed class WheelSessionTests
         public void StartTimer(nuint id, uint milliseconds) => Timers[id] = milliseconds;
 
         public void StopTimer(nuint id) => Timers.Remove(id);
+
+        public List<string> Announcements { get; } = [];
+
+        public void Announce(string text) => Announcements.Add(text);
     }
 }

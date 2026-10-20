@@ -163,6 +163,7 @@ Ejemplos:
   <data name="PagesPickHint" xml:space="preserve"><value>Haz clic en las páginas que quieres extraer</value></data>
   <data name="PaletteConvertTo" xml:space="preserve"><value>Convertir a {0}</value><comment>params: format</comment></data>
   <data name="PaletteEmpty" xml:space="preserve"><value>Nada coincide. Prueba con otra palabra (p. ej. pdf, comprimir, ruta).</value></data>
+  <data name="PaletteItemPosition" xml:space="preserve"><value>{0}, {1}, {2} de {3}</value><comment>params: title, group, position, count</comment></data>
   <data name="PaletteKeys" xml:space="preserve"><value>↑ ↓ elegir   ·   Enter aplicar   ·   Esc cerrar</value></data>
   <data name="PaletteSearch" xml:space="preserve"><value>Buscar acción</value></data>
   <data name="PaletteWindowTitle" xml:space="preserve"><value>Kumquat · Buscar acción</value></data>
@@ -266,5 +267,9 @@ Ejemplos:
   <data name="ValidateTrimOrder" xml:space="preserve"><value>El final tiene que ser después del inicio.</value></data>
   <data name="ValidateTrimStart" xml:space="preserve"><value>El inicio no es un tiempo válido (usa minutos:segundos, p. ej. 1:05).</value></data>
   <data name="VirtualCaption" xml:space="preserve"><value>{0} · se guarda en {1}</value><comment>params: what, folder</comment></data>
+  <data name="WheelCenter" xml:space="preserve"><value>Centro: soltar aquí cancela</value></data>
+  <data name="WheelName" xml:space="preserve"><value>Rueda de Kumquat</value></data>
   <data name="WheelNothingToDo" xml:space="preserve"><value>Nada que hacer con este archivo</value></data>
+  <data name="WheelOpened" xml:space="preserve"><value>Rueda de Kumquat: {0}. {1} opciones. Mueve el cursor sobre una y suelta.</value><comment>params: caption, count</comment></data>
+  <data name="WheelOpenedNoCaption" xml:space="preserve"><value>Rueda de Kumquat: {0} opciones. Mueve el cursor sobre una y suelta.</value><comment>params: count</comment></data>
 </root>

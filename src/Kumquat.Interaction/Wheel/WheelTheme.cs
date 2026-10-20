@@ -75,8 +75,55 @@ internal sealed record WheelTheme(
         return item.Ring == WheelRingKind.Tools ? ToColor(Palette.ForItem(item.Id)) : AccentFor(item.Ring);
     }
 
-    /// <summary>Tema según la preferencia de apps de Windows.</summary>
-    public static WheelTheme FromSystem() => SystemTheme.AppsUseDark() ? Dark : Light;
+    /// <summary>
+    /// Color de selección del sistema en alto contraste (<c>null</c> fuera de alto contraste): ahí
+    /// manda lo que eligió la persona, no los colores de la marca.
+    /// </summary>
+    public Color? SystemHighlight { get; init; }
+
+    /// <summary>Texto sobre la selección en alto contraste.</summary>
+    public Color? SystemHighlightText { get; init; }
+
+    /// <summary>Indica si es el tema de alto contraste de Windows.</summary>
+    public bool IsHighContrast => SystemHighlight is not null;
+
+    /// <summary>Tema según Windows: alto contraste si está activo; si no, claro u oscuro.</summary>
+    public static WheelTheme FromSystem()
+        => Native.Win32.IsHighContrastOn()
+            ? HighContrast(SysColor(Native.Win32.COLOR_WINDOW), SysColor(Native.Win32.COLOR_WINDOWTEXT), SysColor(Native.Win32.COLOR_HIGHLIGHT), SysColor(Native.Win32.COLOR_HIGHLIGHTTEXT))
+            : SystemTheme.AppsUseDark() ? Dark : Light;
+
+    /// <summary>Alto contraste: todo opaco, con los cuatro colores del esquema del sistema y sin sombras.</summary>
+    public static WheelTheme HighContrast(Color window, Color text, Color highlight, Color highlightText) => new(
+        GlassTop: window,
+        GlassBottom: window,
+        Sector: window,
+        CenterFill: window,
+        RimLight: text,
+        RimDark: text,
+        Text: text,
+        Muted: text,
+        Shadow: Color.Transparent,
+        IsDark: window.GetBrightness() < 0.5f)
+    {
+        SystemHighlight = highlight,
+        SystemHighlightText = highlightText,
+    };
+
+    /// <summary>Relleno de un sector resaltado.</summary>
+    public Color HighlightFill(WheelItem item) => SystemHighlight ?? AccentFor(item);
+
+    /// <summary>Texto e ícono sobre un sector resaltado.</summary>
+    public Color HighlightedText => SystemHighlightText ?? Color.White;
+
+    /// <summary>Ícono de un sector en reposo: el color de su familia, o el del texto en alto contraste.</summary>
+    public Color IconColor(WheelItem item) => IsHighContrast ? Text : AccentFor(item);
+
+    private static Color SysColor(int index)
+    {
+        var bgr = Native.Win32.GetSysColor(index);
+        return Color.FromArgb(255, (int)(bgr & 0xFF), (int)((bgr >> 8) & 0xFF), (int)((bgr >> 16) & 0xFF));
+    }
 
     public static Color ToColor(Rgb rgb, int alpha = 255) => Color.FromArgb(alpha, rgb.R, rgb.G, rgb.B);
 }

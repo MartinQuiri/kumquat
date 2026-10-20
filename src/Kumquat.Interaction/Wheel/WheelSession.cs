@@ -130,6 +130,7 @@ internal sealed class WheelSession
         _state = StateFor(files);
         Trace?.Invoke($"DragEnter: {files.Count} archivo(s) ({Path.GetExtension(files[0])}), anillos: {string.Join(", ", _state.Rings.Select(r => $"{r.Kind}={r.Items.Count}"))}.");
         _surface.Render(_state);
+        AnnounceOpened();
         return _state.Rings.Count > 0 && UpdateHighlight(point);
     }
 
@@ -239,6 +240,7 @@ internal sealed class WheelSession
         _tracker.ClickMode = true;
         _tracker.WheelOpen = true;
         _surface.ShowAt(cursor, _state);
+        AnnounceOpened();
         UpdateHighlight(cursor);
     }
 
@@ -300,10 +302,23 @@ internal sealed class WheelSession
         {
             _state = _state with { Highlight = highlight };
             _surface.Render(_state);
+            _surface.Announce(_state.ItemAt(highlight) is { } item ? Spoken(item) : Strings.WheelCenter);
         }
 
         return highlight.Zone == WheelZone.Sector;
     }
+
+    /// <summary>Lo que dice el lector al abrir la rueda: qué es lo arrastrado y cuántas opciones hay.</summary>
+    private void AnnounceOpened()
+    {
+        var count = _state.Rings.Sum(r => r.Items.Count);
+        _surface.Announce(count == 0 ? _state.Message ?? Strings.WheelNothingToDo
+            : _state.Caption is { } caption ? Strings.WheelOpened(caption, count)
+            : Strings.WheelOpenedNoCaption(count));
+    }
+
+    /// <summary>Un sector dicho en voz alta: "Convertir a JPG", "Comprimir".</summary>
+    internal static string Spoken(WheelItem item) => item.Ring == WheelRingKind.Convert ? Strings.PaletteConvertTo(item.Label) : item.Label;
 
     private WheelHit HitTest(POINT point)
     {

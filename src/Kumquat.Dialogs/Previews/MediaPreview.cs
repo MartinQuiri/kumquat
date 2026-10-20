@@ -198,7 +198,7 @@ internal sealed class MediaPreview : Grid, IDisposable
 
     private Button PlayButton(DialogLook look)
     {
-        var button = DialogLook.Pill(DialogLook.Icon("play", 16, Brushes.White), look.AccentGradient, Brushes.White);
+        var button = DialogLook.Pill(DialogLook.Icon("play", 16, look.OnAccent), look.AccentGradient, look.OnAccent);
         button.Width = 40;
         button.Padding = new Thickness(0);
         System.Windows.Automation.AutomationProperties.SetName(button, Strings.Play);
@@ -227,7 +227,7 @@ internal sealed class MediaPreview : Grid, IDisposable
             : (_timeline.Position < to - nearEnd ? _timeline.Position : TimeSpan.Zero);
         using var playing = CancellationTokenSource.CreateLinkedTokenSource(_life.Token);
         _playing = playing;
-        _play.Content = DialogLook.Icon("pause", 16, Brushes.White);
+        _play.Content = DialogLook.Icon("pause", 16, _play.Foreground);
         System.Windows.Automation.AutomationProperties.SetName(_play, Strings.Pause);
         try
         {
@@ -253,7 +253,7 @@ internal sealed class MediaPreview : Grid, IDisposable
             return;
         }
 
-        _play.Content = DialogLook.Icon("play", 16, Brushes.White);
+        _play.Content = DialogLook.Icon("play", 16, _play.Foreground);
         System.Windows.Automation.AutomationProperties.SetName(_play, Strings.Play);
         if (_mode == TimelineMode.Point)
         {

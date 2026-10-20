@@ -39,7 +39,7 @@ public sealed partial class ToolOptionsDialog : Window
         _parameters = request.Parameters;
         _look = new DialogLook(dark, Palette.ForItem(request.ToolId));
         Title = Strings.ToolWindowTitle(request.Title);
-        ThemeMode = dark ? ThemeMode.Dark : ThemeMode.Light;
+        ThemeMode = _look.ThemeMode;
         FontFamily = DialogLook.Font;
         Resources["ContentControlThemeFontFamily"] = DialogLook.Font;
         Foreground = _look.Text;
@@ -194,6 +194,7 @@ public sealed partial class ToolOptionsDialog : Window
         {
             _error.Text = error;
             _error.Visibility = Visibility.Visible;
+            Announcer.Say(_error, error);
             return;
         }
 

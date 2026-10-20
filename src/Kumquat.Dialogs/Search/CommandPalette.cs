@@ -68,6 +68,7 @@ public sealed partial class CommandPalette : Window
     private readonly TextBox _query;
     private readonly ListBox _list;
     private readonly TextBlock _empty;
+    private readonly bool _announce;
     private bool _closing;
 
     private CommandPalette(PaletteRequest request, bool dark)
@@ -75,7 +76,7 @@ public sealed partial class CommandPalette : Window
         _request = request;
         _look = new DialogLook(dark, Palette.Kumquat);
         Title = Strings.PaletteWindowTitle;
-        ThemeMode = dark ? ThemeMode.Dark : ThemeMode.Light;
+        ThemeMode = _look.ThemeMode;
         FontFamily = DialogLook.Font;
         Resources["ContentControlThemeFontFamily"] = DialogLook.Font;
         Foreground = _look.Text;
@@ -118,6 +119,7 @@ public sealed partial class CommandPalette : Window
         Deactivated += (_, _) => Cancel();
         PreviewKeyDown += OnKey;
         Refresh();
+        _announce = true;
     }
 
     /// <summary>Id elegido, o <c>null</c> si se canceló.</summary>
@@ -266,6 +268,23 @@ public sealed partial class CommandPalette : Window
         _list.SelectedIndex = matches.Count > 0 ? 0 : -1;
         _list.Visibility = matches.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         _empty.Visibility = matches.Count > 0 ? Visibility.Collapsed : Visibility.Visible;
+        AnnounceSelection();
+    }
+
+    /// <summary>
+    /// El foco queda en el cuadro de búsqueda mientras las flechas mueven la selección: el lector
+    /// no la vería, así que se anuncia la opción elegida con su posición (o que no hay ninguna).
+    /// </summary>
+    private void AnnounceSelection()
+    {
+        if (!_announce)
+        {
+            return; // Al abrir, el lector ya lee la ventana y el cuadro de búsqueda.
+        }
+
+        Announcer.Say(_query, (_list.SelectedItem as ListBoxItem)?.Tag is PaletteItem item
+            ? Strings.PaletteItemPosition(item.Title, item.Group, _list.SelectedIndex + 1, _list.Items.Count)
+            : Strings.PaletteEmpty);
     }
 
     private void OnKey(object sender, KeyEventArgs e)
@@ -309,6 +328,7 @@ public sealed partial class CommandPalette : Window
     {
         _list.SelectedIndex = index;
         _list.ScrollIntoView(_list.SelectedItem);
+        AnnounceSelection();
     }
 
     private void Accept()

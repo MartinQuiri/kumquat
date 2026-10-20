@@ -19,6 +19,8 @@ Kumquat es una alternativa libre (GPL-3.0) para Windows inspirada en la interacc
 
 Soltar en el centro (el logo) o presionar **Esc** cancela. El gesto se puede cambiar a Ctrl, Bloq Mayús o clic derecho en **Configuración** (menú del ícono).
 
+**Accesibilidad:** todo lo de la rueda se puede hacer con el teclado desde el buscador (Ctrl+Alt+K o clic derecho → Kumquat…). Con Narrador, NVDA o JAWS, la rueda anuncia qué se arrastró, cuántas opciones hay y qué sector queda elegido, y el buscador dice la opción elegida y su posición. En alto contraste, la rueda y las ventanas usan solo los colores del sistema.
+
 **Idioma:** español o inglés. Por defecto, el de Windows (si Windows está en otro idioma, inglés); se cambia en Configuración. ¿Quieres traducir Kumquat a tu idioma? Ver [CONTRIBUTING.md](CONTRIBUTING.md#textos-e-idiomas).
 
 **Con el teclado: el buscador.** Selecciona uno o más archivos en el Explorador (o en el escritorio) y presiona **Ctrl+Alt+K**, o haz clic derecho → **Kumquat…** (en Windows 11, dentro de "Mostrar más opciones"). Aparece un buscador con todo lo que se puede hacer con esos archivos: escribe para filtrar (`pdf`, `comprimir`, `achicar`, `ruta`… sin importar tildes), ↑ ↓ para elegir, **Enter** para aplicar y **Esc** para cerrar. La rueda queda para arrastrar con el mouse.
