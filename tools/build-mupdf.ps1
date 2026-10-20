@@ -92,13 +92,20 @@ foreach ($tool in @(@{ Name = 'cc'; Command = "cc -target $triple" }, @{ Name = 
     & chmod +x $wrapper
 }
 
+# pkg-config que nunca encuentra nada: el Makefile de MuPDF activa solo lo que detecta en la máquina
+# (OpenSSL para firmas, por ejemplo) y esas cabeceras no existen en el sysroot de zig. Así el
+# resultado no depende de qué tenga instalado quien compila.
+$pkgConfig = Join-Path $bin 'pkg-config'
+Set-Content -Path $pkgConfig -Value "#!/bin/sh`nexit 1`n" -NoNewline
+& chmod +x $pkgConfig
+
 # Solo las herramientas de línea de comandos: sin visores (X11/GLUT), sin red y sin el OCR propio
-# de MuPDF (Kumquat usa Tesseract aparte). HAVE_OBJCOPY=no incrusta las fuentes como código C en
+# de MuPDF (Kumquat usa Tesseract aparte), sin firmas digitales (OpenSSL). HAVE_OBJCOPY=no incrusta las fuentes como código C en
 # vez de con el ld del sistema: no hace falta binutils y se puede compilar para otra arquitectura.
 Write-Host "[..] Compilando mutool $($engine.version) para $Runtime ($triple; tarda unos minutos)..."
 $env:PATH = "$bin$([System.IO.Path]::PathSeparator)$env:PATH"
 & make -C $source -j ([Environment]::ProcessorCount) build=release `
-    HAVE_X11=no HAVE_GLUT=no HAVE_CURL=no HAVE_TESSERACT=no HAVE_OBJCOPY=no CC=cc CXX=c++ AR=ar tools
+    HAVE_X11=no HAVE_GLUT=no HAVE_CURL=no HAVE_TESSERACT=no HAVE_LIBCRYPTO=no HAVE_OBJCOPY=no CC=cc CXX=c++ AR=ar tools
 if ($LASTEXITCODE -ne 0) { throw "make falló ($LASTEXITCODE)." }
 
 $mutool = Join-Path $source 'build/release/mutool'
