@@ -104,6 +104,18 @@ Ejecuta `dotnet run --project src/Kumquat.App` y anota ✅/❌ y la versión de 
 | 58 | Clic derecho en "Este equipo" o la Papelera | No aparece |
 | 59 | Actualizar o desinstalar con el menú recién usado | Sin aviso de archivos en uso ni pedido de reinicio |
 
+## Panel de progreso
+
+| # | Caso | Esperado |
+|---|---|---|
+| 60 | Convertir una foto chica | No aparece el panel (solo el aviso al terminar) |
+| 61 | Comprimir un video de 1 minuto | A ~1 s aparece abajo a la derecha, sobre la barra de tareas; el porcentaje sube y "quedan ~N s" baja de forma pareja; al terminar se va solo |
+| 62 | Convertir 10 fotos HEIC a la vez | Encabezado "N en curso · M en cola", 4 filas y "y N más en la cola" |
+| 63 | Clic en la X de una fila | Se cancela solo ese archivo; el foco sigue en la ventana que estabas usando |
+| 64 | "Ocultar" a mitad de un lote | No vuelve hasta que termina ese lote; el siguiente lo muestra |
+| 65 | Barra de tareas a la izquierda o arriba; pantalla al 150 % | El panel queda en la esquina inferior derecha del área libre |
+| 66 | Narrador con el panel a la vista | Lee el encabezado al cambiar ("2 en curso") y cada botón con su nombre ("Cancelar foto.heic") |
+
 ## Pantallas
 
 | # | Caso | Esperado |
