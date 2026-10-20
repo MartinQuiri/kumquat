@@ -28,7 +28,7 @@ public sealed class ProgressBoardTests
     [Fact]
     public void TrabajoLargo_ApareceYSeVaPocoDespuesDeTerminar()
     {
-        var id = Add(@"C:\videos\viaje.mp4", "Comprimir");
+        var id = Add(Path.Combine(Path.GetTempPath(), "videos", "viaje.mp4"), "Comprimir");
         Set(id, JobState.Running, 0);
         _time.Advance(ProgressBoard.ShowDelay);
 

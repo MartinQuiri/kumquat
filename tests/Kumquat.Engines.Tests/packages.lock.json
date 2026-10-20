@@ -1,7 +1,7 @@
 {
   "version": 2,
   "dependencies": {
-    "net10.0-windows7.0": {
+    "net10.0": {
       "Meziantou.Analyzer": {
         "type": "Direct",
         "requested": "[3.0.312, )",
@@ -43,15 +43,6 @@
         "dependencies": {
           "DiffEngine": "11.3.0",
           "EmptyFiles": "4.4.0"
-        }
-      },
-      "System.Drawing.Common": {
-        "type": "Direct",
-        "requested": "[10.0.13, )",
-        "resolved": "10.0.13",
-        "contentHash": "s8JRuC+ec1djwT471SbZRXWCBFXCKkNNGILWD/OCmIcdL0KP0w4arMjyEZzNUuKxolperKtlxHhS+34rA4N3XA==",
-        "dependencies": {
-          "Microsoft.Win32.SystemEvents": "10.0.13"
         }
       },
       "xunit.v3": {
@@ -150,11 +141,6 @@
         "type": "Transitive",
         "resolved": "5.0.0",
         "contentHash": "dDoKi0PnDz31yAyETfRntsLArTlVAVzUzCIvvEDsDsucrl33Dl8pIJG06ePTJTI3tGpeyHS9Cq7Foc/s4EeKcg=="
-      },
-      "Microsoft.Win32.SystemEvents": {
-        "type": "Transitive",
-        "resolved": "10.0.13",
-        "contentHash": "rtd1rRf5uiusn/r+hNsODiCjvA+nErw+1EQb2uCv0EedLi2GEYWgLK0V31SXzcZ2b0D7VeoOrHJ0WCQqfbO67Q=="
       },
       "Mono.Cecil": {
         "type": "Transitive",
@@ -303,6 +289,10 @@
         "dependencies": {
           "Kumquat.Core": "[0.2.0, )",
           "NetVips": "[3.2.0, )",
+          "NetVips.Native.linux-arm64": "[8.18.7, )",
+          "NetVips.Native.linux-x64": "[8.18.7, )",
+          "NetVips.Native.osx-arm64": "[8.18.7, )",
+          "NetVips.Native.osx-x64": "[8.18.7, )",
           "NetVips.Native.win-arm64": "[8.18.7, )",
           "NetVips.Native.win-x64": "[8.18.7, )"
         }
@@ -360,6 +350,30 @@
         "resolved": "3.2.0",
         "contentHash": "ixVatHjsFBBvtKXYwH8jz8nF6OQIhl2e/P0N8ByGaZrlPu9VvcVQxX9zBQ13L8fUpMzKv1WXUybqW8wXZdFsCg=="
       },
+      "NetVips.Native.linux-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "nCKwMXFz+uyjouDskMxlF1XkgxGeGjyTTLcEcp+CeF8leqxrtylT8Thot7SUtiffEqeaVLOLH6YY6iknbiq/TA=="
+      },
+      "NetVips.Native.linux-x64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "Ao/eWVNRZRM8/j8Dhp62XARwPzrTGMl4nheNQlQvp8P2Ybpdzj1+SeXRBlUCaH8phlCrEUSabz/5lpmnw3Wmig=="
+      },
+      "NetVips.Native.osx-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "DMMjnEXeEpOQ8zvM47ZkvnGlDAK7oBZ8vH2zhYeuusrsqiameQ0GFmQginThqcFR4k8G7eMUARkrPbclcuKqIw=="
+      },
+      "NetVips.Native.osx-x64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "oiyOLIFSfmsHUEsuCsQ5At2fCTkgguQkYOFti4K1SKgIIgdoCPbEZ1GgAzZpIh0GdLOsCks9knA36rL0mS2ABg=="
+      },
       "NetVips.Native.win-arm64": {
         "type": "CentralTransitive",
         "requested": "[8.18.7, )",
@@ -404,7 +418,7 @@
         "contentHash": "wAEAxPV67rmS3IlIm+tvGNPJXEtZNqlwkZrwJZAvz0AagZP0qLtT4mM2hk8S+uO0Kx+wYoy/FsADQpHwsN5y3g=="
       }
     },
-    "net10.0-windows7.0/win-arm64": {
+    "net10.0/linux-arm64": {
       "Microsoft.Testing.Extensions.CodeCoverage": {
         "type": "Direct",
         "requested": "[18.12.0, )",
@@ -422,11 +436,6 @@
         "resolved": "5.0.0",
         "contentHash": "dDoKi0PnDz31yAyETfRntsLArTlVAVzUzCIvvEDsDsucrl33Dl8pIJG06ePTJTI3tGpeyHS9Cq7Foc/s4EeKcg=="
       },
-      "Microsoft.Win32.SystemEvents": {
-        "type": "Transitive",
-        "resolved": "10.0.13",
-        "contentHash": "rtd1rRf5uiusn/r+hNsODiCjvA+nErw+1EQb2uCv0EedLi2GEYWgLK0V31SXzcZ2b0D7VeoOrHJ0WCQqfbO67Q=="
-      },
       "System.Management": {
         "type": "Transitive",
         "resolved": "6.0.1",
@@ -439,6 +448,30 @@
         "type": "Transitive",
         "resolved": "6.0.1",
         "contentHash": "IQ4NXP/B3Ayzvw0rDQzVTYsCKyy0Jp9KI6aYcK7UnGVlR9+Awz++TIPCQtPYfLJfOpm8ajowMR09V7quD3sEHw=="
+      },
+      "NetVips.Native.linux-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "nCKwMXFz+uyjouDskMxlF1XkgxGeGjyTTLcEcp+CeF8leqxrtylT8Thot7SUtiffEqeaVLOLH6YY6iknbiq/TA=="
+      },
+      "NetVips.Native.linux-x64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "Ao/eWVNRZRM8/j8Dhp62XARwPzrTGMl4nheNQlQvp8P2Ybpdzj1+SeXRBlUCaH8phlCrEUSabz/5lpmnw3Wmig=="
+      },
+      "NetVips.Native.osx-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "DMMjnEXeEpOQ8zvM47ZkvnGlDAK7oBZ8vH2zhYeuusrsqiameQ0GFmQginThqcFR4k8G7eMUARkrPbclcuKqIw=="
+      },
+      "NetVips.Native.osx-x64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "oiyOLIFSfmsHUEsuCsQ5At2fCTkgguQkYOFti4K1SKgIIgdoCPbEZ1GgAzZpIh0GdLOsCks9knA36rL0mS2ABg=="
       },
       "NetVips.Native.win-arm64": {
         "type": "CentralTransitive",
@@ -453,7 +486,7 @@
         "contentHash": "xmJCf4GoVHOSB7nED+/JxP6nxx+a/JZTqv3VQ8ni1LdZb3dewcMwSJPjEItdzNMpKLJL/40HZG42/dP05ifEJA=="
       }
     },
-    "net10.0-windows7.0/win-x64": {
+    "net10.0/linux-x64": {
       "Microsoft.Testing.Extensions.CodeCoverage": {
         "type": "Direct",
         "requested": "[18.12.0, )",
@@ -471,10 +504,73 @@
         "resolved": "5.0.0",
         "contentHash": "dDoKi0PnDz31yAyETfRntsLArTlVAVzUzCIvvEDsDsucrl33Dl8pIJG06ePTJTI3tGpeyHS9Cq7Foc/s4EeKcg=="
       },
-      "Microsoft.Win32.SystemEvents": {
+      "System.Management": {
         "type": "Transitive",
-        "resolved": "10.0.13",
-        "contentHash": "rtd1rRf5uiusn/r+hNsODiCjvA+nErw+1EQb2uCv0EedLi2GEYWgLK0V31SXzcZ2b0D7VeoOrHJ0WCQqfbO67Q=="
+        "resolved": "6.0.1",
+        "contentHash": "10J1D0h/lioojphfJ4Fuh5ZUThT/xOVHdV9roGBittKKNP2PMjrvibEdbVTGZcPra1399Ja3tqIJLyQrc5Wmhg==",
+        "dependencies": {
+          "System.CodeDom": "6.0.0"
+        }
+      },
+      "System.Security.AccessControl": {
+        "type": "Transitive",
+        "resolved": "6.0.1",
+        "contentHash": "IQ4NXP/B3Ayzvw0rDQzVTYsCKyy0Jp9KI6aYcK7UnGVlR9+Awz++TIPCQtPYfLJfOpm8ajowMR09V7quD3sEHw=="
+      },
+      "NetVips.Native.linux-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "nCKwMXFz+uyjouDskMxlF1XkgxGeGjyTTLcEcp+CeF8leqxrtylT8Thot7SUtiffEqeaVLOLH6YY6iknbiq/TA=="
+      },
+      "NetVips.Native.linux-x64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "Ao/eWVNRZRM8/j8Dhp62XARwPzrTGMl4nheNQlQvp8P2Ybpdzj1+SeXRBlUCaH8phlCrEUSabz/5lpmnw3Wmig=="
+      },
+      "NetVips.Native.osx-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "DMMjnEXeEpOQ8zvM47ZkvnGlDAK7oBZ8vH2zhYeuusrsqiameQ0GFmQginThqcFR4k8G7eMUARkrPbclcuKqIw=="
+      },
+      "NetVips.Native.osx-x64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "oiyOLIFSfmsHUEsuCsQ5At2fCTkgguQkYOFti4K1SKgIIgdoCPbEZ1GgAzZpIh0GdLOsCks9knA36rL0mS2ABg=="
+      },
+      "NetVips.Native.win-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "xZGa709UzaMRL6TUKXvNboEeP6rVqgPjP+5u1pXkwq1tXFcauNwXWIMy5ozsrCOf7xvxvcmWf+Y+rtCRpwmGBA=="
+      },
+      "NetVips.Native.win-x64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "xmJCf4GoVHOSB7nED+/JxP6nxx+a/JZTqv3VQ8ni1LdZb3dewcMwSJPjEItdzNMpKLJL/40HZG42/dP05ifEJA=="
+      }
+    },
+    "net10.0/osx-arm64": {
+      "Microsoft.Testing.Extensions.CodeCoverage": {
+        "type": "Direct",
+        "requested": "[18.12.0, )",
+        "resolved": "18.12.0",
+        "contentHash": "BST/sWYpKk9OXO7Yxktcg6FWORRsHU0EdCbMwZ7d3OqJsMKlrNHIZ30g0Ib4k5T5acJYXRBmg9mNrTU/N6cy1g==",
+        "dependencies": {
+          "Microsoft.DiaSymReader": "2.2.10",
+          "Microsoft.Extensions.DependencyModel": "10.0.10",
+          "Microsoft.Testing.Platform": "2.5.0",
+          "Mono.Cecil": "0.11.6"
+        }
+      },
+      "Microsoft.Win32.Registry": {
+        "type": "Transitive",
+        "resolved": "5.0.0",
+        "contentHash": "dDoKi0PnDz31yAyETfRntsLArTlVAVzUzCIvvEDsDsucrl33Dl8pIJG06ePTJTI3tGpeyHS9Cq7Foc/s4EeKcg=="
       },
       "System.Management": {
         "type": "Transitive",
@@ -488,6 +584,234 @@
         "type": "Transitive",
         "resolved": "6.0.1",
         "contentHash": "IQ4NXP/B3Ayzvw0rDQzVTYsCKyy0Jp9KI6aYcK7UnGVlR9+Awz++TIPCQtPYfLJfOpm8ajowMR09V7quD3sEHw=="
+      },
+      "NetVips.Native.linux-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "nCKwMXFz+uyjouDskMxlF1XkgxGeGjyTTLcEcp+CeF8leqxrtylT8Thot7SUtiffEqeaVLOLH6YY6iknbiq/TA=="
+      },
+      "NetVips.Native.linux-x64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "Ao/eWVNRZRM8/j8Dhp62XARwPzrTGMl4nheNQlQvp8P2Ybpdzj1+SeXRBlUCaH8phlCrEUSabz/5lpmnw3Wmig=="
+      },
+      "NetVips.Native.osx-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "DMMjnEXeEpOQ8zvM47ZkvnGlDAK7oBZ8vH2zhYeuusrsqiameQ0GFmQginThqcFR4k8G7eMUARkrPbclcuKqIw=="
+      },
+      "NetVips.Native.osx-x64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "oiyOLIFSfmsHUEsuCsQ5At2fCTkgguQkYOFti4K1SKgIIgdoCPbEZ1GgAzZpIh0GdLOsCks9knA36rL0mS2ABg=="
+      },
+      "NetVips.Native.win-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "xZGa709UzaMRL6TUKXvNboEeP6rVqgPjP+5u1pXkwq1tXFcauNwXWIMy5ozsrCOf7xvxvcmWf+Y+rtCRpwmGBA=="
+      },
+      "NetVips.Native.win-x64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "xmJCf4GoVHOSB7nED+/JxP6nxx+a/JZTqv3VQ8ni1LdZb3dewcMwSJPjEItdzNMpKLJL/40HZG42/dP05ifEJA=="
+      }
+    },
+    "net10.0/osx-x64": {
+      "Microsoft.Testing.Extensions.CodeCoverage": {
+        "type": "Direct",
+        "requested": "[18.12.0, )",
+        "resolved": "18.12.0",
+        "contentHash": "BST/sWYpKk9OXO7Yxktcg6FWORRsHU0EdCbMwZ7d3OqJsMKlrNHIZ30g0Ib4k5T5acJYXRBmg9mNrTU/N6cy1g==",
+        "dependencies": {
+          "Microsoft.DiaSymReader": "2.2.10",
+          "Microsoft.Extensions.DependencyModel": "10.0.10",
+          "Microsoft.Testing.Platform": "2.5.0",
+          "Mono.Cecil": "0.11.6"
+        }
+      },
+      "Microsoft.Win32.Registry": {
+        "type": "Transitive",
+        "resolved": "5.0.0",
+        "contentHash": "dDoKi0PnDz31yAyETfRntsLArTlVAVzUzCIvvEDsDsucrl33Dl8pIJG06ePTJTI3tGpeyHS9Cq7Foc/s4EeKcg=="
+      },
+      "System.Management": {
+        "type": "Transitive",
+        "resolved": "6.0.1",
+        "contentHash": "10J1D0h/lioojphfJ4Fuh5ZUThT/xOVHdV9roGBittKKNP2PMjrvibEdbVTGZcPra1399Ja3tqIJLyQrc5Wmhg==",
+        "dependencies": {
+          "System.CodeDom": "6.0.0"
+        }
+      },
+      "System.Security.AccessControl": {
+        "type": "Transitive",
+        "resolved": "6.0.1",
+        "contentHash": "IQ4NXP/B3Ayzvw0rDQzVTYsCKyy0Jp9KI6aYcK7UnGVlR9+Awz++TIPCQtPYfLJfOpm8ajowMR09V7quD3sEHw=="
+      },
+      "NetVips.Native.linux-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "nCKwMXFz+uyjouDskMxlF1XkgxGeGjyTTLcEcp+CeF8leqxrtylT8Thot7SUtiffEqeaVLOLH6YY6iknbiq/TA=="
+      },
+      "NetVips.Native.linux-x64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "Ao/eWVNRZRM8/j8Dhp62XARwPzrTGMl4nheNQlQvp8P2Ybpdzj1+SeXRBlUCaH8phlCrEUSabz/5lpmnw3Wmig=="
+      },
+      "NetVips.Native.osx-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "DMMjnEXeEpOQ8zvM47ZkvnGlDAK7oBZ8vH2zhYeuusrsqiameQ0GFmQginThqcFR4k8G7eMUARkrPbclcuKqIw=="
+      },
+      "NetVips.Native.osx-x64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "oiyOLIFSfmsHUEsuCsQ5At2fCTkgguQkYOFti4K1SKgIIgdoCPbEZ1GgAzZpIh0GdLOsCks9knA36rL0mS2ABg=="
+      },
+      "NetVips.Native.win-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "xZGa709UzaMRL6TUKXvNboEeP6rVqgPjP+5u1pXkwq1tXFcauNwXWIMy5ozsrCOf7xvxvcmWf+Y+rtCRpwmGBA=="
+      },
+      "NetVips.Native.win-x64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "xmJCf4GoVHOSB7nED+/JxP6nxx+a/JZTqv3VQ8ni1LdZb3dewcMwSJPjEItdzNMpKLJL/40HZG42/dP05ifEJA=="
+      }
+    },
+    "net10.0/win-arm64": {
+      "Microsoft.Testing.Extensions.CodeCoverage": {
+        "type": "Direct",
+        "requested": "[18.12.0, )",
+        "resolved": "18.12.0",
+        "contentHash": "BST/sWYpKk9OXO7Yxktcg6FWORRsHU0EdCbMwZ7d3OqJsMKlrNHIZ30g0Ib4k5T5acJYXRBmg9mNrTU/N6cy1g==",
+        "dependencies": {
+          "Microsoft.DiaSymReader": "2.2.10",
+          "Microsoft.Extensions.DependencyModel": "10.0.10",
+          "Microsoft.Testing.Platform": "2.5.0",
+          "Mono.Cecil": "0.11.6"
+        }
+      },
+      "Microsoft.Win32.Registry": {
+        "type": "Transitive",
+        "resolved": "5.0.0",
+        "contentHash": "dDoKi0PnDz31yAyETfRntsLArTlVAVzUzCIvvEDsDsucrl33Dl8pIJG06ePTJTI3tGpeyHS9Cq7Foc/s4EeKcg=="
+      },
+      "System.Management": {
+        "type": "Transitive",
+        "resolved": "6.0.1",
+        "contentHash": "10J1D0h/lioojphfJ4Fuh5ZUThT/xOVHdV9roGBittKKNP2PMjrvibEdbVTGZcPra1399Ja3tqIJLyQrc5Wmhg==",
+        "dependencies": {
+          "System.CodeDom": "6.0.0"
+        }
+      },
+      "System.Security.AccessControl": {
+        "type": "Transitive",
+        "resolved": "6.0.1",
+        "contentHash": "IQ4NXP/B3Ayzvw0rDQzVTYsCKyy0Jp9KI6aYcK7UnGVlR9+Awz++TIPCQtPYfLJfOpm8ajowMR09V7quD3sEHw=="
+      },
+      "NetVips.Native.linux-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "nCKwMXFz+uyjouDskMxlF1XkgxGeGjyTTLcEcp+CeF8leqxrtylT8Thot7SUtiffEqeaVLOLH6YY6iknbiq/TA=="
+      },
+      "NetVips.Native.linux-x64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "Ao/eWVNRZRM8/j8Dhp62XARwPzrTGMl4nheNQlQvp8P2Ybpdzj1+SeXRBlUCaH8phlCrEUSabz/5lpmnw3Wmig=="
+      },
+      "NetVips.Native.osx-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "DMMjnEXeEpOQ8zvM47ZkvnGlDAK7oBZ8vH2zhYeuusrsqiameQ0GFmQginThqcFR4k8G7eMUARkrPbclcuKqIw=="
+      },
+      "NetVips.Native.osx-x64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "oiyOLIFSfmsHUEsuCsQ5At2fCTkgguQkYOFti4K1SKgIIgdoCPbEZ1GgAzZpIh0GdLOsCks9knA36rL0mS2ABg=="
+      },
+      "NetVips.Native.win-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "xZGa709UzaMRL6TUKXvNboEeP6rVqgPjP+5u1pXkwq1tXFcauNwXWIMy5ozsrCOf7xvxvcmWf+Y+rtCRpwmGBA=="
+      },
+      "NetVips.Native.win-x64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "xmJCf4GoVHOSB7nED+/JxP6nxx+a/JZTqv3VQ8ni1LdZb3dewcMwSJPjEItdzNMpKLJL/40HZG42/dP05ifEJA=="
+      }
+    },
+    "net10.0/win-x64": {
+      "Microsoft.Testing.Extensions.CodeCoverage": {
+        "type": "Direct",
+        "requested": "[18.12.0, )",
+        "resolved": "18.12.0",
+        "contentHash": "BST/sWYpKk9OXO7Yxktcg6FWORRsHU0EdCbMwZ7d3OqJsMKlrNHIZ30g0Ib4k5T5acJYXRBmg9mNrTU/N6cy1g==",
+        "dependencies": {
+          "Microsoft.DiaSymReader": "2.2.10",
+          "Microsoft.Extensions.DependencyModel": "10.0.10",
+          "Microsoft.Testing.Platform": "2.5.0",
+          "Mono.Cecil": "0.11.6"
+        }
+      },
+      "Microsoft.Win32.Registry": {
+        "type": "Transitive",
+        "resolved": "5.0.0",
+        "contentHash": "dDoKi0PnDz31yAyETfRntsLArTlVAVzUzCIvvEDsDsucrl33Dl8pIJG06ePTJTI3tGpeyHS9Cq7Foc/s4EeKcg=="
+      },
+      "System.Management": {
+        "type": "Transitive",
+        "resolved": "6.0.1",
+        "contentHash": "10J1D0h/lioojphfJ4Fuh5ZUThT/xOVHdV9roGBittKKNP2PMjrvibEdbVTGZcPra1399Ja3tqIJLyQrc5Wmhg==",
+        "dependencies": {
+          "System.CodeDom": "6.0.0"
+        }
+      },
+      "System.Security.AccessControl": {
+        "type": "Transitive",
+        "resolved": "6.0.1",
+        "contentHash": "IQ4NXP/B3Ayzvw0rDQzVTYsCKyy0Jp9KI6aYcK7UnGVlR9+Awz++TIPCQtPYfLJfOpm8ajowMR09V7quD3sEHw=="
+      },
+      "NetVips.Native.linux-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "nCKwMXFz+uyjouDskMxlF1XkgxGeGjyTTLcEcp+CeF8leqxrtylT8Thot7SUtiffEqeaVLOLH6YY6iknbiq/TA=="
+      },
+      "NetVips.Native.linux-x64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "Ao/eWVNRZRM8/j8Dhp62XARwPzrTGMl4nheNQlQvp8P2Ybpdzj1+SeXRBlUCaH8phlCrEUSabz/5lpmnw3Wmig=="
+      },
+      "NetVips.Native.osx-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "DMMjnEXeEpOQ8zvM47ZkvnGlDAK7oBZ8vH2zhYeuusrsqiameQ0GFmQginThqcFR4k8G7eMUARkrPbclcuKqIw=="
+      },
+      "NetVips.Native.osx-x64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "oiyOLIFSfmsHUEsuCsQ5At2fCTkgguQkYOFti4K1SKgIIgdoCPbEZ1GgAzZpIh0GdLOsCks9knA36rL0mS2ABg=="
       },
       "NetVips.Native.win-arm64": {
         "type": "CentralTransitive",

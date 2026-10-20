@@ -11,7 +11,8 @@ namespace Kumquat.Engines.Ocr;
 
 /// <summary>
 /// Ejecuta Tesseract. Solo recibe rutas locales que crea Kumquat (Tesseract sabría leer URLs: nunca
-/// se le pasa una) y los modelos de idioma de la carpeta propia, nunca los del sistema.
+/// se le pasa una) y los modelos de idioma de la carpeta propia; en Linux y macOS, si Kumquat no
+/// trae su Tesseract, los del paquete del sistema.
 /// </summary>
 public sealed class TesseractEngine
 {
@@ -20,6 +21,9 @@ public sealed class TesseractEngine
 
     /// <summary>Resolución con la que se dibujan las páginas de un PDF y se supone en fotos sin dato.</summary>
     public const int DefaultDpi = 300;
+
+    /// <summary>Carpetas de Debian y Ubuntu, con una subcarpeta por versión de Tesseract.</summary>
+    private static readonly string[] VersionedSystemRoots = ["/usr/share/tesseract-ocr", "/usr/local/share/tesseract-ocr"];
 
     private static readonly TimeSpan PageTimeout = TimeSpan.FromMinutes(5);
     private const long MaxMemoryBytes = 2L * 1024 * 1024 * 1024;
@@ -33,10 +37,44 @@ public sealed class TesseractEngine
     {
         ArgumentNullException.ThrowIfNull(locator);
         _runner = runner ?? throw new ArgumentNullException(nameof(runner));
-        _executable = locator.Find("tesseract", Path.Combine("bin", "tesseract.exe"));
-        var tessdata = _executable is null ? null : Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(_executable)!)!, "tessdata");
-        _tessdata = tessdata is not null && Languages.Split('+').All(l => File.Exists(Path.Combine(tessdata, l + ".traineddata"))) ? tessdata : null;
+        _executable = locator.FindExecutable("tesseract", "tesseract", "bin");
+        _tessdata = _executable is null ? null : TessdataCandidates(_executable).FirstOrDefault(HasLanguages);
     }
+
+    /// <summary>
+    /// Carpetas de modelos: la propia (junto a <c>bin</c>) y, fuera de Windows, las de los paquetes del
+    /// sistema (Debian/Ubuntu, Fedora/Arch, Homebrew), para el Tesseract que no trae Kumquat.
+    /// </summary>
+    private static IEnumerable<string> TessdataCandidates(string executable)
+    {
+        yield return Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(executable)!)!, "tessdata");
+        if (OperatingSystem.IsWindows())
+        {
+            yield break;
+        }
+
+        if (Environment.GetEnvironmentVariable("TESSDATA_PREFIX") is { Length: > 0 } prefix && Path.IsPathFullyQualified(prefix))
+        {
+            yield return prefix;
+            yield return Path.Combine(prefix, "tessdata");
+        }
+
+        foreach (var root in VersionedSystemRoots.Where(Directory.Exists))
+        {
+            // Debian y Ubuntu versionan la carpeta (4.00, 5…): la más nueva primero.
+            foreach (var version in Directory.EnumerateDirectories(root).Order(StringComparer.Ordinal).Reverse())
+            {
+                yield return Path.Combine(version, "tessdata");
+            }
+        }
+
+        yield return "/usr/share/tessdata";
+        yield return "/usr/local/share/tessdata";
+        yield return "/opt/homebrew/share/tessdata";
+    }
+
+    private static bool HasLanguages(string tessdata)
+        => Languages.Split('+').All(l => File.Exists(Path.Combine(tessdata, l + ".traineddata")));
 
     /// <summary>Indica si el motor y los modelos de <see cref="Languages"/> están instalados.</summary>
     public bool IsAvailable => _executable is not null && _tessdata is not null;

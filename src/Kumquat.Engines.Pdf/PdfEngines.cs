@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Kumquat contributors
 
+using System.Globalization;
+using System.Text.RegularExpressions;
 using Kumquat.Core.Localization;
 using Kumquat.Core.Results;
 using Kumquat.Infrastructure.Engines;
@@ -13,8 +15,15 @@ namespace Kumquat.Engines.Pdf;
 /// rotar) fuera de proceso. Todas las rutas se pasan absolutas: nunca empiezan con '-' y no
 /// pueden confundirse con opciones.
 /// </summary>
-public sealed class PdfEngines
+public sealed partial class PdfEngines
 {
+    /// <summary>
+    /// MuPDF más viejo que esto no sirve: le faltan las opciones de <c>mutool clean</c> que usa
+    /// "Comprimir" (1.24) y la API de <c>mutool run</c> de "Metadatos". Solo importa fuera de Windows,
+    /// donde se usa el del sistema (Ubuntu 22.04 trae 1.19).
+    /// </summary>
+    public static readonly Version MinimumMupdfVersion = new(1, 24);
+
     private static readonly TimeSpan Timeout = TimeSpan.FromMinutes(30);
     private const long MaxMemoryBytes = 2L * 1024 * 1024 * 1024;
 
@@ -25,9 +34,29 @@ public sealed class PdfEngines
     {
         ArgumentNullException.ThrowIfNull(locator);
         _runner = runner ?? throw new ArgumentNullException(nameof(runner));
-        Mutool = locator.Find("mupdf", "mutool.exe");
-        Qpdf = locator.Find("qpdf", Path.Combine("bin", "qpdf.exe"));
+        var mutool = locator.FindExecutable("mupdf", "mutool");
+        Mutool = mutool is not null && (OperatingSystem.IsWindows() || IsSupportedMutool(runner, mutool)) ? mutool : null;
+        Qpdf = locator.FindExecutable("qpdf", "qpdf", "bin");
     }
+
+    /// <summary>Versión de MuPDF en la salida de <c>mutool -v</c> (p. ej. "mutool version 1.24.10"), o <c>null</c>.</summary>
+    internal static Version? ParseMutoolVersion(string output)
+        => MutoolVersionPattern().Match(output) is { Success: true } match
+            ? new Version(int.Parse(match.Groups["major"].Value, CultureInfo.InvariantCulture), int.Parse(match.Groups["minor"].Value, CultureInfo.InvariantCulture))
+            : null;
+
+    /// <summary>Al arrancar, una sola vez: el MuPDF del sistema puede ser demasiado viejo.</summary>
+    private static bool IsSupportedMutool(IProcessRunner runner, string mutool)
+    {
+        var output = new System.Text.StringBuilder();
+        var outcome = runner.RunAsync(
+            new ProcessSpec { FileName = mutool, Arguments = ["-v"], Timeout = TimeSpan.FromSeconds(10), OnStandardOutputLine = line => output.AppendLine(line) },
+            CancellationToken.None).GetAwaiter().GetResult();
+        return ParseMutoolVersion(output + outcome.StandardErrorTail) is { } version && version >= MinimumMupdfVersion;
+    }
+
+    [GeneratedRegex(@"version (?<major>\d+)\.(?<minor>\d+)", RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex MutoolVersionPattern();
 
     /// <summary>Ruta de mutool, si está instalado.</summary>
     public string? Mutool { get; }

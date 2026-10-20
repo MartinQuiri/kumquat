@@ -8,8 +8,8 @@ namespace Kumquat.Infrastructure.Processes;
 
 /// <summary>
 /// Lanza motores sin shell, con <see cref="ProcessStartInfo.ArgumentList"/>, dentro de un
-/// Job Object (memoria acotada y muerte garantizada) y con prioridad baja para no
-/// entorpecer la interacción.
+/// <see cref="IProcessGroup"/> (Job Object en Windows: memoria acotada y muerte garantizada) y con
+/// prioridad baja para no entorpecer la interacción.
 /// </summary>
 public sealed class ProcessRunner : IProcessRunner
 {
@@ -26,7 +26,7 @@ public sealed class ProcessRunner : IProcessRunner
 
         cancellationToken.ThrowIfCancellationRequested();
         var startInfo = CreateStartInfo(spec);
-        using var job = new JobObject(spec.MaxMemoryBytes);
+        using var job = ProcessGroup.Create(spec.MaxMemoryBytes);
         using var process = new Process { StartInfo = startInfo };
         if (!process.Start())
         {
@@ -35,7 +35,7 @@ public sealed class ProcessRunner : IProcessRunner
 
         // Ventana mínima entre Start y Assign: los motores no crean hijos tan rápido.
         // Para motores que sí lo hacen (LibreOffice) habrá que lanzar suspendido con CreateProcess.
-        job.Assign(process.SafeHandle);
+        job.Add(process);
         if (!spec.Interactive)
         {
             TryLowerPriority(process);
@@ -58,7 +58,7 @@ public sealed class ProcessRunner : IProcessRunner
         }
         catch (OperationCanceledException)
         {
-            job.Terminate(exitCode: 1);
+            job.Terminate();
             await process.WaitForExitAsync(CancellationToken.None);
             await Task.WhenAll(stdoutPump, stderrPump);
             cancellationToken.ThrowIfCancellationRequested();
@@ -124,7 +124,7 @@ public sealed class ProcessRunner : IProcessRunner
         }
         catch (OperationCanceledException)
         {
-            // El proceso se cancela aparte (Job Object).
+            // El proceso se cancela aparte (IProcessGroup).
         }
         catch (IOException)
         {

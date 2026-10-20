@@ -2,10 +2,12 @@
 // Copyright (C) 2026 Kumquat contributors
 
 using System.Globalization;
+using System.Runtime.Versioning;
 using Kumquat.Core.Conversion;
 using Kumquat.Core.Formats;
 using Kumquat.Core.Localization;
 using Kumquat.Core.Results;
+using Kumquat.Infrastructure.Engines;
 using Kumquat.Infrastructure.Processes;
 using Microsoft.Win32;
 
@@ -48,7 +50,7 @@ public sealed class CalibreConverter : IConverter
     /// <inheritdoc />
     public string Id => ConverterId;
 
-    /// <summary>Ruta de <c>ebook-convert.exe</c>, o <c>null</c>.</summary>
+    /// <summary>Ruta de <c>ebook-convert</c>, o <c>null</c>.</summary>
     public string? EbookConvert { get; }
 
     /// <inheritdoc />
@@ -58,10 +60,25 @@ public sealed class CalibreConverter : IConverter
     public IReadOnlyCollection<ConversionEdge> Edges { get; }
 
     /// <summary>
-    /// Busca <c>ebook-convert.exe</c>: primero donde lo registra el instalador (App Paths, por
-    /// usuario o para todos) y después en la carpeta de siempre de Calibre.
+    /// Busca <c>ebook-convert</c>. En Windows, primero donde lo registra el instalador (App Paths, por
+    /// usuario o para todos) y después en la carpeta de siempre de Calibre; en Linux, en el <c>PATH</c>;
+    /// en macOS, dentro de <c>calibre.app</c> y en el <c>PATH</c>.
     /// </summary>
     public static string? Find()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            return FindOnWindows();
+        }
+
+        string[] bundled = OperatingSystem.IsMacOS()
+            ? ["/Applications/calibre.app/Contents/MacOS/ebook-convert", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Applications", "calibre.app", "Contents", "MacOS", "ebook-convert")]
+            : [];
+        return bundled.FirstOrDefault(File.Exists) ?? new EngineLocator().FindExecutable("calibre", "ebook-convert");
+    }
+
+    [SupportedOSPlatform("windows")]
+    private static string? FindOnWindows()
     {
         foreach (var root in new[] { Registry.CurrentUser, Registry.LocalMachine })
         {

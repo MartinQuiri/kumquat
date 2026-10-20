@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using System.Globalization;
+using Kumquat.Infrastructure.Engines;
 using Kumquat.Infrastructure.Processes;
 
 namespace Kumquat.Infrastructure.Tests.Processes;
@@ -15,7 +16,7 @@ public sealed class ProcessRunnerTests
     {
         get
         {
-            var path = Path.Combine(AppContext.BaseDirectory, "Kumquat.TestTools.ProcessProbe.exe");
+            var path = Path.Combine(AppContext.BaseDirectory, "Kumquat.TestTools.ProcessProbe" + EngineLocator.ExecutableExtension);
             File.Exists(path).ShouldBeTrue($"No se encontró el probe en {path}");
             return path;
         }
@@ -104,6 +105,7 @@ public sealed class ProcessRunnerTests
     [Fact]
     public async Task LimiteDeMemoria_ElProcesoFalla()
     {
+        Assert.SkipWhen(OperatingSystem.IsMacOS(), "macOS no permite limitar la memoria de otro proceso.");
         var outcome = await _runner.RunAsync(Spec(["alloc", "512"]) with { MaxMemoryBytes = 128L * 1024 * 1024 }, TestContext.Current.CancellationToken);
 
         outcome.Succeeded.ShouldBeFalse();
@@ -138,6 +140,6 @@ public sealed class ProcessRunnerTests
             await Task.Delay(100, TestContext.Current.CancellationToken);
         }
 
-        throw new ShouldAssertException($"El nieto {pid} sigue vivo: el Job Object no lo mató.");
+        throw new ShouldAssertException($"El nieto {pid} sigue vivo: no se terminó el árbol de procesos.");
     }
 }

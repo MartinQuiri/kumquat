@@ -26,11 +26,16 @@ public sealed partial class WaveOutPlayer : IDisposable
     private bool _disposed;
 
     /// <summary>Abre la salida de audio.</summary>
-    /// <exception cref="InvalidOperationException">No hay dispositivo de salida.</exception>
+    /// <exception cref="InvalidOperationException">No hay dispositivo de salida (o no es Windows).</exception>
     public unsafe WaveOutPlayer(int sampleRate, int channels)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(sampleRate);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(channels);
+        if (!OperatingSystem.IsWindows())
+        {
+            throw new InvalidOperationException("waveOut solo existe en Windows.");
+        }
+
         var format = new WaveFormat
         {
             FormatTag = 1, // PCM

@@ -30,8 +30,8 @@ public sealed class FfmpegRunner
     {
         ArgumentNullException.ThrowIfNull(locator);
         _runner = runner ?? throw new ArgumentNullException(nameof(runner));
-        _ffmpeg = locator.Find("ffmpeg", Path.Combine("bin", "ffmpeg.exe"));
-        _ffprobe = locator.Find("ffmpeg", Path.Combine("bin", "ffprobe.exe"));
+        _ffmpeg = locator.FindExecutable("ffmpeg", "ffmpeg", "bin");
+        _ffprobe = locator.FindExecutable("ffmpeg", "ffprobe", "bin");
     }
 
     /// <summary>Indica si FFmpeg está instalado.</summary>

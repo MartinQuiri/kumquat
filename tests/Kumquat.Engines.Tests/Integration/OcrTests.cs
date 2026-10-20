@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Kumquat contributors
 
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Drawing.Text;
 using System.Text;
 using Kumquat.Core.Formats;
 using Kumquat.Core.Tools;
@@ -57,7 +54,7 @@ public sealed class OcrTests : IDisposable
     public async Task Imagen_ExtraerTexto_ConTildesYEñes(string formatId)
     {
         RequireEngine();
-        var image = TextImage("foto." + formatId, formatId == "png" ? ImageFormat.Png : ImageFormat.Jpeg);
+        var image = TextImage("foto." + formatId);
 
         var result = await Service.ApplyAsync([image], "image.ocr-text", null, null, TestContext.Current.CancellationToken);
 
@@ -72,7 +69,7 @@ public sealed class OcrTests : IDisposable
     public async Task Imagen_PdfBuscable_TieneElTextoSeleccionable()
     {
         RequireEngine();
-        var image = TextImage("escaneo.jpg", ImageFormat.Jpeg);
+        var image = TextImage("escaneo.jpg");
 
         var result = await Service.ApplyAsync([image], "image.ocr-pdf", null, null, TestContext.Current.CancellationToken);
 
@@ -86,14 +83,10 @@ public sealed class OcrTests : IDisposable
     {
         RequireEngine();
         var blank = Path.Combine(_dir, "vacia.png");
-        using (var bitmap = new Bitmap(800, 400))
+        using (var black = NetVips.Image.Black(800, 400))
+        using (var white = black.Invert())
         {
-            using (var g = Graphics.FromImage(bitmap))
-            {
-                g.Clear(Color.White);
-            }
-
-            bitmap.Save(blank, ImageFormat.Png);
+            white.WriteToFile(blank);
         }
 
         var result = await Service.ApplyAsync([blank], "image.ocr-text", null, null, TestContext.Current.CancellationToken);
@@ -130,22 +123,19 @@ public sealed class OcrTests : IDisposable
     private static void RequireEngine()
         => Assert.SkipUnless(TestEngines.Tesseract.IsAvailable, "Tesseract no está compilado (tools/build-tesseract.ps1).");
 
-    /// <summary>Dos renglones negros sobre blanco, a 300 ppp, como una hoja escaneada.</summary>
-    private string TextImage(string name, ImageFormat format)
+    /// <summary>
+    /// Dos renglones negros sobre blanco, a 300 ppp, como una hoja escaneada. Lo dibuja libvips (Pango):
+    /// igual en Windows, Linux y macOS. El formato sale de la extensión.
+    /// </summary>
+    private string TextImage(string name)
     {
+        const double PixelsPerMillimeter = 300 / 25.4;
         var path = Path.Combine(_dir, name);
-        using var bitmap = new Bitmap(2400, 700);
-        bitmap.SetResolution(300, 300);
-        using (var g = Graphics.FromImage(bitmap))
-        {
-            g.Clear(Color.White);
-            g.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
-            using var font = new Font("Segoe UI", 28, FontStyle.Regular, GraphicsUnit.Point);
-            g.DrawString(Sentence, font, Brushes.Black, 120, 140);
-            g.DrawString(Accents, font, Brushes.Black, 120, 380);
-        }
-
-        bitmap.Save(path, format);
+        using var mask = NetVips.Image.Text($"{Sentence}\n\n{Accents}", font: "sans 28", dpi: 300);
+        using var placed = mask.Embed(120, 140, Math.Max(2400, mask.Width + 240), Math.Max(700, mask.Height + 280));
+        using var page = placed.Invert();
+        using var scanned = page.Copy(xres: PixelsPerMillimeter, yres: PixelsPerMillimeter);
+        scanned.WriteToFile(path);
         return path;
     }
 
@@ -163,7 +153,7 @@ public sealed class OcrTests : IDisposable
     {
         var vector = await VectorPdfAsync(Path.Combine(_dir, "vectorial.pdf"));
         var scan = Path.Combine(_dir, "escaneo.pdf");
-        var built = await TestEngines.ImagePdf.BuildAsync([(TextImage("hoja.jpg", ImageFormat.Jpeg), KnownFormats.Jpg)], scan, TestContext.Current.CancellationToken);
+        var built = await TestEngines.ImagePdf.BuildAsync([(TextImage("hoja.jpg"), KnownFormats.Jpg)], scan, TestContext.Current.CancellationToken);
         built.IsSuccess.ShouldBeTrue(built.Error?.ToString());
 
         var mixed = Path.Combine(_dir, "mixto.pdf");

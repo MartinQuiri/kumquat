@@ -15,7 +15,6 @@
     <ProjectReference Include="..\..\src\Kumquat.Infrastructure\Kumquat.Infrastructure.csproj" />
     <!-- Al referenciar un Exe, el SDK copia su apphost junto a los tests. -->
     <ProjectReference Include="..\Kumquat.TestTools.ProcessProbe\Kumquat.TestTools.ProcessProbe.csproj" />
-    <ProjectReference Include="..\..\src\Kumquat.ShellExtension\Kumquat.ShellExtension.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Shouldly" />
