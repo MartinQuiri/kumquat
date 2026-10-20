@@ -108,18 +108,23 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: src
+      # Las versiones de prueba (v0.2.0-beta.1, v1.0.0-rc.1…) no se envían a winget.
       - name: Manifiesto de winget
-        if: vars.WINGET_PACKAGE_ID != ''
+        if: vars.WINGET_PACKAGE_ID != '' && !contains(github.ref_name, '-')
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force src/artifacts | Out-Null
           Copy-Item dist/*.msi src/artifacts/
           ./src/tools/winget-manifest.ps1 -Version ("${{ github.ref_name }}".TrimStart('v')) -Repository "${{ github.repository }}" -PackageIdentifier "${{ vars.WINGET_PACKAGE_ID }}"
           Compress-Archive -Path src/artifacts/winget/* -DestinationPath dist/winget-manifest.zip
+      # Un tag con guion (v0.2.0-beta.1) es una versión de prueba: sale marcada como prerelease.
       - name: Crear release (borrador)
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
         run: |
-          gh release create "${{ github.ref_name }}" dist/* \
-            --repo "${{ github.repository }}" --draft --generate-notes \
-            --title "Kumquat ${{ github.ref_name }}"
+          prerelease=()
+          if [[ "$TAG" == *-* ]]; then prerelease=(--prerelease); fi
+          gh release create "$TAG" dist/* \
+            --repo "${{ github.repository }}" --draft --generate-notes "${prerelease[@]}" \
+            --title "Kumquat $TAG"

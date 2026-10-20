@@ -23,6 +23,11 @@ El workflow [release.yml](../.github/workflows/release.yml) arma:
 
 y crea un release **en borrador**: se revisa y se publica a mano.
 
+**Versiones de prueba:** una etiqueta con guion (`v0.2.0-beta.1`, `v1.0.0-rc.1`) arma los mismos
+paquetes, marca el release como *prerelease* y no genera el manifiesto de winget. El MSI usa la
+versión sin el sufijo (Windows Installer solo admite números). Sirve también para probar el release
+completo en un fork antes de abrir el PR.
+
 En local es lo mismo:
 
 ```powershell

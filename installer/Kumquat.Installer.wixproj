@@ -8,7 +8,7 @@
     <OutputName>Kumquat</OutputName>
     <!-- Carpeta publicada (artifacts/publish/<rid>) y versión: las pasa build-installer.ps1. -->
     <PublishDir Condition="'$(PublishDir)' == ''">..\artifacts\publish\win-x64</PublishDir>
-    <ProductVersion Condition="'$(ProductVersion)' == ''">0.1.0</ProductVersion>
+    <ProductVersion Condition="'$(ProductVersion)' == ''">0.2.0</ProductVersion>
     <DefineConstants>PublishDir=$(PublishDir);ProductVersion=$(ProductVersion)</DefineConstants>
     <!-- ICE38/ICE64/ICE91 piden KeyPath de registro por archivo para perfiles móviles; la carpeta es
          %LOCALAPPDATA%\Programs (local, no viaja con el perfil), como en todo MSI por usuario.
