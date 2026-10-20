@@ -360,6 +360,11 @@ public sealed partial class CommandPalette : Window
         Keyboard.Focus(_query);
     }
 
+    /// <summary>
+    /// Al frente, con el foco: el buscador es para escribir. Windows solo deja tomar el foco a quien
+    /// produjo la última entrada (o recibió el permiso); si con eso no alcanza, se pulsa Alt —el
+    /// recurso habitual de los lanzadores tipo Spotlight— y se vuelve a pedir.
+    /// </summary>
     private void BringToFront()
     {
         var handle = new WindowInteropHelper(this).Handle;
@@ -372,7 +377,44 @@ public sealed partial class CommandPalette : Window
         {
             AttachThreadInput(current, foreground, attach: false);
         }
+
+        if (GetForegroundWindow() != handle)
+        {
+            PressAlt();
+            SetForegroundWindow(handle);
+            Activate();
+        }
     }
+
+    private static unsafe void PressAlt()
+    {
+        const ushort vkMenu = 0x12;
+        const uint keyUp = 0x2;
+        var inputs = stackalloc KeyboardInput[2];
+        inputs[0] = new KeyboardInput { Type = 1, Vk = vkMenu };
+        inputs[1] = new KeyboardInput { Type = 1, Vk = vkMenu, Flags = keyUp };
+        _ = SendInput(2, inputs, sizeof(KeyboardInput));
+    }
+
+    /// <summary>INPUT de teclado (40 bytes en 64 bits: tipo, relleno, KEYBDINPUT y la unión completa).</summary>
+    [StructLayout(LayoutKind.Explicit, Size = 40)]
+    private struct KeyboardInput
+    {
+        [FieldOffset(0)]
+        public uint Type;
+
+        [FieldOffset(8)]
+        public ushort Vk;
+
+        [FieldOffset(10)]
+        public ushort Scan;
+
+        [FieldOffset(12)]
+        public uint Flags;
+    }
+
+    [LibraryImport("user32.dll")]
+    private static unsafe partial uint SendInput(uint count, KeyboardInput* inputs, int size);
 
     [StructLayout(LayoutKind.Sequential)]
     private struct NativePoint

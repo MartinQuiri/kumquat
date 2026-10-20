@@ -81,6 +81,20 @@ public sealed class ToolServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task CarpetaDeSalida_ElResultadoVaAhi_ElOriginalNoSeToca()
+    {
+        var input = _dir.Write("adjunto.txt", "hola");
+        var destination = Path.Combine(_dir.Path, "Escritorio");
+        var job = new ToolService([new FakeTool("mayus", [KnownFormats.Txt])]).CreateJobs([input], "mayus", outputDirectory: destination).ShouldHaveSingleItem();
+
+        var result = await job.Work(new Progress<double>(), TestContext.Current.CancellationToken);
+
+        result.Value.ShouldBe(Path.Combine(destination, "adjunto (mayus).txt"));
+        File.Exists(Path.Combine(_dir.Path, "adjunto (mayus).txt")).ShouldBeFalse();
+        (await File.ReadAllTextAsync(input, TestContext.Current.CancellationToken)).ShouldBe("hola");
+    }
+
+    [Fact]
     public async Task CreateJob_EjecutaLaHerramienta()
     {
         var input = _dir.Write("nota.txt", "hola");

@@ -8,13 +8,15 @@ using System.Runtime.InteropServices;
 namespace Kumquat.Interaction.Native;
 
 /// <summary>
-/// Ventana Win32 mínima con despacho a métodos de instancia. Todas las instancias viven
-/// en el hilo de UI (STA) que bombea mensajes.
+/// Ventana Win32 mínima con despacho a métodos de instancia. Cada ventana recibe sus mensajes en
+/// el hilo que la creó; el registro de ventanas y de clases es seguro entre hilos (en la app todas
+/// viven en el hilo de UI, pero los tests y futuros hilos de UI no deben poder corromperlo).
 /// </summary>
 internal abstract unsafe class NativeWindow : IDisposable
 {
-    private static readonly Dictionary<nint, NativeWindow> Windows = [];
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<nint, NativeWindow> Windows = new();
     private static readonly HashSet<string> RegisteredClasses = new(StringComparer.Ordinal);
+    private static readonly Lock ClassGate = new();
 
     [ThreadStatic]
     private static NativeWindow? _creating;
@@ -69,7 +71,7 @@ internal abstract unsafe class NativeWindow : IDisposable
         _disposed = true;
         if (Handle != 0)
         {
-            Windows.Remove(Handle);
+            Windows.TryRemove(Handle, out _);
             Win32.DestroyWindow(Handle);
             Handle = 0;
         }
@@ -77,11 +79,20 @@ internal abstract unsafe class NativeWindow : IDisposable
 
     private static void RegisterClass(string className, nint instance)
     {
-        if (!RegisteredClasses.Add(className))
+        lock (ClassGate)
         {
-            return;
-        }
+            if (RegisteredClasses.Contains(className))
+            {
+                return;
+            }
 
+            Register(className, instance);
+            RegisteredClasses.Add(className);
+        }
+    }
+
+    private static void Register(string className, nint instance)
+    {
         fixed (char* name = className)
         {
             var wc = new WNDCLASSEXW
@@ -93,7 +104,6 @@ internal abstract unsafe class NativeWindow : IDisposable
             };
             if (Win32.RegisterClassExW(&wc) == 0)
             {
-                RegisteredClasses.Remove(className);
                 throw new Win32Exception(Marshal.GetLastPInvokeError());
             }
         }

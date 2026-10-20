@@ -43,6 +43,7 @@ ICONS = {
     "ocr-text": "text-t",
     "ocr-pdf": "file-magnifying-glass",
     "ocr": "scan",
+    "save": "download-simple",
     "copy-path": "link-simple",
     "copy-to": "copy",
     "move-to": "arrow-square-out",

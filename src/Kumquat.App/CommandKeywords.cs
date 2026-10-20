@@ -43,6 +43,7 @@ internal static class CommandKeywords
         ["media.trim"] = ["cortar", "tramo", "fragmento", "clip"],
         ["archive.zip"] = ["comprimir", "empaquetar"],
         ["archive.extract"] = ["descomprimir", "unzip", "abrir"],
+        ["action.save"] = ["guardar", "descargar", "extraer"],
         ["action.copy-path"] = ["ruta", "path", "direccion"],
         ["action.copy-to"] = ["duplicar", "copia"],
         ["action.move-to"] = ["trasladar", "mover"],

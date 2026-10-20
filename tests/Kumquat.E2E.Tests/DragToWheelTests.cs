@@ -74,6 +74,43 @@ public sealed class DragToWheelTests : IDisposable
         Directory.GetFiles(_dir).ShouldBe([png]);
     }
 
+    [Fact]
+    public async Task ArchivoVirtual_ComoUnAdjunto_SoltarEnJpg_QuedaEnLaCarpetaConfigurada()
+    {
+        Assert.SkipUnless(Environment.UserInteractive && Environment.GetEnvironmentVariable("CI") is null, "Requiere un escritorio interactivo.");
+
+        // Lo que entrega Outlook o un navegador: nombre + contenido, sin ruta en disco.
+        var png = await File.ReadAllBytesAsync(CreatePng(Path.Combine(_dir, "fuente.png")), TestContext.Current.CancellationToken);
+        File.Delete(Path.Combine(_dir, "fuente.png"));
+        var output = Directory.CreateDirectory(Path.Combine(_dir, "salida")).FullName;
+        var data = Directory.CreateDirectory(Path.Combine(_dir, "datos")).FullName;
+        await File.WriteAllTextAsync(Path.Combine(data, "settings.json"), System.Text.Json.JsonSerializer.Serialize(new { OutputFolder = output }), TestContext.Current.CancellationToken);
+        StartKumquat(data);
+
+        RunDragScenario(() => VirtualPng("adjunto.png", png), northSector: true);
+
+        var expected = Path.Combine(output, "adjunto.jpg");
+        await WaitForFileAsync(expected, TimeSpan.FromSeconds(30));
+        FormatSniffer.DetectFile(expected).ShouldBe(KnownFormats.Jpg);
+        await Task.Delay(500, TestContext.Current.CancellationToken);
+        var leftovers = Directory.Exists(Kumquat.Interaction.DragDrop.VirtualDrops.Root)
+            ? Directory.EnumerateFiles(Kumquat.Interaction.DragDrop.VirtualDrops.Root, "adjunto.png", SearchOption.AllDirectories).ToList()
+            : [];
+        leftovers.ShouldBeEmpty("la copia temporal se borra al terminar");
+    }
+
+    /// <summary>FileGroupDescriptorW (un elemento, nombre en el byte 72 del FILEDESCRIPTORW) + FileContents.</summary>
+    private static DataObject VirtualPng(string name, byte[] content)
+    {
+        var descriptor = new byte[4 + 592];
+        BitConverter.GetBytes(1u).CopyTo(descriptor, 0);
+        System.Text.Encoding.Unicode.GetBytes(name).CopyTo(descriptor, 4 + 72);
+        var data = new DataObject();
+        data.SetData("FileGroupDescriptorW", new MemoryStream(descriptor));
+        data.SetData("FileContents", new MemoryStream(content));
+        return data;
+    }
+
     private static string CreatePng(string path)
     {
         using var bitmap = new Bitmap(64, 48);
@@ -87,6 +124,9 @@ public sealed class DragToWheelTests : IDisposable
     }
 
     private static void RunDragScenario(string file, bool northSector)
+        => RunDragScenario(() => new DataObject(DataFormats.FileDrop, new[] { file }), northSector);
+
+    private static void RunDragScenario(Func<DataObject> data, bool northSector)
     {
         Exception? failure = null;
         var thread = new Thread(() =>
@@ -104,7 +144,7 @@ public sealed class DragToWheelTests : IDisposable
             form.MouseDown += (_, _) =>
             {
                 dragStarted.Set(); // el arrastre OLE empieza de verdad (DoDragDrop no vuelve hasta soltar)
-                form.DoDragDrop(new DataObject(DataFormats.FileDrop, new[] { file }), DragDropEffects.Copy | DragDropEffects.Move | DragDropEffects.Link);
+                form.DoDragDrop(data(), DragDropEffects.Copy | DragDropEffects.Move | DragDropEffects.Link);
             };
             form.Shown += (_, _) =>
             {
@@ -216,13 +256,19 @@ public sealed class DragToWheelTests : IDisposable
         throw new ShouldAssertException($"No apareció {path} en {timeout.TotalSeconds} s. Revisa %LOCALAPPDATA%\\Kumquat\\logs.");
     }
 
-    private void StartKumquat()
+    private void StartKumquat(string? dataDirectory = null)
     {
         var exe = Path.Combine(AppContext.BaseDirectory, "Kumquat.exe");
         File.Exists(exe).ShouldBeTrue($"No se encontró {exe}");
         Process.GetProcessesByName("Kumquat").Length.ShouldBe(0, "Cierra Kumquat antes de correr los E2E (instancia única).");
 
-        _app = Process.Start(new ProcessStartInfo(exe) { UseShellExecute = false });
+        var start = new ProcessStartInfo(exe) { UseShellExecute = false };
+        if (dataDirectory is not null)
+        {
+            start.Environment["KUMQUAT_DATA_DIR"] = dataDirectory; // configuración propia: no toca la de quien corre los tests
+        }
+
+        _app = Process.Start(start);
         Thread.Sleep(2500); // Arranque: hooks, ventana y registro OLE.
         _app!.HasExited.ShouldBeFalse("Kumquat se cerró al arrancar.");
     }

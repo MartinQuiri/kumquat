@@ -15,12 +15,42 @@ internal sealed class WheelTargets(ConversionGraph graph, ToolService tools)
     /// <summary>Máximo de rutas que se inspeccionan al entrar a la rueda (el resto se valida al ejecutar).</summary>
     public const int MaxSniffedFiles = 64;
 
+    /// <summary>Carpeta donde van los resultados de archivos sin carpeta (la de Configuración).</summary>
+    public Func<string> OutputFolder { get; set; } = () => AppSettings.DefaultOutputFolder;
+
+    /// <summary>Nombre visible de esa carpeta ("Escritorio" o el nombre de la carpeta elegida).</summary>
+    public string OutputFolderName
+    {
+        get
+        {
+            var folder = OutputFolder();
+            return string.Equals(folder, AppSettings.DefaultOutputFolder, StringComparison.OrdinalIgnoreCase)
+                ? "Escritorio"
+                : Path.GetFileName(Path.TrimEndingDirectorySeparator(folder));
+        }
+    }
+
+    /// <summary>
+    /// Lo arrastrado no existe en disco: son nombres de archivos virtuales (adjuntos, contenido de
+    /// un .zip, imágenes de una web), que se copian recién al soltar.
+    /// </summary>
+    public static bool AreVirtual(IReadOnlyList<string> paths)
+    {
+        ArgumentNullException.ThrowIfNull(paths);
+        return paths.Count > 0 && paths.All(p => !File.Exists(p) && !Directory.Exists(p));
+    }
+
     public IReadOnlyList<WheelRing> For(IReadOnlyList<string> paths)
     {
         ArgumentNullException.ThrowIfNull(paths);
         if (paths.Count == 0)
         {
             return [];
+        }
+
+        if (AreVirtual(paths))
+        {
+            return ForVirtual(paths);
         }
 
         // Las acciones sirven para todo, incluidas carpetas y formatos desconocidos.
@@ -43,6 +73,49 @@ internal sealed class WheelTargets(ConversionGraph graph, ToolService tools)
             new WheelRing(WheelRingKind.Tools, toolItems),
             actions,
         ];
+    }
+
+    /// <summary>
+    /// Anillos para archivos virtuales: el formato sale de la extensión (el contenido todavía no
+    /// está); se valida de verdad al soltar. Como acción, solo "Guardar en…".
+    /// </summary>
+    private IReadOnlyList<WheelRing> ForVirtual(IReadOnlyList<string> names)
+    {
+        var save = new WheelRing(WheelRingKind.Actions, [WheelItem.Action(FileActions.Save, $"Guardar en {OutputFolderName}")]);
+        var formats = names.Take(MaxSniffedFiles).Select(n => KnownFormats.FindByExtension(Path.GetExtension(n))).ToList();
+        if (formats.Any(f => f is null))
+        {
+            return [save];
+        }
+
+        var known = formats.Select(f => f!).ToList();
+        var toolItems = tools.ToolsForFormats(known)
+            .Where(t => known.Count >= t.MinInputs)
+            .Take(WheelLayout.MaxToolSectors)
+            .Select(t => WheelItem.Tool(t.Id, t.Label))
+            .ToList();
+        return
+        [
+            new WheelRing(WheelRingKind.Convert, WheelItemOrdering.Arrange(known[0].Category, graph.CommonTargets(known))),
+            new WheelRing(WheelRingKind.Tools, toolItems),
+            save,
+        ];
+    }
+
+    /// <summary>Etiqueta bajo la rueda; para archivos virtuales dice dónde se guardará el resultado.</summary>
+    public string? CaptionFor(IReadOnlyList<string> paths)
+    {
+        ArgumentNullException.ThrowIfNull(paths);
+        if (!AreVirtual(paths))
+        {
+            return Caption(paths);
+        }
+
+        var formats = paths.Select(p => KnownFormats.FindByExtension(Path.GetExtension(p))?.DisplayName).Distinct(StringComparer.Ordinal).ToList();
+        var what = paths.Count == 1 ? formats[0] ?? "Archivo"
+            : formats.Count == 1 && formats[0] is { } single ? $"{paths.Count} {single}"
+            : $"{paths.Count} archivos";
+        return $"{what} · se guarda en {OutputFolderName}";
     }
 
     /// <summary>

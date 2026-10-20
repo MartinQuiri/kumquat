@@ -80,7 +80,16 @@ public sealed class ToolService
         => ApplyAsync(paths, toolId, null, progress, cancellationToken);
 
     /// <summary>Igual que el anterior, con las opciones elegidas por el usuario (validadas por la herramienta).</summary>
-    public async Task<Result<string>> ApplyAsync(IReadOnlyList<string> paths, string toolId, IReadOnlyDictionary<string, string>? options, IProgress<double>? progress, CancellationToken cancellationToken)
+    /// <param name="paths">Entradas.</param>
+    /// <param name="toolId">Herramienta.</param>
+    /// <param name="options">Opciones elegidas.</param>
+    /// <param name="progress">Progreso.</param>
+    /// <param name="cancellationToken">Cancelación.</param>
+    /// <param name="outputDirectory">
+    /// Carpeta de salida; por defecto, la de la (primera) entrada. Se usa para archivos que no tienen
+    /// carpeta propia (adjuntos, contenido de un .zip, imágenes de una web).
+    /// </param>
+    public async Task<Result<string>> ApplyAsync(IReadOnlyList<string> paths, string toolId, IReadOnlyDictionary<string, string>? options, IProgress<double>? progress, CancellationToken cancellationToken, string? outputDirectory = null)
     {
         ArgumentNullException.ThrowIfNull(paths);
         var tool = Find(toolId);
@@ -114,7 +123,8 @@ public sealed class ToolService
 
         var first = inputs[0];
         var output = tool.OutputFormat(first.Format);
-        var directory = Path.GetDirectoryName(Path.TrimEndingDirectorySeparator(first.Path))!;
+        var directory = outputDirectory ?? Path.GetDirectoryName(Path.TrimEndingDirectorySeparator(first.Path))!;
+        Directory.CreateDirectory(directory);
         var result = output is null
             ? await StagedOutput.RunDirectoryAsync(first.Path, directory, tool.OutputSuffix, staging => tool.ApplyAsync(new ToolStep(inputs, staging, null, options), progress, cancellationToken), cancellationToken)
             : await StagedOutput.RunAsync(first.Path, output, directory, tool.OutputSuffix, staging => tool.ApplyAsync(new ToolStep(inputs, staging, output, options), progress, cancellationToken), cancellationToken);
@@ -140,14 +150,18 @@ public sealed class ToolService
         => Find(toolId)?.Validate(options);
 
     /// <summary>Trabajos encolables: uno por archivo, o uno solo si la herramienta combina.</summary>
-    public IReadOnlyList<JobRequest> CreateJobs(IReadOnlyList<string> paths, string toolId, IReadOnlyDictionary<string, string>? options = null)
+    /// <param name="paths">Entradas.</param>
+    /// <param name="toolId">Herramienta.</param>
+    /// <param name="options">Opciones elegidas.</param>
+    /// <param name="outputDirectory">Carpeta de salida (por defecto, junto a cada entrada).</param>
+    public IReadOnlyList<JobRequest> CreateJobs(IReadOnlyList<string> paths, string toolId, IReadOnlyDictionary<string, string>? options = null, string? outputDirectory = null)
     {
         ArgumentNullException.ThrowIfNull(paths);
         var tool = Find(toolId);
         var label = tool?.Label ?? toolId;
         return tool?.Mode == ToolMode.Combine
-            ? [new JobRequest(paths[0], label, (progress, ct) => ApplyAsync(paths, toolId, options, progress, ct))]
-            : [.. paths.Select(p => new JobRequest(p, label, (progress, ct) => ApplyAsync([p], toolId, options, progress, ct)))];
+            ? [new JobRequest(paths[0], label, (progress, ct) => ApplyAsync(paths, toolId, options, progress, ct, outputDirectory))]
+            : [.. paths.Select(p => new JobRequest(p, label, (progress, ct) => ApplyAsync([p], toolId, options, progress, ct, outputDirectory)))];
     }
 
     /// <summary>Trabajo encolable para un archivo.</summary>

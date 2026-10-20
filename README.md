@@ -88,9 +88,13 @@ Con [Tesseract](https://github.com/tesseract-ocr/tesseract), en español e ingl�
 - **PDF buscable:** una foto → PDF con la imagen y el texto encima, invisible: se puede seleccionar, copiar y buscar.
 - **Reconocer texto:** un PDF escaneado → PDF buscable. Solo se reconocen las páginas que no tienen texto; las que ya lo tienen quedan exactamente como estaban.
 
+### Adjuntos, archivos de un .zip e imágenes de una web
+
+Se pueden soltar en la rueda **sin guardarlos antes**: un adjunto arrastrado desde Outlook, un archivo de dentro de un .zip abierto en el Explorador o una imagen de una página web. Como no tienen carpeta propia, el resultado va al **Escritorio** (se cambia en Configuración) y la etiqueta bajo la rueda lo avisa. En el anillo de acciones aparece **Guardar en Escritorio** para simplemente guardarlos.
+
 ### Acciones
 
-Copiar ruta · Copiar a… · Mover a… · Ver en carpeta · Terminal aquí
+Copiar ruta · Copiar a… · Mover a… · Ver en carpeta · Terminal aquí (y Guardar en… para archivos sin carpeta)
 
 ## Compilar
 

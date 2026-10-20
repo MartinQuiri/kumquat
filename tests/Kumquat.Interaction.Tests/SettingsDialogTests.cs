@@ -7,6 +7,7 @@ using Microsoft.Win32;
 
 namespace Kumquat.Interaction.Tests;
 
+[Collection(WpfWindows.Name)]
 public sealed class SettingsDialogTests
 {
     private static readonly (string Id, string Label)[] Triggers = [("Shift", "Shift (recomendado)"), ("Control", "Ctrl"), ("CapsLock", "Bloq Mayús"), ("RightClick", "Clic derecho")];

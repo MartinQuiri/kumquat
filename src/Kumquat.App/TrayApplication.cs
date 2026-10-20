@@ -13,6 +13,7 @@ using Kumquat.Dialogs.Settings;
 using Kumquat.Hosting;
 using Kumquat.Infrastructure.Files;
 using Kumquat.Interaction;
+using Kumquat.Interaction.DragDrop;
 using Kumquat.Interaction.Input;
 using Kumquat.Interaction.Native;
 using Kumquat.Interaction.Tray;
@@ -52,6 +53,7 @@ internal sealed partial class TrayApplication : IDisposable
         _targets = new WheelTargets(services.GetRequiredService<ConversionGraph>(), _tools);
         _notifier = new BatchNotifier((title, message, isError) => _tray?.Notify(title, message, isError));
         _settings = AppSettings.Load(SettingsPath);
+        _targets.OutputFolder = () => _settings.ResolvedOutputFolder;
     }
 
     public void Start()
@@ -59,8 +61,9 @@ internal sealed partial class TrayApplication : IDisposable
         _jobs.JobChanged += (_, e) => _ui.Post(() => _notifier.OnJobChanged(e.Snapshot));
 
         DialogDiagnostics.Error = (activity, ex) => LogDialogError(activity, ex);
+        VirtualDrops.CleanupStale(TimeSpan.FromDays(1));
         _tray = new TrayIcon("Kumquat: arrastra un archivo y presiona Shift", BuildMenu);
-        _wheel = new WheelController(_targets.For, OnChosen, _settings.Trigger) { Trace = LogInteraction, NothingSelected = OnNothingSelected, CaptionForFiles = WheelTargets.Caption };
+        _wheel = new WheelController(_targets.For, OnChosen, _settings.Trigger) { Trace = LogInteraction, NothingSelected = OnNothingSelected, CaptionForFiles = _targets.CaptionFor };
         _wheel.KeyboardPicker = files => _ui.Post(() => ShowPalette(files));
         _wheel.Start();
         ApplySettings(notifyHotkeyConflict: false);
@@ -83,10 +86,15 @@ internal sealed partial class TrayApplication : IDisposable
 
     private void OnChosen(IReadOnlyList<string> files, WheelItem item)
     {
+        var output = OutputFor(files);
         switch (item.Ring)
         {
             case WheelRingKind.Convert:
-                Enqueue(files.Select(f => _conversions.CreateJob(new ConversionRequest(f, item.Target!))), "convertido", $"a {item.Label}", item.Id);
+                Enqueue(files.Select(f => _conversions.CreateJob(new ConversionRequest(f, item.Target!, output?.Directory))), "convertido", $"a {item.Label}{output?.Suffix}", item.Id, output?.Cleanup);
+                break;
+            case WheelRingKind.Actions when string.Equals(item.Id, FileActions.Save, StringComparison.Ordinal) && output is { } target:
+                var jobs = files.Select(f => new JobRequest(f, "Guardar", (_, ct) => FileTransfer.CopyAsync(f, target.Directory, ct)));
+                Enqueue(jobs, "guardado", target.Suffix.Trim(), item.Id, target.Cleanup);
                 break;
             case WheelRingKind.Tools:
                 // Fuera del Drop: puede abrir la ventana de opciones.
@@ -119,8 +127,10 @@ internal sealed partial class TrayApplication : IDisposable
 
     private void AskAndEnqueue(IReadOnlyList<string> files, WheelItem item, Task<IReadOnlyList<ToolParameter>> parameters)
     {
+        var output = OutputFor(files);
         if (!parameters.IsCompletedSuccessfully)
         {
+            output?.Cleanup();
             LogToolFailed(item.Id, parameters.Exception);
             _tray?.Notify("No se pudo abrir la herramienta", item.Label, isError: true);
             return;
@@ -136,11 +146,12 @@ internal sealed partial class TrayApplication : IDisposable
             });
             if (options is null)
             {
+                output?.Cleanup();
                 return; // Cancelado.
             }
         }
 
-        Enqueue(_tools.CreateJobs(files, item.Id, options), "listo", $"({item.Label})", item.Id);
+        Enqueue(_tools.CreateJobs(files, item.Id, options, output?.Directory), "listo", $"({item.Label}){output?.Suffix}", item.Id, output?.Cleanup);
     }
 
     /// <summary>Vista previa solo para un archivo de una familia que la tiene (PDF, foto, audio, video).</summary>
@@ -180,10 +191,19 @@ internal sealed partial class TrayApplication : IDisposable
         Enqueue(jobs, move ? "movido" : "copiado", $"a {Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar))}", move ? FileActions.MoveTo : FileActions.CopyTo);
     }
 
-    private void Enqueue(IEnumerable<JobRequest> jobs, string verb, string detail, string id)
+    /// <summary>
+    /// Para archivos virtuales (copias temporales de adjuntos o contenido de un .zip): los resultados
+    /// van a la carpeta de Configuración y las copias se borran al terminar. <c>null</c> si son reales.
+    /// </summary>
+    private VirtualOutput? OutputFor(IReadOnlyList<string> files)
+        => files.Count > 0 && VirtualDrops.IsExtracted(files[0])
+            ? new VirtualOutput(_settings.ResolvedOutputFolder, $" en {_targets.OutputFolderName}", () => VirtualDrops.Discard(files))
+            : null;
+
+    private void Enqueue(IEnumerable<JobRequest> jobs, string verb, string detail, string id, Action? completed = null)
     {
         var ids = jobs.Select(_jobs.Enqueue).ToList();
-        _notifier.Track(ids, verb, detail);
+        _notifier.Track(ids, verb, detail, completed);
         LogEnqueued(ids.Count, id);
     }
 

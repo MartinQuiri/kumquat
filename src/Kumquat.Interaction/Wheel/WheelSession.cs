@@ -150,7 +150,7 @@ internal sealed class WheelSession
     /// <summary>OLE: se soltó sobre la rueda.</summary>
     public void OnDrop(IReadOnlyList<string> files, POINT point)
     {
-        var item = _state.ItemAt(HitTest(point));
+        var item = files.Count > 0 ? _state.ItemAt(HitTest(point)) : null;
         Trace?.Invoke($"Drop -> {Describe(item)}.");
         Close();
         if (item is not null)

@@ -20,6 +20,7 @@ namespace Kumquat.Interaction.Tests;
 /// La ventana de opciones de verdad, en el hilo de UI de la app (UiThread, como al soltar sobre
 /// la rueda), con la vista previa generada por los motores: reproducir y elegir fotograma.
 /// </summary>
+[Collection(WpfWindows.Name)]
 public sealed class MediaPreviewTests
 {
     [Fact]
