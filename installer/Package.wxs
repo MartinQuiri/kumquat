@@ -26,6 +26,8 @@
     <Icon Id="KumquatIcon" SourceFile="$(PublishDir)\assets\logo\kumquat.ico" />
     <Property Id="ARPPRODUCTICON" Value="KumquatIcon" />
     <Property Id="ARPNOMODIFY" Value="1" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/MartinQuiri/kumquat" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/MartinQuiri/kumquat/issues" />
 
     <StandardDirectory Id="LocalAppDataFolder">
       <Directory Id="ProgramsFolder" Name="Programs">

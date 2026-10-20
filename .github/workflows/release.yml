@@ -65,7 +65,7 @@ jobs:
           path: dist
           merge-multiple: true
       # Manifiesto de winget para revisar y enviar a microsoft/winget-pkgs (docs/RELEASING.md).
-      # Identificador: variable del repositorio WINGET_PACKAGE_ID (p. ej. Usuario.Kumquat).
+      # Identificador: variable del repositorio WINGET_PACKAGE_ID (MartinQuiri.Kumquat).
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: src

@@ -48,13 +48,13 @@ Sin firma, Windows SmartScreen avisa al abrir el MSI o el zip. Para proyectos de
 
 ## 4. winget
 
-1. Definir en el repositorio la variable `WINGET_PACKAGE_ID` (p. ej. `Usuario.Kumquat`, con el usuario u organización de GitHub).
+1. Definir en el repositorio la variable `WINGET_PACKAGE_ID` (`MartinQuiri.Kumquat`).
 2. Tras publicar el release, el workflow deja `winget-manifest.zip`; o en local:
-   `./tools/winget-manifest.ps1 -Version 0.2.0 -Repository usuario/kumquat -PackageIdentifier Usuario.Kumquat`
+   `./tools/winget-manifest.ps1 -Version 0.2.0 -Repository MartinQuiri/kumquat -PackageIdentifier MartinQuiri.Kumquat`
    (valida con `winget validate` si está instalado).
 3. Enviarlo con un PR a [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs) (a mano o con `wingetcreate submit`). Los MSI sin firmar se aceptan, pero tardan más en revisión.
 
-Después se instala con `winget install Usuario.Kumquat`.
+Después se instala con `winget install MartinQuiri.Kumquat`.
 
 ## 5. Menú moderno de Windows 11
 

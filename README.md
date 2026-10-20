@@ -1,8 +1,16 @@
-<p align="center"><img src="assets/logo/kumquat.png" width="96" alt="Logo de Kumquat"></p>
+<p align="center"><img src="assets/logo/kumquat.png" width="112" alt="Logo de Kumquat"></p>
 
-# Kumquat
+<h1 align="center">Kumquat</h1>
 
 <p align="center"><b>Español</b> · <a href="README.en.md">English</a></p>
+
+<p align="center">
+  <a href="https://github.com/MartinQuiri/kumquat/actions/workflows/ci.yml"><img src="https://github.com/MartinQuiri/kumquat/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/MartinQuiri/kumquat/releases"><img src="https://img.shields.io/github/v/release/MartinQuiri/kumquat?include_prereleases&amp;label=versi%C3%B3n" alt="Versión"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/licencia-GPL--3.0-blue" alt="Licencia GPL-3.0"></a>
+  <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows" alt="Windows 10 y 11">
+  <img src="https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet" alt=".NET 10">
+</p>
 
 **Convierte archivos sin abrir nada.** Arrastra un archivo, presiona **Shift** y suéltalo sobre el formato que quieras en la rueda que aparece junto al cursor. Todo ocurre en tu PC: nada se sube a internet.
 
@@ -11,6 +19,15 @@ Kumquat es una alternativa libre (GPL-3.0) para Windows inspirada en la interacc
 > **Estado: pre-alfa (0.1).** Ver [hoja de ruta](#hoja-de-ruta).
 
 <p align="center"><img src="docs/images/rueda-pdf.png" width="420" alt="La rueda de Kumquat con las herramientas de PDF"></p>
+
+## Instalar
+
+1. Descarga **`Kumquat-<versión>-win-x64.msi`** desde [Releases](https://github.com/MartinQuiri/kumquat/releases) (o `win-arm64` para equipos ARM).
+2. Ábrelo: se instala solo para tu usuario, **sin pedir permisos de administrador**, y Kumquat se abre al terminar.
+
+¿Prefieres no instalar nada? El `.zip` es portable: descomprímelo y abre `Kumquat.exe`.
+
+> Mientras los releases no estén firmados, Windows SmartScreen puede avisar "Windows protegió su PC": **Más información → Ejecutar de todas formas**. Cada archivo publica su SHA-256 para que puedas verificarlo.
 
 ## Cómo se usa
 
