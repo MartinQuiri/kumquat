@@ -144,6 +144,8 @@ public sealed unsafe class WheelController : IDisposable, IDropHandler
             ComInterfaceMarshaller<IDropTarget>.Free(pointer);
         }
 
+        // La rueda tiene que responder al instante aunque Kumquat esté "en segundo plano" (siempre).
+        PowerThrottling.DisableForProcess();
         _hook.Start();
         Trace?.Invoke($"Listo: ventana 0x{_window.Handle:X}, destino OLE registrado, hooks instalados, gesto {Trigger}.");
     }

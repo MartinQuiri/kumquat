@@ -42,7 +42,7 @@ internal sealed unsafe class GlobalInputHook : IDisposable
     {
         _tracker = tracker ?? throw new ArgumentNullException(nameof(tracker));
         _post = post ?? throw new ArgumentNullException(nameof(post));
-        _thread = new Thread(Run) { IsBackground = true, Name = "Kumquat input hooks", Priority = ThreadPriority.AboveNormal };
+        _thread = new Thread(Run) { IsBackground = true, Name = "Kumquat input hooks", Priority = ThreadPriority.Highest };
     }
 
     /// <summary>Tick del último evento recibido (pruebas).</summary>
@@ -133,6 +133,11 @@ internal sealed unsafe class GlobalInputHook : IDisposable
         try
         {
             _threadId = Win32.GetCurrentThreadId();
+
+            // Kumquat vive en la bandeja: para Windows siempre está "en segundo plano" y en un
+            // portátil lo frena (power throttling). Un callback de hook lento hace que Windows
+            // quite el hook; este hilo no se frena.
+            PowerThrottling.DisableForCurrentThread();
             Install();
         }
 #pragma warning disable CA1031 // Se re-lanza en el hilo que llamó a Start.
