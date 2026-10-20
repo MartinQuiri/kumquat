@@ -104,6 +104,9 @@ internal sealed partial class TrayApplication : IDisposable
                 // Fuera del Drop: un diálogo modal dentro del Drop congelaría el arrastre del Explorador.
                 _ui.Post(() => TransferTo(files, move: string.Equals(item.Id, FileActions.MoveTo, StringComparison.Ordinal)));
                 break;
+            case WheelRingKind.Actions when EngineOffers.ById(item.Id) is { } offer:
+                _ui.Post(() => OfferInstall(offer));
+                break;
             case WheelRingKind.Actions:
                 if (FileActions.Execute(item.Id, files) is { } message)
                 {
@@ -174,6 +177,43 @@ internal sealed partial class TrayApplication : IDisposable
         {
             return false;
         }
+    }
+
+    /// <summary>
+    /// Pide permiso y, con el sí, instala con winget. Al terminar bien, Kumquat se reinicia para
+    /// detectar el programa nuevo (los convertidores se eligen al arrancar).
+    /// </summary>
+    private void OfferInstall(EngineOffer offer)
+    {
+        if (EngineOffers.Winget is not { } winget)
+        {
+            _tray?.Notify("Kumquat", $"Instala {offer.Name} desde su sitio oficial y vuelve a abrir Kumquat.", isError: true);
+            return;
+        }
+
+        if (!Dialogs.Install.InstallDialog.Ask(new Dialogs.Install.InstallRequest(offer.Name, offer.Purpose, offer.Publisher, offer.License)))
+        {
+            return;
+        }
+
+        LogInstalling(offer.WingetId);
+        _ = Task.Run(() => EngineInstaller.InstallAsync(winget, offer)).ContinueWith(
+            task => _ui.Post(() => Installed(offer, task)),
+            TaskScheduler.Default);
+    }
+
+    private void Installed(EngineOffer offer, Task<int> install)
+    {
+        if (install.IsFaulted || !EngineInstaller.Succeeded(install.Result))
+        {
+            LogInstallFailed(offer.WingetId, install.IsFaulted ? null : install.Result, install.Exception);
+            _tray?.Notify("Kumquat", $"No se instaló {offer.Name}. Puedes volver a intentarlo desde la rueda.", isError: true);
+            return;
+        }
+
+        _tray?.Notify("Kumquat", $"{offer.Name} quedó instalado. Kumquat se reinicia para usarlo.");
+        EngineInstaller.Relaunch();
+        _ui.Quit();
     }
 
     private void TransferTo(IReadOnlyList<string> files, bool move)
@@ -366,4 +406,10 @@ internal sealed partial class TrayApplication : IDisposable
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "No se pudo actualizar el menú contextual del Explorador")]
     private partial void LogContextMenuFailed(Exception exception);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Instalando {Package} con winget")]
+    private partial void LogInstalling(string package);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "winget no instaló {Package} (código {ExitCode})")]
+    private partial void LogInstallFailed(string package, int? exitCode, Exception? exception);
 }

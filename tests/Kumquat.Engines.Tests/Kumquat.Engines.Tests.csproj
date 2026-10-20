@@ -17,6 +17,7 @@
     <ProjectReference Include="..\..\src\Kumquat.Engines.Archives\Kumquat.Engines.Archives.csproj" />
     <ProjectReference Include="..\..\src\Kumquat.Hosting\Kumquat.Hosting.csproj" />
     <ProjectReference Include="..\..\src\Kumquat.Engines.Ocr\Kumquat.Engines.Ocr.csproj" />
+    <ProjectReference Include="..\..\src\Kumquat.Engines.Office\Kumquat.Engines.Office.csproj" />
     <PackageReference Include="System.Drawing.Common" />
   </ItemGroup>
   <ItemGroup>

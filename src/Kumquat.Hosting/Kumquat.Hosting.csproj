@@ -6,6 +6,7 @@
     <ProjectReference Include="..\Kumquat.Engines.Vips\Kumquat.Engines.Vips.csproj" />
     <ProjectReference Include="..\Kumquat.Engines.Pdf\Kumquat.Engines.Pdf.csproj" />
     <ProjectReference Include="..\Kumquat.Engines.Ocr\Kumquat.Engines.Ocr.csproj" />
+    <ProjectReference Include="..\Kumquat.Engines.Office\Kumquat.Engines.Office.csproj" />
     <ProjectReference Include="..\Kumquat.Engines.Archives\Kumquat.Engines.Archives.csproj" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Logging" />

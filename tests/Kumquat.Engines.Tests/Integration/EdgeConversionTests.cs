@@ -75,7 +75,8 @@ public sealed class EdgeConversionTests
             return;
         }
 
-        if (to == KnownFormats.Pdf)
+        // Documentos (PDF → Word): el contenido lo revisa OfficeConverterTests; aquí basta el formato.
+        if (to == KnownFormats.Pdf || to.Category is FormatCategory.Document)
         {
             new FileInfo(output).Length.ShouldBeGreaterThan(200);
             return;

@@ -266,6 +266,13 @@
           "Kumquat.Infrastructure": "[0.1.0, )"
         }
       },
+      "kumquat.engines.office": {
+        "type": "Project",
+        "dependencies": {
+          "Kumquat.Core": "[0.1.0, )",
+          "Kumquat.Infrastructure": "[0.1.0, )"
+        }
+      },
       "kumquat.engines.pdf": {
         "type": "Project",
         "dependencies": {
@@ -290,6 +297,7 @@
           "Kumquat.Engines.Archives": "[0.1.0, )",
           "Kumquat.Engines.FFmpeg": "[0.1.0, )",
           "Kumquat.Engines.Ocr": "[0.1.0, )",
+          "Kumquat.Engines.Office": "[0.1.0, )",
           "Kumquat.Engines.Pdf": "[0.1.0, )",
           "Kumquat.Engines.Vips": "[0.1.0, )",
           "Kumquat.Infrastructure": "[0.1.0, )",

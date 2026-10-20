@@ -35,6 +35,12 @@ internal static partial class Program
         // Una sola instancia por sesión de usuario: dos hooks y dos ruedas pelearían por el drop.
         var mutexName = smokeTest ? @"Local\Kumquat.SmokeTest" : @"Local\Kumquat.SingleInstance";
         using var mutex = new Mutex(initiallyOwned: true, mutexName, out var isFirst);
+        if (!isFirst && args.Contains(EngineInstaller.RestartedFlag, StringComparer.OrdinalIgnoreCase))
+        {
+            // Reinicio tras instalar un motor: la instancia anterior está saliendo.
+            isFirst = WaitForPrevious(mutex);
+        }
+
         if (!isFirst)
         {
             ForwardToRunningInstance(wheelFiles);
@@ -54,6 +60,18 @@ internal static partial class Program
             {
                 Environment.Exit(0); // No colgar la salida por un motor que no responde: el Job Object lo mata igual.
             }
+        }
+    }
+
+    private static bool WaitForPrevious(Mutex mutex)
+    {
+        try
+        {
+            return mutex.WaitOne(TimeSpan.FromSeconds(15));
+        }
+        catch (AbandonedMutexException)
+        {
+            return true; // Salió sin soltarlo: el mutex queda para esta instancia.
         }
     }
 

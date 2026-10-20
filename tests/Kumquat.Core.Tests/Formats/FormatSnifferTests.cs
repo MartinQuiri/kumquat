@@ -79,13 +79,16 @@ public sealed class FormatSnifferTests
     }
 
     [Theory]
+    [InlineData(".doc", "doc")]
     [InlineData(".xls", "xls")]
     [InlineData(".ppt", "ppt")]
     public void Detect_Ole2RequiereExtension(string extension, string expected)
     {
         var header = Convert.FromHexString("D0CF11E0A1B11AE1");
         FormatSniffer.Detect(header, extension)!.Id.ShouldBe(expected);
-        FormatSniffer.Detect(header, ".doc").ShouldBeNull();
+
+        // Otro contenedor OLE (un correo .msg de Outlook) no se confunde con Office.
+        FormatSniffer.Detect(header, ".msg").ShouldBeNull();
     }
 
     [Fact]
