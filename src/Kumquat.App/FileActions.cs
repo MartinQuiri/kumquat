@@ -19,6 +19,9 @@ internal static class FileActions
     public const string ShowInFolder = "action.show-in-folder";
     public const string Terminal = "action.terminal";
 
+    /// <summary>Guardar un archivo virtual (adjunto, contenido de un .zip) en la carpeta configurada.</summary>
+    public const string Save = "action.save";
+
     /// <summary>Acciones disponibles, en orden de la rueda (la primera queda arriba).</summary>
     public static IReadOnlyList<WheelItem> Items { get; } =
     [

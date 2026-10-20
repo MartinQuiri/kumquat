@@ -7,6 +7,7 @@ using Kumquat.Dialogs.Search;
 
 namespace Kumquat.Interaction.Tests;
 
+[Collection(WpfWindows.Name)]
 public sealed class CommandPaletteTests
 {
     private static readonly PaletteRequest Request = new(

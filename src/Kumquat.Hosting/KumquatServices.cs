@@ -24,7 +24,14 @@ namespace Kumquat.Hosting;
 public static class KumquatServices
 {
     /// <summary>Carpeta de datos de usuario: <c>%LOCALAPPDATA%\Kumquat</c>.</summary>
-    public static string DataDirectory { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Kumquat");
+    /// <remarks>
+    /// <c>KUMQUAT_DATA_DIR</c> la reemplaza (configuración y logs aparte): la usan los tests de punta
+    /// a punta para no tocar la configuración ni las carpetas de quien corre los tests.
+    /// </remarks>
+    public static string DataDirectory { get; } =
+        Environment.GetEnvironmentVariable("KUMQUAT_DATA_DIR") is { Length: > 0 } custom && Path.IsPathFullyQualified(custom)
+            ? custom
+            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Kumquat");
 
     /// <summary>Carpeta de logs.</summary>
     public static string LogDirectory { get; } = Path.Combine(DataDirectory, "logs");

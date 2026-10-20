@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Kumquat.Interaction.Tests;
 
+[Collection(WpfWindows.Name)]
 public sealed class ToolOptionsDialogTests
 {
     [Fact]

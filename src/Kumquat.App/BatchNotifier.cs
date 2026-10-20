@@ -17,10 +17,17 @@ internal sealed class BatchNotifier(Action<string, string, bool> notify)
     /// <param name="jobIds">Trabajos del drop.</param>
     /// <param name="verb">Participio en singular ("convertido", "listo").</param>
     /// <param name="detail">Complemento ("a PNG", "(Comprimir)").</param>
-    public void Track(IReadOnlyCollection<Guid> jobIds, string verb, string detail)
+    /// <param name="completed">Se llama una vez al terminar el lote (p. ej. borrar copias temporales).</param>
+    public void Track(IReadOnlyCollection<Guid> jobIds, string verb, string detail, Action? completed = null)
     {
         ArgumentNullException.ThrowIfNull(jobIds);
-        var batch = new Batch(verb, detail, jobIds.Count);
+        if (jobIds.Count == 0)
+        {
+            completed?.Invoke();
+            return;
+        }
+
+        var batch = new Batch(verb, detail, jobIds.Count) { Completed = completed };
         foreach (var id in jobIds)
         {
             _byJob[id] = batch;
@@ -42,6 +49,7 @@ internal sealed class BatchNotifier(Action<string, string, bool> notify)
             return;
         }
 
+        batch.Completed?.Invoke();
         if (batch.Failed == 0)
         {
             var message = batch.Succeeded == 1
@@ -63,6 +71,8 @@ internal sealed class BatchNotifier(Action<string, string, bool> notify)
         private int _done;
 
         public string Verb { get; } = verb;
+
+        public Action? Completed { get; init; }
 
         public string Detail { get; } = detail;
 

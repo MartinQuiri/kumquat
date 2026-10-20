@@ -52,6 +52,7 @@ public static class Icons
         ["image.ocr-text"] = "ocr-text",
         ["image.ocr-pdf"] = "ocr-pdf",
         ["pdf.ocr"] = "ocr",
+        ["action.save"] = "save",
         ["action.copy-path"] = "copy-path",
         ["action.copy-to"] = "copy-to",
         ["action.move-to"] = "move-to",

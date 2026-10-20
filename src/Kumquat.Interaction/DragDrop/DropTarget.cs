@@ -17,7 +17,13 @@ internal sealed partial class DropTarget(IDropHandler handler) : IDropTarget
 
     public int DragEnter(nint dataObject, uint keyState, POINTL point, ref uint effect)
     {
+        // Archivos reales (rutas) o, si no hay, virtuales: solo sus nombres (el contenido se copia al soltar).
         var files = DataObjectReader.ReadFiles(dataObject);
+        if (files.Count == 0)
+        {
+            files = VirtualDrops.ReadNames(dataObject);
+        }
+
         var accepted = files.Count > 0 && handler.OnDragEnter(files, ToPoint(point));
         effect = Choose(effect, accepted);
         return SOk;
@@ -38,14 +44,34 @@ internal sealed partial class DropTarget(IDropHandler handler) : IDropTarget
     public int Drop(nint dataObject, uint keyState, POINTL point, ref uint effect)
     {
         var files = DataObjectReader.ReadFiles(dataObject);
-        var accepted = files.Count > 0 && handler.OnDragOver(ToPoint(point));
-        effect = Choose(effect, accepted);
-        if (accepted)
+        var accepted = handler.OnDragOver(ToPoint(point));
+        if (accepted && files.Count == 0)
         {
-            handler.OnDrop(files, ToPoint(point));
+            // Solo si se soltó sobre un sector: copiar un adjunto o un archivo de un .zip cuesta, y el
+            // contenido solo existe mientras dura el drop.
+            files = ExtractVirtual(dataObject);
         }
 
+        accepted &= files.Count > 0;
+        effect = Choose(effect, accepted);
+        handler.OnDrop(accepted ? files : [], ToPoint(point));
         return SOk;
+    }
+
+    private static IReadOnlyList<string> ExtractVirtual(nint dataObject)
+    {
+        try
+        {
+            return VirtualDrops.Extract(dataObject);
+        }
+        catch (IOException)
+        {
+            return []; // disco lleno, nombre imposible...: se cancela el drop sin romper el arrastre
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return [];
+        }
     }
 
     /// <summary>COPY si la fuente lo permite; si no, LINK; nunca MOVE.</summary>

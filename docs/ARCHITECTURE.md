@@ -52,6 +52,12 @@ Windows no avisa "empezó un arrastre". La solución:
    - Una ventana mostrada por primera vez a mitad del arrastre no recibe el drop (caso documentado con WebView2), y tomar el foco rompe el bucle de arrastre de Explorer: por eso no se usa WinUI/WebView para la rueda.
 3. `DropTarget` (COM generado en compilación) lee `CF_HDROP` llamando a la vtable de `IDataObject`. **Siempre responde COPY (o LINK), nunca MOVE**: Explorer podría borrar el original tras un "movimiento optimizado".
 4. Hit-test polar (`WheelLayout`): ángulo → sector, radio → centro (cancelar) o fuera.
+   - **Archivos virtuales** (adjuntos de Outlook, contenido de un .zip, imágenes de una web): sin
+     `CF_HDROP`, `VirtualDrops` lee los nombres de `FileGroupDescriptorW` en `DragEnter` (los anillos
+     salen de la extensión) y recién en `Drop` copia `FileContents` (HGLOBAL o IStream) a una carpeta
+     temporal: el contenido solo existe durante el drop y copiarlo antes dejaría al programa de origen
+     esperando. Los nombres se limpian (sin carpetas ni `..\`), con límites de cantidad y tamaño. Los
+     resultados van a la carpeta de Configuración y las copias se borran al terminar el lote.
 5. Píxeles con alfa 0 dejan pasar el mouse: el disco se pinta opaco y lo de afuera, transparente.
 
 Shift, Ctrl y Alt ya significan algo en el protocolo de arrastre de Windows. Kumquat usa Shift por defecto (como Tangerine) **sin interceptarlo**; como destino decide el efecto, así que la semántica de "mover" no aplica. Alternativas configurables: Ctrl, Bloq Mayús, clic derecho.

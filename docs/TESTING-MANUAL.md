@@ -11,9 +11,10 @@ Ejecuta `dotnet run --project src/Kumquat.App` y anota ✅/❌ y la versión de 
 | 1 | Explorador, un PNG | Arrastrar, Shift, soltar en JPG | `foto.jpg` junto al original; original intacto |
 | 2 | Explorador, 5 WAV | Arrastrar selección, Shift, MP3 | 5 MP3; una sola notificación "5 archivos convertidos" |
 | 3 | Escritorio | Igual que 1 | Igual |
-| 4 | Chrome/Edge (imagen de una página) | Arrastrar imagen | Hoy: sin sectores ("Sin conversiones") porque no trae `CF_HDROP` (fase 2) |
-| 5 | Outlook (adjunto) | Arrastrar adjunto | Igual que 4 (archivos virtuales: fase 2) |
-| 6 | Carpeta ZIP abierta en Explorer | Arrastrar un archivo de adentro | Igual que 4 |
+| 4 | Chrome/Edge (imagen de una página) | Arrastrar imagen, Shift, soltar en PNG | El PNG aparece en la carpeta de Configuración (Escritorio); la etiqueta lo anunciaba |
+| 5 | Outlook (adjunto PDF) | Arrastrar adjunto, Shift, "Comprimir" | El PDF comprimido aparece en el Escritorio; el correo no cambia |
+| 6 | Carpeta ZIP abierta en Explorer | Arrastrar un archivo de adentro, "Guardar en Escritorio" | El archivo extraído aparece en el Escritorio |
+| 6b | Igual que 5 con Configuración → otra carpeta | | El resultado va a esa carpeta |
 | 7 | App elevada (p. ej. un Explorer como admin) | Arrastrar | La rueda puede no recibir el drop (UIPI): limitación documentada |
 
 ## Gesto y cancelación
