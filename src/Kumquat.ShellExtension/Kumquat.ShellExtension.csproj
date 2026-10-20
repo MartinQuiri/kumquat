@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    "Kumquat…" en el menú contextual moderno de Windows 11: un IExplorerCommand que se carga dentro
+    de explorer.exe. Se publica con Native AOT (DLL nativa, sin runtime de .NET compartido con otras
+    extensiones) y lo declara el paquete disperso (packaging/sparse). Sin dependencias del resto:
+    lo único que hace es abrir Kumquat.exe con los archivos elegidos.
+  -->
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsAotCompatible>true</IsAotCompatible>
+    <PublishAot>true</PublishAot>
+    <NativeLib>Shared</NativeLib>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <UseSystemResourceKeys>true</UseSystemResourceKeys>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Kumquat.Infrastructure.Tests" />
+  </ItemGroup>
+</Project>

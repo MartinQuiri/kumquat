@@ -8,6 +8,7 @@
 //   sleep <ms>          duerme
 //   alloc <mb>          reserva y toca esa cantidad de memoria
 //   spawn-sleep <ms>    lanza un hijo que duerme y espera
+//   --wheel <rutas...>  hace de Kumquat.exe: agrega a KUMQUAT_PROBE_ARGS una línea por lanzamiento (args con |)
 using System.Diagnostics;
 using System.Globalization;
 
@@ -15,6 +16,9 @@ Console.OutputEncoding = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Ident
 var mode = args.Length > 0 ? args[0] : "echo";
 switch (mode)
 {
+    case "--wheel":
+        File.AppendAllLines(Environment.GetEnvironmentVariable("KUMQUAT_PROBE_ARGS")!, [string.Join('|', args)]);
+        return 0;
     case "echo":
         foreach (var arg in args.Skip(1))
         {

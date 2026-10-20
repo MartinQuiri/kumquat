@@ -35,6 +35,7 @@
 
     <ComponentGroup Id="AppFiles" Directory="INSTALLFOLDER">
       <Files Include="$(PublishDir)\**" />
+      <File Source="ModernMenu.ps1" />
     </ComponentGroup>
 
     <!-- Acceso en el menú Inicio (por usuario: su clave de registro hace de KeyPath). -->
@@ -64,6 +65,12 @@
     <!-- Desinstalar (no actualizar): quitar el menú contextual y el inicio con Windows. -->
     <CustomAction Id="Unregister" Directory="INSTALLFOLDER" ExeCommand="&quot;[INSTALLFOLDER]Kumquat.exe&quot; --unregister" Execute="deferred" Impersonate="yes" Return="ignore" />
 
+    <!-- Menú moderno de Windows 11 (paquete disperso, ver docs/RELEASING.md). Sin consola visible. -->
+    <SetProperty Id="ModernMenuOff" Value="&quot;[System64Folder]WindowsPowerShell\v1.0\powershell.exe&quot; -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;[INSTALLFOLDER]ModernMenu.ps1&quot; -Unregister" Before="ModernMenuOff" Sequence="execute" />
+    <CustomAction Id="ModernMenuOff" BinaryRef="Wix4UtilCA_$(sys.BUILDARCHSHORT)" DllEntry="WixQuietExec" Execute="deferred" Impersonate="yes" Return="ignore" />
+    <SetProperty Id="ModernMenuOn" Value="&quot;[System64Folder]WindowsPowerShell\v1.0\powershell.exe&quot; -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;[INSTALLFOLDER]ModernMenu.ps1&quot; -Register" Before="ModernMenuOn" Sequence="execute" />
+    <CustomAction Id="ModernMenuOn" BinaryRef="Wix4UtilCA_$(sys.BUILDARCHSHORT)" DllEntry="WixQuietExec" Execute="deferred" Impersonate="yes" Return="ignore" />
+
     <!-- Al terminar de instalar o actualizar, abrir Kumquat (vuelve a registrar el menú en la ruta nueva). -->
     <CustomAction Id="LaunchKumquat" Directory="INSTALLFOLDER" ExeCommand="&quot;[INSTALLFOLDER]Kumquat.exe&quot;" Execute="immediate" Impersonate="yes" Return="asyncNoWait" />
 
@@ -71,6 +78,10 @@
       <!-- Cerrar Kumquat antes de borrar o reemplazar archivos (si no, "archivos en uso"). -->
       <Custom Action="override Wix4CloseApplications_$(sys.BUILDARCHSHORT)" Before="Unregister" />
       <Custom Action="Unregister" Before="RemoveFiles" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+      <!-- Quitar el menú moderno libera su DLL antes de reemplazar (actualizar) o borrar (desinstalar) archivos;
+           la versión vieja que se quita al actualizar no lo toca (ya es el de la nueva). -->
+      <Custom Action="ModernMenuOff" After="Unregister" Condition="(REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE) OR NOT REMOVE" />
+      <Custom Action="ModernMenuOn" After="InstallFiles" Condition="NOT REMOVE" />
       <Custom Action="LaunchKumquat" After="InstallFinalize" Condition="NOT REMOVE AND NOT NOLAUNCH" />
     </InstallExecuteSequence>
   </Package>

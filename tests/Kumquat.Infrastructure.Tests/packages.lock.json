@@ -230,6 +230,9 @@
           "SharpCompress": "[0.50.5, )"
         }
       },
+      "kumquat.shellextension": {
+        "type": "Project"
+      },
       "kumquat.testtools.processprobe": {
         "type": "Project"
       },

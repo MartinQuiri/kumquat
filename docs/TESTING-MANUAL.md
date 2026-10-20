@@ -94,6 +94,16 @@ Ejecuta `dotnet run --project src/Kumquat.App` y anota ✅/❌ y la versión de 
 | 53 | Instalar una versión más vieja encima | Mensaje de que ya hay una más nueva; no cambia nada |
 | 54 | Desinstalar | Se cierra Kumquat; desaparecen el menú contextual, el inicio con Windows y la carpeta del programa; `%LOCALAPPDATA%\Kumquat` (configuración) queda |
 
+## Menú moderno de Windows 11
+
+| # | Caso | Esperado |
+|---|---|---|
+| 55 | Clic derecho en un archivo (paquete registrado) | "Kumquat…" en el menú nuevo, con el ícono de Kumquat, sin entrar en "Mostrar más opciones" |
+| 56 | Elegirlo con 30 archivos seleccionados | Un solo buscador con los 30 |
+| 57 | Clic derecho en una carpeta, en el escritorio y en un archivo de un .zip abierto | Aparece en carpetas y escritorio; en el .zip (no es del disco) no aparece |
+| 58 | Clic derecho en "Este equipo" o la Papelera | No aparece |
+| 59 | Actualizar o desinstalar con el menú recién usado | Sin aviso de archivos en uso ni pedido de reinicio |
+
 ## Pantallas
 
 | # | Caso | Esperado |
