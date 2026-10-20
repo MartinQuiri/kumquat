@@ -2,6 +2,7 @@
 // Copyright (C) 2026 Kumquat contributors
 
 using Kumquat.Core.Formats;
+using Kumquat.Engines.Calibre;
 using Kumquat.Engines.Office;
 using Kumquat.Interaction.Wheel;
 
@@ -25,7 +26,16 @@ internal static class EngineOffers
         "MPL 2.0",
         [.. OfficeConverter.TextDocuments, .. OfficeConverter.Spreadsheets, .. OfficeConverter.Presentations]);
 
-    public static IReadOnlyList<EngineOffer> All { get; } = [LibreOffice];
+    public static readonly EngineOffer Calibre = new(
+        Prefix + "calibre",
+        "Calibre",
+        "calibre.calibre",
+        "convertir libros electrónicos entre EPUB, Kindle (MOBI, AZW3) y PDF",
+        "Kovid Goyal",
+        "GPL-3.0",
+        [.. CalibreConverter.Inputs.Where(f => f != KnownFormats.Docx)]);
+
+    public static IReadOnlyList<EngineOffer> All { get; } = [LibreOffice, Calibre];
 
     /// <summary>winget (App Installer), que trae Windows 10/11; <c>null</c> si no está.</summary>
     public static string? Winget

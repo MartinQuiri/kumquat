@@ -21,7 +21,7 @@ public static class WheelItemOrdering
         [FormatCategory.Document] = ["pdf", "docx", "md", "txt", "html", "epub", "rtf", "odt"],
         [FormatCategory.Spreadsheet] = ["xlsx", "csv", "pdf", "ods", "tsv"],
         [FormatCategory.Slides] = ["pdf", "pptx", "jpg", "png"],
-        [FormatCategory.Ebook] = ["pdf", "docx", "md", "txt", "html"],
+        [FormatCategory.Ebook] = ["epub", "pdf", "azw3", "txt", "mobi", "docx"],
         [FormatCategory.Subtitle] = ["srt", "vtt", "txt"],
         [FormatCategory.Archive] = ["zip", "tar", "gz"],
     };

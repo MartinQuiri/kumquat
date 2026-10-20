@@ -52,6 +52,7 @@ Cada herramienta tiene su ícono y el color de su familia (PDF rojo, imagen verd
 | Video | MP4, MOV, MKV, WebM, AVI, WMV, GIF | las mismas + extraer audio + GIF |
 | PDF / EPUB | PDF, EPUB | TXT; EPUB → PDF; **PDF → Word (DOCX)** |
 | Office | DOCX, DOC, ODT, RTF · XLSX, XLS, ODS · PPTX, PPT, ODP | PDF |
+| Libros (con Calibre) | EPUB, MOBI, AZW3, FB2, DOCX | EPUB, AZW3 (Kindle), MOBI, PDF |
 
 Las conversiones de varios pasos se planifican solas (p. ej. HEIC → JPG → PDF), y nunca se ofrecen destinos sin sentido (una foto no se convierte a MP3).
 
@@ -97,6 +98,10 @@ Kumquat convierte con **lo que ya tienes instalado**: si hay Microsoft Office us
 - Un documento con contraseña falla con un aviso en vez de pedirla.
 - Si Office no responde en 5 minutos se cierra solo la ventana de Office que abrió Kumquat, nunca una tuya.
 
+### Libros electrónicos
+
+EPUB → PDF y EPUB → TXT funcionan siempre (MuPDF viene con Kumquat). Para Kindle (MOBI, AZW3), FB2 y Word → EPUB, Kumquat usa [Calibre](https://calibre-ebook.com) si está instalado; si no, la rueda ofrece **Instalar Calibre** igual que con LibreOffice. Calibre corre con una configuración temporal: no toca tu biblioteca ni tus preferencias. Los libros con DRM no se pueden convertir.
+
 ### Adjuntos, archivos de un .zip e imágenes de una web
 
 Se pueden soltar en la rueda **sin guardarlos antes**: un adjunto arrastrado desde Outlook, un archivo de dentro de un .zip abierto en el Explorador o una imagen de una página web. Como no tienen carpeta propia, el resultado va al **Escritorio** (se cambia en Configuración) y la etiqueta bajo la rueda lo avisa. En el anillo de acciones aparece **Guardar en Escritorio** para simplemente guardarlos.
@@ -129,6 +134,7 @@ Los tests E2E hacen un arrastre real moviendo el mouse: córrelos solo cuando no
 - Toda advertencia del compilador y de los analizadores (.NET, Meziantou, reglas propias) es un error.
 - APIs peligrosas prohibidas en compilación: lanzar procesos con argumentos concatenados, extraer ZIP sin validar rutas, etc. ([BannedSymbols.txt](BannedSymbols.txt)).
 - **Un test de integración por cada conversión directa**, generado desde el grafo de capacidades: si alguien agrega una conversión, queda probada automáticamente. Las salidas se verifican por contenido (bytes mágicos) y con ffprobe (duración, dimensiones, pistas).
+- Office y Calibre se prueban con los programas reales cuando están (Office genera sus propias muestras); para probar Calibre sin instalarlo, `KUMQUAT_TEST_CALIBRE` apunta al `ebook-convert.exe` de una copia extraída del MSI.
 - Tests basados en propiedades (CsCheck) para el planificador, la detección de formatos y la geometría de la rueda.
 - Los motores corren como procesos aparte dentro de un *Job Object* de Windows (memoria acotada, mueren con Kumquat), con prioridad baja.
 - CI en x64 y ARM64, CodeQL, OpenSSF Scorecard, REUSE y Dependabot.
@@ -145,7 +151,8 @@ Detalles en [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) y [CONTRIBUTING.md](CON
 - [x] Menú del clic derecho del Explorador (menú clásico; el nuevo de Windows 11 llega con el instalador firmado).
 - [x] OCR con Tesseract (compilado por Kumquat): imagen → texto, imagen → PDF buscable, PDF escaneado → PDF buscable.
 - [x] Office → PDF y PDF → Word con Microsoft Office o LibreOffice (el que esté instalado; si no hay, se ofrece instalar LibreOffice).
-- [ ] Fase 3: ebooks (Calibre), instalador firmado (SignPath), winget y Microsoft Store.
+- [x] Libros electrónicos con Calibre: EPUB, MOBI, AZW3, FB2 y Word → EPUB/AZW3/MOBI/PDF.
+- [ ] Fase 3: instalador firmado (SignPath), winget y Microsoft Store.
 - [ ] Fase 4: sandbox de motores (baja integridad / AppContainer), fuzzing continuo.
 
 ## Licencia

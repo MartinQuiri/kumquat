@@ -57,6 +57,9 @@ public static class KnownFormats
     public static readonly FileFormat Odp = new("odp", "ODP", FormatCategory.Slides, ["odp"]);
 
     public static readonly FileFormat Epub = new("epub", "EPUB", FormatCategory.Ebook, ["epub"]);
+    public static readonly FileFormat Mobi = new("mobi", "MOBI", FormatCategory.Ebook, ["mobi", "prc", "azw"]);
+    public static readonly FileFormat Azw3 = new("azw3", "AZW3", FormatCategory.Ebook, ["azw3"]);
+    public static readonly FileFormat Fb2 = new("fb2", "FB2", FormatCategory.Ebook, ["fb2"]);
 
     public static readonly FileFormat Srt = new("srt", "SRT", FormatCategory.Subtitle, ["srt"]);
     public static readonly FileFormat Vtt = new("vtt", "VTT", FormatCategory.Subtitle, ["vtt"]);
@@ -82,7 +85,7 @@ public static class KnownFormats
             Docx, Doc, Odt, Rtf, Markdown, Txt, Html,
             Xlsx, Xls, Ods, Csv, Tsv,
             Pptx, Ppt, Odp,
-            Epub,
+            Epub, Mobi, Azw3, Fb2,
             Srt, Vtt,
             Zip, Tar, Gzip, Rar, SevenZip,
         ];

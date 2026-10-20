@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Libros electrónicos con Calibre (ebook-convert) si está instalado. No se distribuye con Kumquat. -->
+  <ItemGroup>
+    <ProjectReference Include="..\Kumquat.Core\Kumquat.Core.csproj" />
+    <ProjectReference Include="..\Kumquat.Infrastructure\Kumquat.Infrastructure.csproj" />
+    <InternalsVisibleTo Include="Kumquat.Engines.Tests" />
+  </ItemGroup>
+</Project>

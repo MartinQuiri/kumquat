@@ -50,6 +50,7 @@ internal static class CommandKeywords
         ["action.show-in-folder"] = ["explorador", "carpeta", "abrir"],
         ["action.terminal"] = ["consola", "cmd", "powershell", "shell"],
         ["action.install.libreoffice"] = ["instalar", "office", "word", "excel", "powerpoint", "descargar"],
+        ["action.install.calibre"] = ["instalar", "kindle", "ebook", "libro", "descargar"],
     };
 
     /// <summary>Palabras extra de un id (vacío si no tiene).</summary>

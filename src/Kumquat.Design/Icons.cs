@@ -59,6 +59,7 @@ public static class Icons
         ["action.show-in-folder"] = "show-in-folder",
         ["action.terminal"] = "terminal",
         ["action.install.libreoffice"] = "install",
+        ["action.install.calibre"] = "install",
     };
 
     /// <summary>Nombres lógicos disponibles.</summary>

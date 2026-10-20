@@ -91,6 +91,13 @@
           "Kumquat.Infrastructure": "[0.1.0, )"
         }
       },
+      "kumquat.engines.calibre": {
+        "type": "Project",
+        "dependencies": {
+          "Kumquat.Core": "[0.1.0, )",
+          "Kumquat.Infrastructure": "[0.1.0, )"
+        }
+      },
       "kumquat.engines.ffmpeg": {
         "type": "Project",
         "dependencies": {

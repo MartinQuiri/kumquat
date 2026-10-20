@@ -87,6 +87,11 @@ public sealed class ProcessRunner : IProcessRunner
             startInfo.ArgumentList.Add(argument);
         }
 
+        foreach (var (name, value) in spec.Environment)
+        {
+            startInfo.Environment[name] = value;
+        }
+
         return startInfo;
     }
 

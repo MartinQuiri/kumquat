@@ -25,6 +25,25 @@ public sealed class EngineOffersTests : IDisposable
     }
 
     [Fact]
+    public void KindleSinConversion_OfreceCalibre()
+    {
+        EngineOffers.For([KnownFormats.Mobi], []).ShouldBe(EngineOffers.Calibre);
+        EngineOffers.For([KnownFormats.Azw3, KnownFormats.Fb2], []).ShouldBe(EngineOffers.Calibre);
+        EngineOffers.For([KnownFormats.Epub], [KnownFormats.Pdf]).ShouldBeNull("EPUB ya convierte con MuPDF");
+        EngineInstaller.Arguments(EngineOffers.Calibre)[2].ShouldBe("calibre.calibre");
+    }
+
+    [Fact]
+    public void CadaOferta_TieneIconoYPalabras()
+    {
+        foreach (var offer in EngineOffers.All)
+        {
+            Icons.ForItem(offer.ActionId).ShouldBe("install");
+            CommandKeywords.For(offer.ActionId).ShouldContain("instalar");
+        }
+    }
+
+    [Fact]
     public void ConConversionOMezclado_NoOfreceNada()
     {
         EngineOffers.For([KnownFormats.Docx], [KnownFormats.Pdf]).ShouldBeNull("ya hay con qué convertir");

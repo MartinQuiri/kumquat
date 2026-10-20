@@ -41,6 +41,20 @@ public sealed class ProcessRunnerTests
     }
 
     [Fact]
+    public async Task Entorno_SeAgregaSoloAlMotor()
+    {
+        var lines = new List<string>();
+
+        var outcome = await _runner.RunAsync(
+            Spec(["env", "KUMQUAT_PRUEBA_ENTORNO"], lines.Add) with { Environment = new Dictionary<string, string>(StringComparer.Ordinal) { ["KUMQUAT_PRUEBA_ENTORNO"] = @"C:\carpeta ñ" } },
+            TestContext.Current.CancellationToken);
+
+        outcome.Succeeded.ShouldBeTrue(outcome.StandardErrorTail);
+        lines.ShouldBe([@"C:\carpeta ñ"]);
+        Environment.GetEnvironmentVariable("KUMQUAT_PRUEBA_ENTORNO").ShouldBeNull("no cambia el entorno de Kumquat");
+    }
+
+    [Fact]
     public async Task CodigoDeSalida_SePropaga()
     {
         var outcome = await _runner.RunAsync(Spec(["exit", "3"]), TestContext.Current.CancellationToken);

@@ -260,6 +260,13 @@
           "Kumquat.Infrastructure": "[0.1.0, )"
         }
       },
+      "kumquat.engines.calibre": {
+        "type": "Project",
+        "dependencies": {
+          "Kumquat.Core": "[0.1.0, )",
+          "Kumquat.Infrastructure": "[0.1.0, )"
+        }
+      },
       "kumquat.engines.ffmpeg": {
         "type": "Project",
         "dependencies": {
@@ -305,6 +312,7 @@
         "dependencies": {
           "Kumquat.Core": "[0.1.0, )",
           "Kumquat.Engines.Archives": "[0.1.0, )",
+          "Kumquat.Engines.Calibre": "[0.1.0, )",
           "Kumquat.Engines.FFmpeg": "[0.1.0, )",
           "Kumquat.Engines.Ocr": "[0.1.0, )",
           "Kumquat.Engines.Office": "[0.1.0, )",

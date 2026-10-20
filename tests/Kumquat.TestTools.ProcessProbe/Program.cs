@@ -22,6 +22,9 @@ switch (mode)
         }
 
         return 0;
+    case "env":
+        Console.Out.WriteLine(Environment.GetEnvironmentVariable(args[1]) ?? "(sin valor)");
+        return 0;
     case "stderr":
         for (var i = 0; i < int.Parse(args[1], CultureInfo.InvariantCulture); i++)
         {

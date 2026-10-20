@@ -15,6 +15,7 @@
     <Project Path="src/Kumquat.Engines.Archives/Kumquat.Engines.Archives.csproj" />
     <Project Path="src/Kumquat.Engines.FFmpeg/Kumquat.Engines.FFmpeg.csproj" />
     <Project Path="src/Kumquat.Engines.Ocr/Kumquat.Engines.Ocr.csproj" />
+    <Project Path="src/Kumquat.Engines.Calibre/Kumquat.Engines.Calibre.csproj" />
     <Project Path="src/Kumquat.Engines.Office/Kumquat.Engines.Office.csproj" />
     <Project Path="src/Kumquat.Engines.Pdf/Kumquat.Engines.Pdf.csproj" />
     <Project Path="src/Kumquat.Engines.Vips/Kumquat.Engines.Vips.csproj" />

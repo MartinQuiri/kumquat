@@ -22,6 +22,7 @@ Cada instalación del motor incluye un `SOURCE.txt` con su versión, licencia y 
 | Programa | Licencia | Cómo lo usa |
 |---|---|---|
 | Microsoft Office (Word, Excel, PowerPoint) | Licencia de Microsoft de cada persona | Automatización COM desde un proceso de PowerShell aparte |
+| Calibre (`ebook-convert`) | GPL-3.0 | Proceso aparte con `CALIBRE_CONFIG_DIRECTORY` temporal. Si no está, Kumquat ofrece instalarlo con winget (`calibre.calibre`), solo con permiso explícito |
 | LibreOffice | MPL-2.0 | Proceso `soffice --headless` con un perfil temporal. Si no hay ni Office ni LibreOffice, Kumquat ofrece instalarlo con winget (`TheDocumentFoundation.LibreOffice`), solo con permiso explícito |
 
 ## Paquetes NuGet distribuidos con la aplicación
