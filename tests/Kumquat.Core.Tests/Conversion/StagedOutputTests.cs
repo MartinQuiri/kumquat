@@ -30,6 +30,29 @@ public sealed class StagedOutputTests : IDisposable
     }
 
     [Fact]
+    public async Task MientrasSeEscribe_NadaVisibleEnLaCarpeta()
+    {
+        string[] visible = [];
+        FileAttributes? stagingAttributes = null;
+        var result = await RunAsync(async path =>
+        {
+            await File.WriteAllTextAsync(path, "a medias", TestContext.Current.CancellationToken);
+            visible = [.. new DirectoryInfo(_dir).EnumerateFileSystemInfos().Where(i => !i.Attributes.HasFlag(FileAttributes.Hidden)).Select(i => i.Name)];
+            stagingAttributes = new DirectoryInfo(Path.GetDirectoryName(path)!).Attributes;
+            return Result.Success;
+        });
+
+        result.IsSuccess.ShouldBeTrue();
+        visible.ShouldBeEmpty("el temporal no aparece en el Explorador");
+        if (OperatingSystem.IsWindows())
+        {
+            stagingAttributes!.Value.HasFlag(FileAttributes.Hidden | FileAttributes.System).ShouldBeTrue("oculta y de sistema: no se ve ni mostrando los ocultos");
+        }
+
+        File.GetAttributes(result.Value!).HasFlag(FileAttributes.Hidden).ShouldBeFalse("el resultado publicado no hereda el atributo");
+    }
+
+    [Fact]
     public async Task NombreOcupado_UsaElSiguienteLibre()
     {
         await File.WriteAllTextAsync(Path.Combine(_dir, "foto.jpg"), "original", TestContext.Current.CancellationToken);
