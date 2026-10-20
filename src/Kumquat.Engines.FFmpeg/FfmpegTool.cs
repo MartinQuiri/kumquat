@@ -197,10 +197,10 @@ public sealed class FfmpegTool : ITool
     private static FileFormat KeepContainerOrMp4(FileFormat input)
         => input == KnownFormats.WebM || Mp4Family.Contains(input) ? input : KnownFormats.Mp4;
 
-    /// <summary>H.264 CRF 28 (o VP9 para WebM), máx. 1080p, audio 128 kbps.</summary>
+    /// <summary>H.264 CRF 28 (o VP9/AV1 para WebM), máx. 1080p, audio 128 kbps.</summary>
     private static IReadOnlyList<string> CompressArguments(FileFormat input)
         => input == KnownFormats.WebM
-            ? ["-map", "0:v:0?", "-map", "0:a?", "-sn", "-dn", "-vf", "scale='min(1920,iw)':-2", "-c:v", "libvpx-vp9", "-pix_fmt", "yuv420p", "-crf", "40", "-b:v", "0", "-row-mt", "1", "-deadline", "good", "-cpu-used", "5", "-c:a", "libopus", "-b:a", "96k"]
+            ? ["-map", "0:v:0?", "-map", "0:a?", "-sn", "-dn", "-vf", "scale='min(1920,iw)':-2", .. FfmpegProfiles.WebMVideo(vp9Crf: "40", vp9CpuUsed: "5", av1Crf: "45"), "-c:a", "libopus", "-b:a", "96k"]
             : ["-map", "0:v:0?", "-map", "0:a?", "-sn", "-dn", "-vf", "scale='min(1920,iw)':-2", "-c:v", "libx264", "-preset", "medium", "-crf", "28", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart"];
 
     private static async Task<Result> MergeVideosAsync(FfmpegRunner ffmpeg, ToolStep step, IProgress<double>? progress, CancellationToken cancellationToken)

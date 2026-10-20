@@ -2,6 +2,7 @@
 // Copyright (C) 2026 Kumquat contributors
 
 using System.Collections.Frozen;
+using System.Runtime.InteropServices;
 using Kumquat.Core.Formats;
 
 namespace Kumquat.Engines.FFmpeg;
@@ -26,6 +27,12 @@ internal static class FfmpegProfiles
     /// <summary>Imágenes que FFmpeg escribe en este motor.</summary>
     public static readonly FileFormat[] ImageOut = [KnownFormats.Bmp, KnownFormats.Png];
 
+    /// <summary>
+    /// VP9 si el FFmpeg empaquetado lo trae. El de ARM64 (BtbN) se compila con --disable-libvpx,
+    /// así que ahí WebM va en AV1 (SVT-AV1): WebM lo admite y lo reproducen Chrome, Edge y Firefox.
+    /// </summary>
+    public static bool HasVp9 { get; } = RuntimeInformation.ProcessArchitecture != Architecture.Arm64;
+
     private static readonly FrozenSet<FileFormat> LosslessAudio = new[] { KnownFormats.Wav, KnownFormats.Flac, KnownFormats.Aiff }.ToFrozenSet();
 
     private static readonly FrozenDictionary<string, string[]> OutputArgs = new Dictionary<string, string[]>(StringComparer.Ordinal)
@@ -34,7 +41,7 @@ internal static class FfmpegProfiles
         ["mp4"] = ["-map", "0:v:0?", "-map", "0:a?", "-sn", "-dn", "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart"],
         ["mov"] = ["-map", "0:v:0?", "-map", "0:a?", "-sn", "-dn", "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart"],
         ["mkv"] = ["-map", "0:v:0?", "-map", "0:a?", "-sn", "-dn", "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k"],
-        ["webm"] = ["-map", "0:v:0?", "-map", "0:a?", "-sn", "-dn", "-c:v", "libvpx-vp9", "-pix_fmt", "yuv420p", "-crf", "32", "-b:v", "0", "-row-mt", "1", "-deadline", "good", "-cpu-used", "4", "-c:a", "libopus", "-b:a", "128k"],
+        ["webm"] = ["-map", "0:v:0?", "-map", "0:a?", "-sn", "-dn", .. WebMVideo(vp9Crf: "32", vp9CpuUsed: "4", av1Crf: "35"), "-c:a", "libopus", "-b:a", "128k"],
         ["avi"] = ["-map", "0:v:0?", "-map", "0:a?", "-sn", "-dn", "-c:v", "mpeg4", "-vtag", "xvid", "-pix_fmt", "yuv420p", "-q:v", "3", "-c:a", "libmp3lame", "-q:a", "2"],
         ["wmv"] = ["-map", "0:v:0?", "-map", "0:a?", "-sn", "-dn", "-c:v", "wmv2", "-pix_fmt", "yuv420p", "-q:v", "3", "-c:a", "wmav2", "-b:a", "192k"],
 
@@ -55,6 +62,11 @@ internal static class FfmpegProfiles
         ["bmp"] = ["-frames:v", "1", "-update", "1", "-c:v", "bmp"],
         ["png"] = ["-frames:v", "1", "-update", "1", "-c:v", "png"],
     }.ToFrozenDictionary(StringComparer.Ordinal);
+
+    /// <summary>Códec de video para WebM: VP9 o, si este FFmpeg no lo trae, AV1 con calidad equivalente.</summary>
+    public static string[] WebMVideo(string vp9Crf, string vp9CpuUsed, string av1Crf) => HasVp9
+        ? ["-c:v", "libvpx-vp9", "-pix_fmt", "yuv420p", "-crf", vp9Crf, "-b:v", "0", "-row-mt", "1", "-deadline", "good", "-cpu-used", vp9CpuUsed]
+        : ["-c:v", "libsvtav1", "-pix_fmt", "yuv420p", "-crf", av1Crf, "-preset", "8"];
 
     /// <summary>Argumentos de salida para un formato, o <c>null</c> si no hay perfil.</summary>
     public static IReadOnlyList<string>? For(FileFormat target) => OutputArgs.GetValueOrDefault(target.Id);
