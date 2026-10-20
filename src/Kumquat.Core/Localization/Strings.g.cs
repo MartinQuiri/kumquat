@@ -511,6 +511,9 @@ public static partial class Strings
     /// <summary>Tramo: {0} – {1}  ·  {2}</summary>
     public static string PreviewRange(object? start, object? end, object? length) => Format("PreviewRange", start, end, length);
 
+    /// <summary>Todo listo</summary>
+    public static string ProgressAllDone => Get("ProgressAllDone");
+
     /// <summary>casi listo</summary>
     public static string ProgressAlmostDone => Get("ProgressAlmostDone");
 
