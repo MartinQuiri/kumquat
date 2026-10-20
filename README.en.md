@@ -16,7 +16,7 @@
 
 Kumquat is a free (GPL-3.0) Windows alternative inspired by the interaction of [Tangerine for Mac](https://tangerineformac.com). It is not affiliated with Tangerine or Leap Studio.
 
-> **Status: pre-alpha (0.1).** See the [roadmap](#roadmap).
+> **Status: pre-alpha (0.2).** See the [roadmap](#roadmap).
 
 <p align="center"><img src="docs/images/rueda-oscura-en.png" width="420" alt="The Kumquat wheel for an image: formats, tools and actions"></p>
 

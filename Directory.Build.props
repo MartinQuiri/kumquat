@@ -37,7 +37,7 @@
     <Product>Kumquat</Product>
     <Copyright>Copyright (C) 2026 Kumquat contributors</Copyright>
     <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
   </PropertyGroup>
 
   <!-- Proyectos de test: xUnit v3 sobre Microsoft.Testing.Platform (global.json lo pide para

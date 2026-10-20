@@ -225,9 +225,9 @@
       "Kumquat": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Dialogs": "[0.1.0, )",
-          "Kumquat.Hosting": "[0.1.0, )",
-          "Kumquat.Interaction": "[0.1.0, )"
+          "Kumquat.Dialogs": "[0.2.0, )",
+          "Kumquat.Hosting": "[0.2.0, )",
+          "Kumquat.Interaction": "[0.2.0, )"
         }
       },
       "kumquat.core": {
@@ -239,65 +239,65 @@
       "kumquat.design": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )"
+          "Kumquat.Core": "[0.2.0, )"
         }
       },
       "kumquat.dialogs": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )",
-          "Kumquat.Design": "[0.1.0, )"
+          "Kumquat.Core": "[0.2.0, )",
+          "Kumquat.Design": "[0.2.0, )"
         }
       },
       "kumquat.engines.archives": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )",
-          "Kumquat.Infrastructure": "[0.1.0, )"
+          "Kumquat.Core": "[0.2.0, )",
+          "Kumquat.Infrastructure": "[0.2.0, )"
         }
       },
       "kumquat.engines.calibre": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )",
-          "Kumquat.Infrastructure": "[0.1.0, )"
+          "Kumquat.Core": "[0.2.0, )",
+          "Kumquat.Infrastructure": "[0.2.0, )"
         }
       },
       "kumquat.engines.ffmpeg": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )",
-          "Kumquat.Infrastructure": "[0.1.0, )"
+          "Kumquat.Core": "[0.2.0, )",
+          "Kumquat.Infrastructure": "[0.2.0, )"
         }
       },
       "kumquat.engines.ocr": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )",
-          "Kumquat.Engines.Pdf": "[0.1.0, )",
-          "Kumquat.Engines.Vips": "[0.1.0, )",
-          "Kumquat.Infrastructure": "[0.1.0, )"
+          "Kumquat.Core": "[0.2.0, )",
+          "Kumquat.Engines.Pdf": "[0.2.0, )",
+          "Kumquat.Engines.Vips": "[0.2.0, )",
+          "Kumquat.Infrastructure": "[0.2.0, )"
         }
       },
       "kumquat.engines.office": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )",
-          "Kumquat.Infrastructure": "[0.1.0, )"
+          "Kumquat.Core": "[0.2.0, )",
+          "Kumquat.Infrastructure": "[0.2.0, )"
         }
       },
       "kumquat.engines.pdf": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )",
-          "Kumquat.Engines.Vips": "[0.1.0, )",
-          "Kumquat.Infrastructure": "[0.1.0, )"
+          "Kumquat.Core": "[0.2.0, )",
+          "Kumquat.Engines.Vips": "[0.2.0, )",
+          "Kumquat.Infrastructure": "[0.2.0, )"
         }
       },
       "kumquat.engines.vips": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )",
+          "Kumquat.Core": "[0.2.0, )",
           "NetVips": "[3.2.0, )",
           "NetVips.Native.win-arm64": "[8.18.7, )",
           "NetVips.Native.win-x64": "[8.18.7, )"
@@ -306,15 +306,15 @@
       "kumquat.hosting": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )",
-          "Kumquat.Engines.Archives": "[0.1.0, )",
-          "Kumquat.Engines.Calibre": "[0.1.0, )",
-          "Kumquat.Engines.FFmpeg": "[0.1.0, )",
-          "Kumquat.Engines.Ocr": "[0.1.0, )",
-          "Kumquat.Engines.Office": "[0.1.0, )",
-          "Kumquat.Engines.Pdf": "[0.1.0, )",
-          "Kumquat.Engines.Vips": "[0.1.0, )",
-          "Kumquat.Infrastructure": "[0.1.0, )",
+          "Kumquat.Core": "[0.2.0, )",
+          "Kumquat.Engines.Archives": "[0.2.0, )",
+          "Kumquat.Engines.Calibre": "[0.2.0, )",
+          "Kumquat.Engines.FFmpeg": "[0.2.0, )",
+          "Kumquat.Engines.Ocr": "[0.2.0, )",
+          "Kumquat.Engines.Office": "[0.2.0, )",
+          "Kumquat.Engines.Pdf": "[0.2.0, )",
+          "Kumquat.Engines.Vips": "[0.2.0, )",
+          "Kumquat.Infrastructure": "[0.2.0, )",
           "Microsoft.Extensions.DependencyInjection": "[10.0.13, )",
           "Microsoft.Extensions.Logging": "[10.0.13, )",
           "Serilog": "[4.4.0, )",
@@ -325,7 +325,7 @@
       "kumquat.infrastructure": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )",
+          "Kumquat.Core": "[0.2.0, )",
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.13, )",
           "SharpCompress": "[0.50.5, )"
         }
@@ -333,8 +333,8 @@
       "kumquat.interaction": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )",
-          "Kumquat.Design": "[0.1.0, )"
+          "Kumquat.Core": "[0.2.0, )",
+          "Kumquat.Design": "[0.2.0, )"
         }
       },
       "Microsoft.Extensions.DependencyInjection": {

@@ -28,15 +28,15 @@
       "kumquat.engines.pdf": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )",
-          "Kumquat.Engines.Vips": "[0.1.0, )",
-          "Kumquat.Infrastructure": "[0.1.0, )"
+          "Kumquat.Core": "[0.2.0, )",
+          "Kumquat.Engines.Vips": "[0.2.0, )",
+          "Kumquat.Infrastructure": "[0.2.0, )"
         }
       },
       "kumquat.engines.vips": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )",
+          "Kumquat.Core": "[0.2.0, )",
           "NetVips": "[3.2.0, )",
           "NetVips.Native.win-arm64": "[8.18.7, )",
           "NetVips.Native.win-x64": "[8.18.7, )"
@@ -45,7 +45,7 @@
       "kumquat.infrastructure": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )",
+          "Kumquat.Core": "[0.2.0, )",
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.13, )",
           "SharpCompress": "[0.50.5, )"
         }

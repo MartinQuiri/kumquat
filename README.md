@@ -16,7 +16,7 @@
 
 Kumquat es una alternativa libre (GPL-3.0) para Windows inspirada en la interacción de [Tangerine para Mac](https://tangerineformac.com). No está afiliado a Tangerine ni a Leap Studio.
 
-> **Estado: pre-alfa (0.1).** Ver [hoja de ruta](#hoja-de-ruta).
+> **Estado: pre-alfa (0.2).** Ver [hoja de ruta](#hoja-de-ruta).
 
 <p align="center"><img src="docs/images/rueda-pdf.png" width="420" alt="La rueda de Kumquat con las herramientas de PDF"></p>
 

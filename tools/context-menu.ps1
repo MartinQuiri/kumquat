@@ -21,7 +21,7 @@ param(
     [Parameter(ParameterSetName = 'Unregister', Mandatory = $true)][switch] $Unregister,
     [Parameter(ParameterSetName = 'Build')][Parameter(ParameterSetName = 'Register')]
     [ValidateSet('win-x64', 'win-arm64')][string] $Runtime = 'win-x64',
-    [Parameter(ParameterSetName = 'Build')][string] $Version = '0.1.0',
+    [Parameter(ParameterSetName = 'Build')][string] $Version = '0.2.0',
     # Sujeto del certificado que firma (tiene que coincidir con Publisher del manifiesto).
     [Parameter(ParameterSetName = 'Build')][string] $Publisher = 'CN=Kumquat contributors',
     [Parameter(ParameterSetName = 'Build')][string] $CertificateThumbprint,

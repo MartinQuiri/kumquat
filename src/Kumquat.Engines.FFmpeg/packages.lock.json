@@ -34,7 +34,7 @@
       "kumquat.infrastructure": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )",
+          "Kumquat.Core": "[0.2.0, )",
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.13, )",
           "SharpCompress": "[0.50.5, )"
         }
