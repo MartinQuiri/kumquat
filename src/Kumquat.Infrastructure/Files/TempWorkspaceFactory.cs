@@ -58,12 +58,18 @@ public sealed class TempWorkspaceFactory : ITempWorkspaceFactory
 
     private sealed class TempWorkspace(string path) : ITempWorkspace
     {
+        /// <summary>
+        /// Los caracteres que Windows prohíbe, en cualquier sistema (Linux solo prohíbe <c>/</c> y el nulo):
+        /// la validación no depende de dónde corre Kumquat.
+        /// </summary>
+        private static readonly char[] InvalidFileNameChars = [.. "\"<>|:*?\\/", .. Enumerable.Range(0, 32).Select(c => (char)c)];
+
         public string DirectoryPath { get; } = path;
 
         public string NewFilePath(string extension)
         {
             ArgumentException.ThrowIfNullOrEmpty(extension);
-            if (!extension.StartsWith('.') || extension.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || extension.Contains("..", StringComparison.Ordinal))
+            if (!extension.StartsWith('.') || extension.IndexOfAny(InvalidFileNameChars) >= 0 || extension.Contains("..", StringComparison.Ordinal))
             {
                 throw new ArgumentException($"Extensión inválida: '{extension}'.", nameof(extension));
             }

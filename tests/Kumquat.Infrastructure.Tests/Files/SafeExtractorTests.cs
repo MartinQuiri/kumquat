@@ -30,6 +30,7 @@ public sealed class SafeExtractorTests : IDisposable
     [InlineData("../escape.txt")]
     [InlineData("sub/../../escape.txt")]
     [InlineData("..\\escape.txt")]
+    [InlineData("sub\\..\\..\\escape.txt")]
     public async Task ZipSlip_SeRechazaSinEscribirNada(string entryName)
     {
         var zip = CreateZip(("ok.txt", "x"), (entryName, "malicioso"));
@@ -39,6 +40,18 @@ public sealed class SafeExtractorTests : IDisposable
         result.Error.ShouldNotBeNull().Code.ShouldBe("archive-path-traversal");
         File.Exists(Path.Combine(_root, "escape.txt")).ShouldBeFalse();
         File.Exists(Path.Combine(_root, "out", "ok.txt")).ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task ZipSlip_CarpetaHermanaConOtrasMayusculas_SeRechaza()
+    {
+        Assert.SkipWhen(OperatingSystem.IsWindows(), "En Windows \"OUT\" y \"out\" son la misma carpeta.");
+        var zip = CreateZip(("../OUT/escape.txt", "malicioso"));
+
+        var result = await SafeExtractor.ExtractZipAsync(zip, Path.Combine(_root, "out"), null, TestContext.Current.CancellationToken);
+
+        result.Error.ShouldNotBeNull().Code.ShouldBe("archive-path-traversal");
+        File.Exists(Path.Combine(_root, "OUT", "escape.txt")).ShouldBeFalse();
     }
 
     [Fact]
