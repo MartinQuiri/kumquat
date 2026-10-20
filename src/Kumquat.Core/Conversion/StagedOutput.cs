@@ -9,11 +9,16 @@ using Kumquat.Core.Results;
 namespace Kumquat.Core.Conversion;
 
 /// <summary>
-/// Escribe una salida de forma segura: el motor escribe en un archivo oculto
-/// <c>.kumquat-*</c> en la carpeta destino y, solo si termina bien, se publica con un
-/// <c>File.Move</c> atómico al primer nombre libre. Nunca deja archivos a medias con el
-/// nombre final ni sobrescribe nada. Compartido por conversiones y herramientas.
+/// Escribe una salida de forma segura: el motor escribe dentro de una carpeta <c>.kumquat-*</c>
+/// oculta y de sistema en la carpeta destino (no se ve en el Explorador aunque muestre los
+/// archivos ocultos) y, solo si termina bien, se publica con un <c>File.Move</c> atómico (mismo
+/// volumen, mismos permisos que la carpeta destino) al primer nombre libre. Nunca deja archivos a
+/// medias con el nombre final ni sobrescribe nada. Compartido por conversiones y herramientas.
 /// </summary>
+/// <remarks>
+/// El archivo no se puede crear oculto de antemano: los motores lo reemplazan al escribir y
+/// Windows niega reemplazar un archivo oculto. Por eso se oculta la carpeta que lo contiene.
+/// </remarks>
 internal static class StagedOutput
 {
     /// <summary>Ejecuta <paramref name="produce"/> sobre un archivo temporal y lo publica.</summary>
@@ -37,7 +42,8 @@ internal static class StagedOutput
         CancellationToken cancellationToken,
         Func<string, bool>? exists = null)
     {
-        var stagingPath = Path.Combine(directory, string.Create(CultureInfo.InvariantCulture, $".kumquat-{Guid.NewGuid():N}{target.DefaultExtension}"));
+        var stagingDirectory = CreateHiddenStaging(directory);
+        var stagingPath = Path.Combine(stagingDirectory, "salida" + target.DefaultExtension);
         try
         {
             var result = await produce(stagingPath);
@@ -67,7 +73,7 @@ internal static class StagedOutput
         }
         finally
         {
-            TryDelete(stagingPath);
+            TryDeleteDirectory(stagingDirectory);
         }
     }
 
@@ -82,8 +88,9 @@ internal static class StagedOutput
         Func<string, Task<Result>> produce,
         CancellationToken cancellationToken)
     {
-        var staging = Path.Combine(directory, string.Create(CultureInfo.InvariantCulture, $".kumquat-{Guid.NewGuid():N}"));
-        Directory.CreateDirectory(staging);
+        // La carpeta de salida va dentro de la oculta: así el resultado publicado no hereda los atributos.
+        var stagingDirectory = CreateHiddenStaging(directory);
+        var staging = Directory.CreateDirectory(Path.Combine(stagingDirectory, "salida")).FullName;
         try
         {
             var result = await produce(staging);
@@ -125,8 +132,20 @@ internal static class StagedOutput
         }
         finally
         {
-            TryDeleteDirectory(staging);
+            TryDeleteDirectory(stagingDirectory);
         }
+    }
+
+    /// <summary>Carpeta temporal oculta y de sistema dentro de la carpeta destino (mismo volumen).</summary>
+    private static string CreateHiddenStaging(string directory)
+    {
+        var staging = Directory.CreateDirectory(Path.Combine(directory, string.Create(CultureInfo.InvariantCulture, $".kumquat-{Guid.NewGuid():N}")));
+        if (OperatingSystem.IsWindows())
+        {
+            staging.Attributes |= FileAttributes.Hidden | FileAttributes.System;
+        }
+
+        return staging.FullName;
     }
 
     private static void TryDeleteDirectory(string path)
@@ -140,7 +159,7 @@ internal static class StagedOutput
         }
         catch (IOException)
         {
-            // Mejor esfuerzo: la carpeta oculta .kumquat-* queda y se limpia en el próximo arranque.
+            // Mejor esfuerzo: la carpeta .kumquat-* queda (oculta y de sistema: no se ve).
         }
         catch (UnauthorizedAccessException)
         {
@@ -164,22 +183,6 @@ internal static class StagedOutput
             {
                 // Carrera por el nombre: reintentar.
             }
-        }
-    }
-
-    private static void TryDelete(string path)
-    {
-        try
-        {
-            File.Delete(path);
-        }
-        catch (IOException)
-        {
-            // Mejor esfuerzo: el archivo oculto .kumquat-* queda y se limpia en el próximo arranque.
-        }
-        catch (UnauthorizedAccessException)
-        {
-            // Idem.
         }
     }
 }
