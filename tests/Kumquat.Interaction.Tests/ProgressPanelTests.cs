@@ -47,6 +47,15 @@ public sealed class ProgressPanelTests
         rows.ShouldBe(["b.png | a JPG · calculando…"]);
     }
 
+    [Fact]
+    public void AlTerminarTodo_DiceTodoListo()
+        => OnSta(() =>
+        {
+            var panel = ProgressPanel.CreateForTests();
+            panel.Update(new ProgressView(true, [], 0, 0, 0));
+            return panel.HeaderForTests;
+        }).ShouldBe("Todo listo");
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]

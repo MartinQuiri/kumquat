@@ -120,7 +120,10 @@ public sealed partial class ProgressPanel : Window
     internal void Update(ProgressView view)
     {
         ArgumentNullException.ThrowIfNull(view);
-        _header.Text = view.Queued > 0 ? Strings.ProgressRunningQueued(view.Running, view.Queued) : Strings.ProgressRunning(view.Running);
+        // Los segundos que queda a la vista después de terminar, "Todo listo" en vez de "0 en curso".
+        _header.Text = view.Running == 0 && view.Queued == 0 ? Strings.ProgressAllDone
+            : view.Queued > 0 ? Strings.ProgressRunningQueued(view.Running, view.Queued)
+            : Strings.ProgressRunning(view.Running);
         foreach (var gone in _byJob.Keys.Except(view.Rows.Select(r => r.Id)).ToList())
         {
             _rows.Children.Remove(_byJob[gone].Root);

@@ -186,6 +186,7 @@ Ejemplos:
   <data name="PreviewLoading" xml:space="preserve"><value>Preparando vista previa…</value></data>
   <data name="PreviewNone" xml:space="preserve"><value>Sin vista previa para este archivo</value></data>
   <data name="PreviewRange" xml:space="preserve"><value>Tramo: {0} – {1}  ·  {2}</value><comment>params: start, end, length</comment></data>
+  <data name="ProgressAllDone" xml:space="preserve"><value>Todo listo</value></data>
   <data name="ProgressAlmostDone" xml:space="preserve"><value>casi listo</value></data>
   <data name="ProgressCalculating" xml:space="preserve"><value>calculando…</value></data>
   <data name="ProgressCancel" xml:space="preserve"><value>Cancelar {0}</value><comment>params: file</comment></data>
