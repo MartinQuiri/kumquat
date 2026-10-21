@@ -2,7 +2,9 @@
 // Copyright (C) 2026 Kumquat contributors
 
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using Microsoft.Win32.SafeHandles;
 
 namespace Kumquat.Infrastructure.Processes;
@@ -11,7 +13,8 @@ namespace Kumquat.Infrastructure.Processes;
 /// Job Object de Windows: agrupa el proceso de un motor y sus hijos, limita su memoria
 /// y garantiza que mueran todos cuando Kumquat lo cierra o se cae.
 /// </summary>
-internal sealed partial class JobObject : IDisposable
+[SupportedOSPlatform("windows")]
+internal sealed partial class JobObject : IProcessGroup
 {
     private const int JobObjectExtendedLimitInformation = 9;
     private const uint LimitKillOnJobClose = 0x00002000;
@@ -45,17 +48,17 @@ internal sealed partial class JobObject : IDisposable
         }
     }
 
-    public void Assign(SafeProcessHandle process)
+    public void Add(Process process)
     {
         ArgumentNullException.ThrowIfNull(process);
-        if (!AssignProcessToJobObject(_handle, process))
+        if (!AssignProcessToJobObject(_handle, process.SafeHandle))
         {
             throw new Win32Exception(Marshal.GetLastPInvokeError());
         }
     }
 
     /// <summary>Termina todos los procesos del job.</summary>
-    public void Terminate(uint exitCode) => _ = TerminateJobObject(_handle, exitCode);
+    public void Terminate() => _ = TerminateJobObject(_handle, exitCode: 1);
 
     public void Dispose() => _handle.Dispose();
 

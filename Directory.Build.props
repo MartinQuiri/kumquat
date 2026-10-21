@@ -1,13 +1,22 @@
 <Project>
   <!-- Configuración común a todos los proyectos. Cambiar aquí, no en cada .csproj. -->
   <PropertyGroup>
+    <!-- La interfaz (rueda, ventanas, bandeja, menú del Explorador) es solo de Windows; el núcleo, los
+         motores y la CLI corren también en Linux y macOS. Un proyecto nuevo que use Win32, COM o WPF
+         va en esta lista. -->
+    <KumquatWindowsOnly Condition="'$(MSBuildProjectName)' == 'Kumquat.App' Or '$(MSBuildProjectName)' == 'Kumquat.Interaction' Or '$(MSBuildProjectName)' == 'Kumquat.Dialogs' Or '$(MSBuildProjectName)' == 'Kumquat.Design' Or '$(MSBuildProjectName)' == 'Kumquat.ShellExtension' Or '$(MSBuildProjectName)' == 'Kumquat.Interaction.Tests' Or '$(MSBuildProjectName)' == 'Kumquat.ShellExtension.Tests' Or '$(MSBuildProjectName)' == 'Kumquat.E2E.Tests'">true</KumquatWindowsOnly>
     <!-- Sin versión de SDK de Windows: no usamos WinRT y la proyección CsWinRT pesa ~53 MB. -->
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <TargetFramework Condition="'$(KumquatWindowsOnly)' == 'true'">net10.0-windows</TargetFramework>
+    <TargetFramework Condition="'$(KumquatWindowsOnly)' != 'true'">net10.0</TargetFramework>
+    <!-- Permite restaurar y compilar los proyectos de Windows desde Linux o macOS (p. ej. dotnet format);
+         ejecutarlos sigue requiriendo Windows. -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <Platforms>x64;ARM64</Platforms>
-    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="'$(KumquatWindowsOnly)' == 'true'">win-x64;win-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="'$(KumquatWindowsOnly)' != 'true'">win-x64;win-arm64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
     <!-- Una sola carpeta de salida (bin/<config>/<tfm>) para cualquier plataforma: evita binarios
          desactualizados al mezclar compilaciones por solución y por proyecto. -->
     <AppendPlatformToOutputPath>false</AppendPlatformToOutputPath>
@@ -37,7 +46,7 @@
     <Product>Kumquat</Product>
     <Copyright>Copyright (C) 2026 Kumquat contributors</Copyright>
     <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
   </PropertyGroup>
 
   <!-- Proyectos de test: xUnit v3 sobre Microsoft.Testing.Platform (global.json lo pide para

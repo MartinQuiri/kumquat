@@ -225,9 +225,9 @@
       "Kumquat": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Dialogs": "[0.1.0, )",
-          "Kumquat.Hosting": "[0.1.0, )",
-          "Kumquat.Interaction": "[0.1.0, )"
+          "Kumquat.Dialogs": "[0.2.0, )",
+          "Kumquat.Hosting": "[0.2.0, )",
+          "Kumquat.Interaction": "[0.2.0, )"
         }
       },
       "kumquat.core": {
@@ -239,66 +239,70 @@
       "kumquat.design": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )"
+          "Kumquat.Core": "[0.2.0, )"
         }
       },
       "kumquat.dialogs": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )",
-          "Kumquat.Design": "[0.1.0, )"
+          "Kumquat.Core": "[0.2.0, )",
+          "Kumquat.Design": "[0.2.0, )"
         }
       },
       "kumquat.engines.archives": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )",
-          "Kumquat.Infrastructure": "[0.1.0, )"
+          "Kumquat.Core": "[0.2.0, )",
+          "Kumquat.Infrastructure": "[0.2.0, )"
         }
       },
       "kumquat.engines.calibre": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )",
-          "Kumquat.Infrastructure": "[0.1.0, )"
+          "Kumquat.Core": "[0.2.0, )",
+          "Kumquat.Infrastructure": "[0.2.0, )"
         }
       },
       "kumquat.engines.ffmpeg": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )",
-          "Kumquat.Infrastructure": "[0.1.0, )"
+          "Kumquat.Core": "[0.2.0, )",
+          "Kumquat.Infrastructure": "[0.2.0, )"
         }
       },
       "kumquat.engines.ocr": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )",
-          "Kumquat.Engines.Pdf": "[0.1.0, )",
-          "Kumquat.Engines.Vips": "[0.1.0, )",
-          "Kumquat.Infrastructure": "[0.1.0, )"
+          "Kumquat.Core": "[0.2.0, )",
+          "Kumquat.Engines.Pdf": "[0.2.0, )",
+          "Kumquat.Engines.Vips": "[0.2.0, )",
+          "Kumquat.Infrastructure": "[0.2.0, )"
         }
       },
       "kumquat.engines.office": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )",
-          "Kumquat.Infrastructure": "[0.1.0, )"
+          "Kumquat.Core": "[0.2.0, )",
+          "Kumquat.Infrastructure": "[0.2.0, )"
         }
       },
       "kumquat.engines.pdf": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )",
-          "Kumquat.Engines.Vips": "[0.1.0, )",
-          "Kumquat.Infrastructure": "[0.1.0, )"
+          "Kumquat.Core": "[0.2.0, )",
+          "Kumquat.Engines.Vips": "[0.2.0, )",
+          "Kumquat.Infrastructure": "[0.2.0, )"
         }
       },
       "kumquat.engines.vips": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )",
+          "Kumquat.Core": "[0.2.0, )",
           "NetVips": "[3.2.0, )",
+          "NetVips.Native.linux-arm64": "[8.18.7, )",
+          "NetVips.Native.linux-x64": "[8.18.7, )",
+          "NetVips.Native.osx-arm64": "[8.18.7, )",
+          "NetVips.Native.osx-x64": "[8.18.7, )",
           "NetVips.Native.win-arm64": "[8.18.7, )",
           "NetVips.Native.win-x64": "[8.18.7, )"
         }
@@ -306,15 +310,15 @@
       "kumquat.hosting": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )",
-          "Kumquat.Engines.Archives": "[0.1.0, )",
-          "Kumquat.Engines.Calibre": "[0.1.0, )",
-          "Kumquat.Engines.FFmpeg": "[0.1.0, )",
-          "Kumquat.Engines.Ocr": "[0.1.0, )",
-          "Kumquat.Engines.Office": "[0.1.0, )",
-          "Kumquat.Engines.Pdf": "[0.1.0, )",
-          "Kumquat.Engines.Vips": "[0.1.0, )",
-          "Kumquat.Infrastructure": "[0.1.0, )",
+          "Kumquat.Core": "[0.2.0, )",
+          "Kumquat.Engines.Archives": "[0.2.0, )",
+          "Kumquat.Engines.Calibre": "[0.2.0, )",
+          "Kumquat.Engines.FFmpeg": "[0.2.0, )",
+          "Kumquat.Engines.Ocr": "[0.2.0, )",
+          "Kumquat.Engines.Office": "[0.2.0, )",
+          "Kumquat.Engines.Pdf": "[0.2.0, )",
+          "Kumquat.Engines.Vips": "[0.2.0, )",
+          "Kumquat.Infrastructure": "[0.2.0, )",
           "Microsoft.Extensions.DependencyInjection": "[10.0.13, )",
           "Microsoft.Extensions.Logging": "[10.0.13, )",
           "Serilog": "[4.4.0, )",
@@ -325,7 +329,7 @@
       "kumquat.infrastructure": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )",
+          "Kumquat.Core": "[0.2.0, )",
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.13, )",
           "SharpCompress": "[0.50.5, )"
         }
@@ -333,8 +337,8 @@
       "kumquat.interaction": {
         "type": "Project",
         "dependencies": {
-          "Kumquat.Core": "[0.1.0, )",
-          "Kumquat.Design": "[0.1.0, )"
+          "Kumquat.Core": "[0.2.0, )",
+          "Kumquat.Design": "[0.2.0, )"
         }
       },
       "Microsoft.Extensions.DependencyInjection": {
@@ -371,6 +375,30 @@
         "requested": "[3.2.0, )",
         "resolved": "3.2.0",
         "contentHash": "ixVatHjsFBBvtKXYwH8jz8nF6OQIhl2e/P0N8ByGaZrlPu9VvcVQxX9zBQ13L8fUpMzKv1WXUybqW8wXZdFsCg=="
+      },
+      "NetVips.Native.linux-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "nCKwMXFz+uyjouDskMxlF1XkgxGeGjyTTLcEcp+CeF8leqxrtylT8Thot7SUtiffEqeaVLOLH6YY6iknbiq/TA=="
+      },
+      "NetVips.Native.linux-x64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "Ao/eWVNRZRM8/j8Dhp62XARwPzrTGMl4nheNQlQvp8P2Ybpdzj1+SeXRBlUCaH8phlCrEUSabz/5lpmnw3Wmig=="
+      },
+      "NetVips.Native.osx-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "DMMjnEXeEpOQ8zvM47ZkvnGlDAK7oBZ8vH2zhYeuusrsqiameQ0GFmQginThqcFR4k8G7eMUARkrPbclcuKqIw=="
+      },
+      "NetVips.Native.osx-x64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "oiyOLIFSfmsHUEsuCsQ5At2fCTkgguQkYOFti4K1SKgIIgdoCPbEZ1GgAzZpIh0GdLOsCks9knA36rL0mS2ABg=="
       },
       "NetVips.Native.win-arm64": {
         "type": "CentralTransitive",
@@ -444,6 +472,30 @@
         "resolved": "6.0.1",
         "contentHash": "IQ4NXP/B3Ayzvw0rDQzVTYsCKyy0Jp9KI6aYcK7UnGVlR9+Awz++TIPCQtPYfLJfOpm8ajowMR09V7quD3sEHw=="
       },
+      "NetVips.Native.linux-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "nCKwMXFz+uyjouDskMxlF1XkgxGeGjyTTLcEcp+CeF8leqxrtylT8Thot7SUtiffEqeaVLOLH6YY6iknbiq/TA=="
+      },
+      "NetVips.Native.linux-x64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "Ao/eWVNRZRM8/j8Dhp62XARwPzrTGMl4nheNQlQvp8P2Ybpdzj1+SeXRBlUCaH8phlCrEUSabz/5lpmnw3Wmig=="
+      },
+      "NetVips.Native.osx-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "DMMjnEXeEpOQ8zvM47ZkvnGlDAK7oBZ8vH2zhYeuusrsqiameQ0GFmQginThqcFR4k8G7eMUARkrPbclcuKqIw=="
+      },
+      "NetVips.Native.osx-x64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "oiyOLIFSfmsHUEsuCsQ5At2fCTkgguQkYOFti4K1SKgIIgdoCPbEZ1GgAzZpIh0GdLOsCks9knA36rL0mS2ABg=="
+      },
       "NetVips.Native.win-arm64": {
         "type": "CentralTransitive",
         "requested": "[8.18.7, )",
@@ -484,6 +536,30 @@
         "type": "Transitive",
         "resolved": "6.0.1",
         "contentHash": "IQ4NXP/B3Ayzvw0rDQzVTYsCKyy0Jp9KI6aYcK7UnGVlR9+Awz++TIPCQtPYfLJfOpm8ajowMR09V7quD3sEHw=="
+      },
+      "NetVips.Native.linux-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "nCKwMXFz+uyjouDskMxlF1XkgxGeGjyTTLcEcp+CeF8leqxrtylT8Thot7SUtiffEqeaVLOLH6YY6iknbiq/TA=="
+      },
+      "NetVips.Native.linux-x64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "Ao/eWVNRZRM8/j8Dhp62XARwPzrTGMl4nheNQlQvp8P2Ybpdzj1+SeXRBlUCaH8phlCrEUSabz/5lpmnw3Wmig=="
+      },
+      "NetVips.Native.osx-arm64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "DMMjnEXeEpOQ8zvM47ZkvnGlDAK7oBZ8vH2zhYeuusrsqiameQ0GFmQginThqcFR4k8G7eMUARkrPbclcuKqIw=="
+      },
+      "NetVips.Native.osx-x64": {
+        "type": "CentralTransitive",
+        "requested": "[8.18.7, )",
+        "resolved": "8.18.7",
+        "contentHash": "oiyOLIFSfmsHUEsuCsQ5At2fCTkgguQkYOFti4K1SKgIIgdoCPbEZ1GgAzZpIh0GdLOsCks9knA36rL0mS2ABg=="
       },
       "NetVips.Native.win-arm64": {
         "type": "CentralTransitive",

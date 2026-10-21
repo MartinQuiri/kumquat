@@ -9,14 +9,15 @@
   <a href="https://github.com/MartinQuiri/kumquat/releases"><img src="https://img.shields.io/github/v/release/MartinQuiri/kumquat?include_prereleases&amp;label=versi%C3%B3n" alt="Versión"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/licencia-GPL--3.0-blue" alt="Licencia GPL-3.0"></a>
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows" alt="Windows 10 y 11">
+  <img src="https://img.shields.io/badge/CLI-Linux%20%7C%20macOS-FCC624?logo=linux&amp;logoColor=white" alt="CLI para Linux y macOS">
   <img src="https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet" alt=".NET 10">
 </p>
 
 **Convierte archivos sin abrir nada.** Arrastra un archivo, presiona **Shift** y suéltalo sobre el formato que quieras en la rueda que aparece junto al cursor. Todo ocurre en tu PC: nada se sube a internet.
 
-Kumquat es una alternativa libre (GPL-3.0) para Windows inspirada en la interacción de [Tangerine para Mac](https://tangerineformac.com). No está afiliado a Tangerine ni a Leap Studio.
+Kumquat es una alternativa libre (GPL-3.0) para Windows inspirada en la interacción de [Tangerine para Mac](https://tangerineformac.com). No está afiliado a Tangerine ni a Leap Studio. Los mismos motores y conversiones están también en **Linux y macOS** como herramienta de línea de comandos ([`kumquat-cli`](#linux-y-macos-cli)).
 
-> **Estado: pre-alfa (0.1).** Ver [hoja de ruta](#hoja-de-ruta).
+> **Estado: pre-alfa (0.2).** Ver [hoja de ruta](#hoja-de-ruta).
 
 <p align="center"><img src="docs/images/rueda-pdf.png" width="420" alt="La rueda de Kumquat con las herramientas de PDF"></p>
 
@@ -28,6 +29,29 @@ Kumquat es una alternativa libre (GPL-3.0) para Windows inspirada en la interacc
 ¿Prefieres no instalar nada? El `.zip` es portable: descomprímelo y abre `Kumquat.exe`.
 
 > Mientras los releases no estén firmados, Windows SmartScreen puede avisar "Windows protegió su PC": **Más información → Ejecutar de todas formas**. Cada archivo publica su SHA-256 para que puedas verificarlo.
+
+### Linux y macOS (CLI)
+
+La rueda, las ventanas y la bandeja son de Windows; en Linux y macOS está `kumquat-cli`, con las mismas conversiones y herramientas.
+
+**Linux** (x64 o ARM64; Ubuntu 22.04, Debian 12, Fedora 35, RHEL 9 o más nuevos —glibc 2.34+—): descarga `Kumquat-<versión>-linux-x64.tar.gz` (o `linux-arm64`) desde [Releases](https://github.com/MartinQuiri/kumquat/releases). Trae FFmpeg, qpdf y MuPDF; el OCR usa el Tesseract de tu distribución.
+
+```sh
+tar -xzf Kumquat-0.2.0-linux-x64.tar.gz
+sudo apt install tesseract-ocr tesseract-ocr-spa   # opcional, para OCR (dnf: tesseract tesseract-langpack-spa)
+./kumquat-0.2.0-linux-x64/kumquat-cli engines      # qué motores encontró
+```
+
+**macOS** (Apple Silicon o Intel): descarga `Kumquat-<versión>-osx-arm64.tar.gz` (o `osx-x64`). Los motores se instalan con [Homebrew](https://brew.sh):
+
+```sh
+brew install ffmpeg qpdf mupdf-tools tesseract tesseract-lang
+tar -xzf Kumquat-0.2.0-osx-arm64.tar.gz
+xattr -dr com.apple.quarantine kumquat-0.2.0-osx-arm64   # el paquete todavía no está notarizado
+./kumquat-0.2.0-osx-arm64/kumquat-cli engines
+```
+
+Si tienes LibreOffice o Calibre instalados, la CLI también los usa (Office → PDF, libros electrónicos). MuPDF tiene que ser 1.24 o más nuevo: el de Ubuntu 22.04 y 24.04 es más viejo, por eso el paquete de Linux trae el suyo.
 
 ## Cómo se usa
 
@@ -52,12 +76,13 @@ Soltar en el centro (el logo) o presionar **Esc** cancela. El gesto se puede cam
 
 La entrada del clic derecho se registra solo para tu usuario, sin permisos de administrador; se quita en Configuración o con `Kumquat.exe --unregister`.
 
-También hay una CLI:
+También hay una CLI (la misma en Windows, Linux y macOS):
 
 ```powershell
 kumquat-cli convert foto.heic --to jpg
 kumquat-cli convert *.wav --to mp3 --out D:\musica
 kumquat-cli targets video.mkv      # a qué formatos se puede convertir
+kumquat-cli tools informe.pdf      # herramientas disponibles (comprimir, unir, OCR…)
 ```
 
 ## La rueda: 3 anillos
@@ -165,6 +190,15 @@ Para generar el paquete distribuible (self-contained, recortado, ~230 MB en zip 
 
 Cómo se publica una versión (firma, winget): [docs/RELEASING.md](docs/RELEASING.md).
 
+**En Linux o macOS** se compila y prueba todo lo que no es interfaz (núcleo, motores, CLI) con `Kumquat.Unix.slnf`. Hace falta [PowerShell 7](https://learn.microsoft.com/powershell/scripting/install/installing-powershell) para los scripts; en Linux, además, `make` (MuPDF se compila la primera vez, en unos minutos, con un zig fijado que el script descarga) y, para el OCR, Tesseract con español e inglés. En macOS, los motores de Homebrew (ver arriba).
+
+```sh
+pwsh ./tools/fetch-engines.ps1                       # Linux: FFmpeg y qpdf (SHA-256 verificado) y compila MuPDF
+dotnet test --solution Kumquat.Unix.slnf
+dotnet run --project src/Kumquat.Cli -- engines
+pwsh ./tools/publish-unix.ps1 -Runtime linux-x64     # .tar.gz distribuible (linux-arm64, osx-arm64, osx-x64)
+```
+
 Los tests E2E hacen un arrastre real moviendo el mouse: córrelos solo cuando no estés usando el PC (`dotnet test --project tests/Kumquat.E2E.Tests`).
 
 ## Calidad
@@ -174,8 +208,8 @@ Los tests E2E hacen un arrastre real moviendo el mouse: córrelos solo cuando no
 - **Un test de integración por cada conversión directa**, generado desde el grafo de capacidades: si alguien agrega una conversión, queda probada automáticamente. Las salidas se verifican por contenido (bytes mágicos) y con ffprobe (duración, dimensiones, pistas).
 - Office y Calibre se prueban con los programas reales cuando están (Office genera sus propias muestras); para probar Calibre sin instalarlo, `KUMQUAT_TEST_CALIBRE` apunta al `ebook-convert.exe` de una copia extraída del MSI.
 - Tests basados en propiedades (CsCheck) para el planificador, la detección de formatos y la geometría de la rueda.
-- Los motores corren como procesos aparte dentro de un *Job Object* de Windows (memoria acotada, mueren con Kumquat), con prioridad baja.
-- CI en x64 y ARM64, CodeQL, OpenSSF Scorecard, REUSE y Dependabot.
+- Los motores corren como procesos aparte dentro de un *Job Object* de Windows (memoria acotada, mueren con Kumquat), con prioridad baja. En Linux, memoria acotada con `prlimit`; en Linux y macOS, al cancelar se termina el árbol de procesos completo.
+- CI en Windows (x64 y ARM64), Linux (x64 y ARM64) y macOS, CodeQL, OpenSSF Scorecard, REUSE y Dependabot.
 
 Detalles en [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) y [CONTRIBUTING.md](CONTRIBUTING.md).
 
@@ -193,7 +227,9 @@ Detalles en [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) y [CONTRIBUTING.md](CON
 - [x] Interfaz en español e inglés (traducible: un `.resx` por idioma).
 - [x] Instalador MSI por usuario (sin administrador) y manifiesto de winget ([docs/RELEASING.md](docs/RELEASING.md)).
 - [x] "Kumquat…" en el menú moderno de Windows 11 (se activa con los releases firmados; en desarrollo, con el Modo de desarrollador).
+- [x] `kumquat-cli` en Linux (x64, ARM64) y macOS, con los mismos motores (FFmpeg, qpdf y MuPDF fijados en Linux).
 - [ ] Firma de código (SignPath), envío a winget y Microsoft Store.
+- [ ] Interfaz en Linux y macOS (la rueda depende de hooks globales que Wayland no permite: hace falta otra forma de abrirla).
 - [ ] Fase 4: sandbox de motores (baja integridad / AppContainer), fuzzing continuo.
 
 ## Licencia

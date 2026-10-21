@@ -19,7 +19,6 @@
     <ProjectReference Include="..\..\src\Kumquat.Engines.Ocr\Kumquat.Engines.Ocr.csproj" />
     <ProjectReference Include="..\..\src\Kumquat.Engines.Office\Kumquat.Engines.Office.csproj" />
     <ProjectReference Include="..\..\src\Kumquat.Engines.Calibre\Kumquat.Engines.Calibre.csproj" />
-    <PackageReference Include="System.Drawing.Common" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Shouldly" />

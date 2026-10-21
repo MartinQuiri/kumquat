@@ -15,6 +15,12 @@ namespace Kumquat.Infrastructure.Files;
 /// </summary>
 public static class SafeExtractor
 {
+    /// <summary>
+    /// Cómo comparar rutas: Windows no distingue mayúsculas; Linux sí, y comparar sin distinguirlas
+    /// dejaría pasar "../OUT/x" (una carpeta hermana de "out") como si fuera de adentro.
+    /// </summary>
+    private static readonly StringComparison PathComparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+
     /// <summary>Extrae un ZIP a una carpeta nueva o vacía.</summary>
     public static Task<Result<IReadOnlyList<string>>> ExtractZipAsync(string zipPath, string destination, ExtractionLimits? limits, CancellationToken cancellationToken)
         => ExtractAsync(zipPath, destination, limits, cancellationToken);
@@ -152,8 +158,11 @@ public static class SafeExtractor
         {
             // GZIP simple no guarda nombre: se usa el del archivo sin ".gz".
             var key = string.IsNullOrEmpty(entry.Key) ? fallbackName : entry.Key;
-            var target = Path.GetFullPath(Path.Combine(rootWithSeparator, key.Replace('/', Path.DirectorySeparatorChar)));
-            if (!target.StartsWith(rootWithSeparator, StringComparison.OrdinalIgnoreCase))
+            // Las dos barras separan carpetas en cualquier sistema: un ZIP hecho en Windows puede traer
+            // "..\\x", que en Linux sería un nombre de archivo válido y no se detectaría como salida.
+            var relative = key.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
+            var target = Path.GetFullPath(Path.Combine(rootWithSeparator, relative));
+            if (!target.StartsWith(rootWithSeparator, PathComparison))
             {
                 return new Error("archive-path-traversal", Strings.ErrorArchivePathTraversal(key));
             }

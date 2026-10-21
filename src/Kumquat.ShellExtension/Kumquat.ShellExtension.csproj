@@ -14,6 +14,6 @@
     <UseSystemResourceKeys>true</UseSystemResourceKeys>
   </PropertyGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Kumquat.Infrastructure.Tests" />
+    <InternalsVisibleTo Include="Kumquat.ShellExtension.Tests" />
   </ItemGroup>
 </Project>

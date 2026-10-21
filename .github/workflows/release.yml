@@ -54,8 +54,47 @@ jobs:
             artifacts/*.msi
             artifacts/*.sha256
 
+  # Linux y macOS: kumquat-cli (la interfaz es solo de Windows). Cada uno en su propio sistema: MuPDF
+  # se compila para la arquitectura del runner y en macOS el ejecutable tiene que quedar firmado (ad
+  # hoc), cosa que el SDK de .NET solo hace en una Mac (desde una Mac ARM salen las dos arquitecturas).
+  package-unix:
+    name: Paquete ${{ matrix.rid }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            rid: linux-x64
+          - os: ubuntu-24.04-arm
+            rid: linux-arm64
+          - os: macos-15
+            rid: osx-arm64
+          - os: macos-15
+            rid: osx-x64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      # La prueba de publish-unix.ps1 convierte con los motores: en macOS salen de Homebrew.
+      - name: Motores del sistema (macOS)
+        if: runner.os == 'macOS'
+        run: brew install ffmpeg qpdf mupdf-tools
+
+      - name: Publicar y verificar
+        shell: pwsh
+        run: ./tools/publish-unix.ps1 -Runtime ${{ matrix.rid }} -Version ("${{ github.ref_name }}".TrimStart('v'))
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: kumquat-${{ matrix.rid }}
+          path: |
+            artifacts/*.tar.gz
+            artifacts/*.sha256
+
   release:
-    needs: package
+    needs: [package, package-unix]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -69,18 +108,23 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: src
+      # Las versiones de prueba (v0.2.0-beta.1, v1.0.0-rc.1…) no se envían a winget.
       - name: Manifiesto de winget
-        if: vars.WINGET_PACKAGE_ID != ''
+        if: vars.WINGET_PACKAGE_ID != '' && !contains(github.ref_name, '-')
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force src/artifacts | Out-Null
           Copy-Item dist/*.msi src/artifacts/
           ./src/tools/winget-manifest.ps1 -Version ("${{ github.ref_name }}".TrimStart('v')) -Repository "${{ github.repository }}" -PackageIdentifier "${{ vars.WINGET_PACKAGE_ID }}"
           Compress-Archive -Path src/artifacts/winget/* -DestinationPath dist/winget-manifest.zip
+      # Un tag con guion (v0.2.0-beta.1) es una versión de prueba: sale marcada como prerelease.
       - name: Crear release (borrador)
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
         run: |
-          gh release create "${{ github.ref_name }}" dist/* \
-            --repo "${{ github.repository }}" --draft --generate-notes \
-            --title "Kumquat ${{ github.ref_name }}"
+          prerelease=()
+          if [[ "$TAG" == *-* ]]; then prerelease=(--prerelease); fi
+          gh release create "$TAG" dist/* \
+            --repo "${{ github.repository }}" --draft --generate-notes "${prerelease[@]}" \
+            --title "Kumquat $TAG"

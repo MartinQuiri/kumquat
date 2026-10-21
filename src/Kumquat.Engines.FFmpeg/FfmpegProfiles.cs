@@ -71,6 +71,15 @@ internal static class FfmpegProfiles
     /// <summary>Argumentos de salida para un formato, o <c>null</c> si no hay perfil.</summary>
     public static IReadOnlyList<string>? For(FileFormat target) => OutputArgs.GetValueOrDefault(target.Id);
 
+    /// <summary>Codificadores que piden unos argumentos de salida (los valores de <c>-c:v</c>, <c>-c:a</c> y <c>-c</c>, salvo <c>copy</c>).</summary>
+    public static IEnumerable<string> Encoders(IReadOnlyList<string> arguments)
+    {
+        ArgumentNullException.ThrowIfNull(arguments);
+        return arguments.Zip(arguments.Skip(1))
+            .Where(pair => pair.First is "-c:v" or "-c:a" or "-c" && !string.Equals(pair.Second, "copy", StringComparison.Ordinal))
+            .Select(pair => pair.Second);
+    }
+
     /// <summary>Costo de la arista para el planificador.</summary>
     public static double Cost(FileFormat from, FileFormat to)
     {

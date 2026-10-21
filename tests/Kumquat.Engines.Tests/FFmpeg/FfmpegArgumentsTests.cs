@@ -8,24 +8,28 @@ namespace Kumquat.Engines.Tests.FFmpeg;
 
 public sealed class FfmpegArgumentsTests
 {
+    private static readonly string Root = OperatingSystem.IsWindows() ? @"C:\" : "/";
+
     [Theory]
-    [InlineData(@"C:\videos\-y.mp4")]
-    [InlineData(@"C:\videos\concat:a|b.mp4")]
-    [InlineData(@"C:\videos\http:\x.mp4")]
-    public void Rutas_SiempreConPrefijoFile_NuncaComoOpcion(string input)
+    [InlineData("-y.mp4")]
+    [InlineData("concat:a|b.mp4")]
+    [InlineData("http:", "x.mp4")]
+    public void Rutas_SiempreConPrefijoFile_NuncaComoOpcion(params string[] parts)
     {
-        var args = FfmpegArguments.Build(input, @"C:\out\o.mp3", KnownFormats.Mp3);
+        var input = Path.Combine([Root, "videos", .. parts]);
+        var output = Path.Combine(Root, "out", "o.mp3");
+        var args = FfmpegArguments.Build(input, output, KnownFormats.Mp3);
 
         var i = args.ToList().IndexOf("-i");
         args[i + 1].ShouldBe("file:" + Path.GetFullPath(input));
-        args[^1].ShouldBe(@"file:C:\out\o.mp3");
+        args[^1].ShouldBe("file:" + output);
         args.Where(a => !a.StartsWith("file:", StringComparison.Ordinal)).ShouldNotContain(input);
     }
 
     [Fact]
     public void Entrada_RestringeProtocolos()
     {
-        var args = FfmpegArguments.Build(@"C:\a.mp4", @"C:\b.mp3", KnownFormats.Mp3).ToList();
+        var args = FfmpegArguments.Build(Path.Combine(Root, "a.mp4"), Path.Combine(Root, "b.mp3"), KnownFormats.Mp3).ToList();
 
         args[args.IndexOf("-protocol_whitelist") + 1].ShouldBe("file,pipe");
         args.IndexOf("-protocol_whitelist").ShouldBeLessThan(args.IndexOf("-i"));
@@ -35,7 +39,7 @@ public sealed class FfmpegArgumentsTests
     [Fact]
     public void FormatoSinPerfil_Lanza()
     {
-        Should.Throw<ArgumentException>(() => FfmpegArguments.Build(@"C:\a.mp4", @"C:\b.pdf", KnownFormats.Pdf));
+        Should.Throw<ArgumentException>(() => FfmpegArguments.Build(Path.Combine(Root, "a.mp4"), Path.Combine(Root, "b.pdf"), KnownFormats.Pdf));
     }
 
     [Fact]

@@ -19,7 +19,7 @@ public sealed class FfmpegConverter : IConverter
     public FfmpegConverter(FfmpegRunner ffmpeg)
     {
         _ffmpeg = ffmpeg ?? throw new ArgumentNullException(nameof(ffmpeg));
-        Edges = BuildEdges();
+        Edges = BuildEdges(ffmpeg);
     }
 
     /// <inheritdoc />
@@ -39,12 +39,12 @@ public sealed class FfmpegConverter : IConverter
         return _ffmpeg.RunAsync(step.InputPath, profile, step.OutputPath, progress, cancellationToken);
     }
 
-    private static List<ConversionEdge> BuildEdges()
+    private static List<ConversionEdge> BuildEdges(FfmpegRunner ffmpeg)
     {
         var edges = new List<ConversionEdge>();
         void Add(FileFormat from, FileFormat to)
         {
-            if (from != to)
+            if (from != to && ffmpeg.CanEncode(to))
             {
                 edges.Add(new ConversionEdge(from, to, ConverterId, FfmpegProfiles.Cost(from, to)));
             }

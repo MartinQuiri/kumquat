@@ -20,6 +20,7 @@ public sealed class FfmpegTool : ITool
     private readonly FileFormat[] _appliesTo;
     private readonly Func<FileFormat, FileFormat> _outputFormat;
     private readonly Func<ToolStep, IProgress<double>?, CancellationToken, Task<Result>> _apply;
+    private readonly Func<FileFormat, IReadOnlyList<string>>? _arguments;
 
     private FfmpegTool(
         FfmpegRunner ffmpeg,
@@ -30,7 +31,8 @@ public sealed class FfmpegTool : ITool
         Func<FileFormat, FileFormat> outputFormat,
         Func<ToolStep, IProgress<double>?, CancellationToken, Task<Result>> apply,
         ToolMode mode = ToolMode.EachFile,
-        int minInputs = 1)
+        int minInputs = 1,
+        Func<FileFormat, IReadOnlyList<string>>? arguments = null)
     {
         _ffmpeg = ffmpeg;
         Id = id;
@@ -41,6 +43,7 @@ public sealed class FfmpegTool : ITool
         _apply = apply;
         Mode = mode;
         MinInputs = minInputs;
+        _arguments = arguments;
     }
 
     /// <inheritdoc />
@@ -84,8 +87,10 @@ public sealed class FfmpegTool : ITool
             new FfmpegTool(ffmpeg, "video.merge", Strings.ToolMergeVideos, Strings.SuffixMerged, FfmpegProfiles.Video, KeepContainerOrMp4, (step, progress, ct) => MergeVideosAsync(ffmpeg, step, progress, ct), ToolMode.Combine, minInputs: 2),
 
             // Normalizar al estándar de streaming (EBU R128, -16 LUFS). loudnorm trabaja internamente
-            // a 192 kHz: se vuelve a 48 kHz (si no, WMA falla y WAV/FLAC salen 4x más pesados).
-            Simple(ffmpeg, "audio.normalize", Strings.ToolNormalize, Strings.SuffixNormalized, FfmpegProfiles.Audio, f => f, f => [.. FfmpegProfiles.For(f)!, "-af", "loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000"]),
+            // a 192 kHz: se vuelve a 48 kHz (si no, WMA falla y WAV/FLAC salen 4x más pesados). Además
+            // entrega bloques de casi 100.000 muestras y desde FFmpeg 9 el codificador FLAC rechaza los de
+            // más de 65.535: asetnsamples los parte en bloques normales.
+            Simple(ffmpeg, "audio.normalize", Strings.ToolNormalize, Strings.SuffixNormalized, FfmpegProfiles.Audio, f => f, f => [.. FfmpegProfiles.For(f)!, "-af", "loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000,asetnsamples=n=4096:p=0"]),
 
             new FfmpegTool(ffmpeg, "audio.merge", Strings.ToolMergeAudio, Strings.SuffixMerged, FfmpegProfiles.Audio, f => f, (step, progress, ct) => MergeAudioAsync(ffmpeg, step, progress, ct), ToolMode.Combine, minInputs: 2),
 
@@ -106,7 +111,9 @@ public sealed class FfmpegTool : ITool
     }
 
     /// <inheritdoc />
-    public bool AppliesTo(FileFormat format) => _appliesTo.Contains(format);
+    /// <remarks>Solo si este FFmpeg tiene los codificadores que hacen falta (el de Homebrew, por ejemplo, no genera OGG).</remarks>
+    public bool AppliesTo(FileFormat format) => _appliesTo.Contains(format)
+        && (_arguments is { } arguments ? _ffmpeg.CanEncode(arguments(format)) : _ffmpeg.CanEncode(_outputFormat(format)));
 
     /// <inheritdoc />
     public FileFormat? OutputFormat(FileFormat? input) => _outputFormat(input ?? throw new ArgumentNullException(nameof(input)));
@@ -132,7 +139,7 @@ public sealed class FfmpegTool : ITool
     }
 
     private static FfmpegTool Simple(FfmpegRunner ffmpeg, string id, string label, string suffix, FileFormat[] appliesTo, Func<FileFormat, FileFormat> output, Func<FileFormat, IReadOnlyList<string>> arguments)
-        => new(ffmpeg, id, label, suffix, appliesTo, output, (step, progress, ct) => ffmpeg.RunAsync(step.InputPath, arguments(step.InputFormat), step.OutputPath, progress, ct));
+        => new(ffmpeg, id, label, suffix, appliesTo, output, (step, progress, ct) => ffmpeg.RunAsync(step.InputPath, arguments(step.InputFormat), step.OutputPath, progress, ct), arguments: arguments);
 
     private static FileFormat TrimOutput(FileFormat input) => input.Category == FormatCategory.Audio ? input : KeepContainerOrMp4(input);
 

@@ -19,6 +19,10 @@
     <PackageVersion Include="NetVips" Version="3.2.0" />
     <PackageVersion Include="NetVips.Native.win-x64" Version="8.18.7" />
     <PackageVersion Include="NetVips.Native.win-arm64" Version="8.18.7" />
+    <PackageVersion Include="NetVips.Native.linux-x64" Version="8.18.7" />
+    <PackageVersion Include="NetVips.Native.linux-arm64" Version="8.18.7" />
+    <PackageVersion Include="NetVips.Native.osx-x64" Version="8.18.7" />
+    <PackageVersion Include="NetVips.Native.osx-arm64" Version="8.18.7" />
   </ItemGroup>
   <ItemGroup Label="Tests">
     <PackageVersion Include="xunit.v3" Version="4.0.2" />

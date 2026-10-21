@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- "Kumquat…" del menú moderno de Windows 11: carga la DLL nativa como el Explorador. Solo Windows. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Al referenciar un Exe, el SDK copia su apphost junto a los tests: hace de Kumquat.exe falso. -->
+    <ProjectReference Include="..\Kumquat.TestTools.ProcessProbe\Kumquat.TestTools.ProcessProbe.csproj" />
+    <ProjectReference Include="..\..\src\Kumquat.ShellExtension\Kumquat.ShellExtension.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Shouldly" />
+    <Using Include="Xunit" />
+  </ItemGroup>
+</Project>

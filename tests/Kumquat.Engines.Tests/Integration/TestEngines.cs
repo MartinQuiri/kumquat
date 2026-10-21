@@ -33,9 +33,9 @@ internal static class TestEngines
 
     public static readonly IReadOnlyList<IConverter> All = [Ffmpeg, Vips, Mupdf, Office, Calibre];
 
-    public static string? FfmpegExe => Locator.Find("ffmpeg", Path.Combine("bin", "ffmpeg.exe"));
+    public static string? FfmpegExe => Locator.FindExecutable("ffmpeg", "ffmpeg", "bin");
 
-    public static string? FfprobeExe => Locator.Find("ffmpeg", Path.Combine("bin", "ffprobe.exe"));
+    public static string? FfprobeExe => Locator.FindExecutable("ffmpeg", "ffprobe", "bin");
 
     public static IConverter ById(string id) => All.Single(c => c.Id == id);
 }

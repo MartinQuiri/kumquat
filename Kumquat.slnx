@@ -30,6 +30,7 @@
     <Project Path="tests/Kumquat.Engines.Tests/Kumquat.Engines.Tests.csproj" />
     <Project Path="tests/Kumquat.Infrastructure.Tests/Kumquat.Infrastructure.Tests.csproj" />
     <Project Path="tests/Kumquat.Interaction.Tests/Kumquat.Interaction.Tests.csproj" />
+    <Project Path="tests/Kumquat.ShellExtension.Tests/Kumquat.ShellExtension.Tests.csproj" />
     <Project Path="tests/Kumquat.TestTools.ProcessProbe/Kumquat.TestTools.ProcessProbe.csproj" />
   </Folder>
 </Solution>

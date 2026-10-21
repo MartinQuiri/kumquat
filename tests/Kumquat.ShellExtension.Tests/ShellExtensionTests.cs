@@ -3,9 +3,8 @@
 
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
-using Kumquat.ShellExtension;
 
-namespace Kumquat.Infrastructure.Tests;
+namespace Kumquat.ShellExtension.Tests;
 
 /// <summary>
 /// "Kumquat…" del menú moderno de Windows 11. La DLL nativa (Native AOT) se carga como lo hace el

@@ -1,0 +1,22 @@
+{
+  "solution": {
+    "path": "Kumquat.slnx",
+    "projects": [
+      "src/Kumquat.Cli/Kumquat.Cli.csproj",
+      "src/Kumquat.Core/Kumquat.Core.csproj",
+      "src/Kumquat.Engines.Archives/Kumquat.Engines.Archives.csproj",
+      "src/Kumquat.Engines.Calibre/Kumquat.Engines.Calibre.csproj",
+      "src/Kumquat.Engines.FFmpeg/Kumquat.Engines.FFmpeg.csproj",
+      "src/Kumquat.Engines.Ocr/Kumquat.Engines.Ocr.csproj",
+      "src/Kumquat.Engines.Office/Kumquat.Engines.Office.csproj",
+      "src/Kumquat.Engines.Pdf/Kumquat.Engines.Pdf.csproj",
+      "src/Kumquat.Engines.Vips/Kumquat.Engines.Vips.csproj",
+      "src/Kumquat.Hosting/Kumquat.Hosting.csproj",
+      "src/Kumquat.Infrastructure/Kumquat.Infrastructure.csproj",
+      "tests/Kumquat.Core.Tests/Kumquat.Core.Tests.csproj",
+      "tests/Kumquat.Engines.Tests/Kumquat.Engines.Tests.csproj",
+      "tests/Kumquat.Infrastructure.Tests/Kumquat.Infrastructure.Tests.csproj",
+      "tests/Kumquat.TestTools.ProcessProbe/Kumquat.TestTools.ProcessProbe.csproj"
+    ]
+  }
+}
