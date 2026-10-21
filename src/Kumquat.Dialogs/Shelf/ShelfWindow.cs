@@ -45,6 +45,7 @@ public sealed partial class ShelfWindow : Window
     private readonly Grid _stack = new() { Width = 116, Height = 104, Background = Brushes.Transparent, Cursor = Cursors.Hand, Focusable = true };
     private readonly TextBlock _summary;
     private readonly Button _collapse;
+    private readonly Button _expand;
     private readonly StackPanel _rows = new();
     private readonly ScrollViewer _list;
     private readonly DispatcherTimer _prune;
@@ -87,6 +88,7 @@ public sealed partial class ShelfWindow : Window
         _summary = new TextBlock { FontSize = 12, Foreground = _look.Muted, HorizontalAlignment = HorizontalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis, Margin = new Thickness(8, 4, 8, 0) };
         AutomationProperties.SetLiveSetting(_summary, AutomationLiveSetting.Polite);
         _collapse = CollapseButton();
+        _expand = ExpandButton();
         _list = new ScrollViewer { Content = _rows, MaxHeight = 360, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Margin = new Thickness(0, 6, 0, 0), Visibility = Visibility.Collapsed };
         WireStack();
 
@@ -94,6 +96,7 @@ public sealed partial class ShelfWindow : Window
         panel.Children.Add(TopBar());
         panel.Children.Add(_stack);
         panel.Children.Add(_summary);
+        panel.Children.Add(_expand);
         panel.Children.Add(_list);
         _root = new Border { Background = _look.WindowBackground(Tint()), BorderBrush = Brushes.Transparent, BorderThickness = new Thickness(2), Child = panel };
         Content = _root;
@@ -167,7 +170,7 @@ public sealed partial class ShelfWindow : Window
 
     private Button CollapseButton()
     {
-        var collapse = DialogLook.Pill(string.Empty, Brushes.Transparent, _look.Text);
+        var collapse = DialogLook.Pill(string.Empty, _look.Subtle, _look.Text);
         collapse.FontSize = 12;
         collapse.FontWeight = FontWeights.SemiBold;
         collapse.Height = 24;
@@ -177,6 +180,22 @@ public sealed partial class ShelfWindow : Window
         collapse.HorizontalAlignment = HorizontalAlignment.Center;
         collapse.Click += (_, _) => SetExpanded(false);
         return collapse;
+    }
+
+    /// <summary>Bajo la pila: "3 archivos ⌄", con fondo, para que se vea que la lista se despliega.</summary>
+    private Button ExpandButton()
+    {
+        var expand = DialogLook.Pill(string.Empty, _look.Subtle, _look.Text);
+        expand.FontSize = 12;
+        expand.FontWeight = FontWeights.SemiBold;
+        expand.Height = 26;
+        expand.Padding = new Thickness(12, 0, 12, 0);
+        expand.Margin = new Thickness(0, 8, 0, 0);
+        expand.HorizontalAlignment = HorizontalAlignment.Center;
+        expand.ToolTip = Strings.ShelfStackHelp;
+        AutomationProperties.SetHelpText(expand, Strings.ShelfStackHelp);
+        expand.Click += (_, _) => SetExpanded(true);
+        return expand;
     }
 
     /// <summary>La X para cerrar (los archivos no se tocan) y, con la lista abierta, el botón para ocultarla.</summary>
@@ -280,7 +299,6 @@ public sealed partial class ShelfWindow : Window
         Width = expanded ? ExpandedWidth : CollapsedWidth;
         _list.Visibility = expanded ? Visibility.Visible : Visibility.Collapsed;
         _collapse.Visibility = expanded ? Visibility.Visible : Visibility.Collapsed;
-        _summary.Visibility = expanded ? Visibility.Collapsed : Visibility.Visible;
         Refresh();
     }
 
@@ -405,16 +423,15 @@ public sealed partial class ShelfWindow : Window
     private void Refresh()
     {
         _summary.Text = _contents.Count == 1 ? Path.GetFileName(_contents.Items[0]) : _contents.Summary;
-        _collapse.Content = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            Children =
-            {
-                new System.Windows.Shapes.Path { Data = Geometry.Parse("M0,5 L4.5,0.5 L9,5"), Stroke = _look.Text, StrokeThickness = 1.6, Width = 10, Height = 6, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 7, 0) },
-                new TextBlock { Text = _contents.Summary },
-            },
-        };
+        _collapse.Content = WithChevron(_contents.Summary, up: true);
         AutomationProperties.SetName(_collapse, Strings.ShelfCollapse);
+
+        // Cerrada: con un archivo, su nombre; con varios, un botón que se ve que despliega la lista.
+        var several = _contents.Count > 1;
+        _summary.Visibility = !_expanded && !several ? Visibility.Visible : Visibility.Collapsed;
+        _expand.Visibility = !_expanded && several ? Visibility.Visible : Visibility.Collapsed;
+        _expand.Content = WithChevron(_contents.Summary, up: false);
+        AutomationProperties.SetName(_expand, _contents.Summary);
         AutomationProperties.SetName(_stack, _contents.Summary);
         DrawStack();
         if (_expanded)
@@ -423,7 +440,27 @@ public sealed partial class ShelfWindow : Window
         }
     }
 
-    /// <summary>Hasta tres tarjetas un poco giradas, el clip y el número de archivos.</summary>
+    /// <summary>"3 archivos" con una flecha: hacia abajo despliega la lista, hacia arriba la oculta.</summary>
+    private StackPanel WithChevron(string text, bool up) => new()
+    {
+        Orientation = Orientation.Horizontal,
+        Children =
+        {
+            new TextBlock { Text = text, VerticalAlignment = VerticalAlignment.Center },
+            new System.Windows.Shapes.Path
+            {
+                Data = Geometry.Parse(up ? "M0,5 L4.5,0.5 L9,5" : "M0,0.5 L4.5,5 L9,0.5"),
+                Stroke = _look.Text,
+                StrokeThickness = 1.6,
+                Width = 10,
+                Height = 6,
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(8, 1, 0, 0),
+            },
+        },
+    };
+
+    /// <summary>Hasta tres tarjetas un poco giradas y el número de archivos.</summary>
     private void DrawStack()
     {
         _stack.Children.Clear();
@@ -437,15 +474,6 @@ public sealed partial class ShelfWindow : Window
             card.RenderTransform = new TransformGroup { Children = { new RotateTransform(angles[i]), new TranslateTransform(offsets[i], 0) } };
             _stack.Children.Add(card);
         }
-
-        var clip = DialogLook.Icon("paperclip", 34, _look.Muted);
-        clip.HorizontalAlignment = HorizontalAlignment.Right;
-        clip.VerticalAlignment = VerticalAlignment.Top;
-        clip.Margin = new Thickness(0, -4, 10, 0);
-        clip.RenderTransformOrigin = new Point(0.5, 0.5);
-        clip.RenderTransform = new RotateTransform(28);
-        clip.IsHitTestVisible = false;
-        _stack.Children.Add(clip);
 
         if (_contents.Count > 1)
         {
