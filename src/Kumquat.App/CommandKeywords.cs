@@ -53,6 +53,7 @@ internal static class CommandKeywords
         ["action.move-to"] = ["trasladar", "mover", "move"],
         ["action.show-in-folder"] = ["explorador", "carpeta", "abrir", "explorer", "folder", "reveal"],
         ["action.terminal"] = ["consola", "cmd", "powershell", "shell", "console", "terminal"],
+        ["action.float"] = ["bandeja", "flotante", "dejar", "guardar para despues", "arrastrar", "subir", "shelf", "float", "drop", "upload", "later"],
         ["action.install.libreoffice"] = ["instalar", "office", "word", "excel", "powerpoint", "descargar", "install", "download"],
         ["action.install.calibre"] = ["instalar", "kindle", "ebook", "libro", "descargar", "install", "book", "download"],
     };

@@ -99,6 +99,8 @@ Tools in **bold** open an options window with the file's current values already 
 
 **Attachments, files inside a .zip and images from a web page** can be dropped on the wheel without saving them first; the result goes to the Desktop (configurable).
 
+**Float: a shelf to carry files around.** Drop files on **Float** and they wait in a floating stack, always visible, while you go to another folder or open the page where you need to upload them. Drag the stack to drop them all at once (into a folder, an email or a web form), or click it to see them one by one and drag just the one you need. You can keep dropping files on it, have several shelves at once and move them by dragging their edge. Nothing is copied or moved when you leave files there; whatever you move elsewhere leaves the shelf, and an empty shelf closes itself.
+
 ## Building
 
 Requirements: Windows 10 22H2+ or 11, [.NET SDK 10](https://dotnet.microsoft.com/download) (exact version in `global.json`) and, to build Tesseract the first time, Visual Studio 2022 with "Desktop development with C++" (includes vcpkg).

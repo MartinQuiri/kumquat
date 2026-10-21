@@ -137,7 +137,13 @@ Se pueden soltar en la rueda **sin guardarlos antes**: un adjunto arrastrado des
 
 ### Acciones
 
-Copiar ruta · Copiar a… · Mover a… · Ver en carpeta · Terminal aquí (y Guardar en… para archivos sin carpeta)
+Copiar ruta · **Flotar** · Copiar a… · Mover a… · Ver en carpeta · Terminal aquí (y Guardar en… para archivos sin carpeta)
+
+### Flotar: una bandeja para llevar archivos de un lado a otro
+
+<p align="center"><img src="docs/images/bandeja.png" width="150" alt="Bandeja flotante con tres archivos"> &nbsp; <img src="docs/images/bandeja-lista.png" width="250" alt="La bandeja abierta, con un archivo por fila"></p>
+
+Suelta archivos en **Flotar** y quedan en una pila flotante, siempre a la vista, mientras navegas a otra carpeta o abres la página donde tienes que subirlos. Arrastra la pila para soltarlos todos juntos (en una carpeta, un correo o un formulario web) o haz clic para verlos uno por uno y arrastrar solo el que necesites. Puedes seguir soltándole archivos encima, tener varias bandejas a la vez y moverlas arrastrando su borde. Nada se copia ni se mueve al dejarlos ahí; lo que mueves a otra carpeta sale de la bandeja, y vacía se cierra sola.
 
 ## Compilar
 

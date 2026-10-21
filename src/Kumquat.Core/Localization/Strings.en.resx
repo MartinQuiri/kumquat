@@ -6,6 +6,7 @@
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="ActionCopyPath" xml:space="preserve"><value>Copy path</value></data>
   <data name="ActionCopyTo" xml:space="preserve"><value>Copy to…</value></data>
+  <data name="ActionFloat" xml:space="preserve"><value>Float</value></data>
   <data name="ActionMoveTo" xml:space="preserve"><value>Move to…</value></data>
   <data name="ActionSaveIn" xml:space="preserve"><value>Save to {0}</value><comment>params: folder</comment></data>
   <data name="ActionShowInFolder" xml:space="preserve"><value>Show in folder</value></data>
@@ -224,6 +225,14 @@ Examples:
   <data name="SettingsWheelHint" xml:space="preserve"><value>Drag a file and, without letting go, press:</value></data>
   <data name="SettingsWheelSection" xml:space="preserve"><value>Open the wheel while dragging</value></data>
   <data name="SettingsWindowTitle" xml:space="preserve"><value>Kumquat · Settings</value></data>
+  <data name="ShelfClose" xml:space="preserve"><value>Close the shelf (the files are not touched)</value></data>
+  <data name="ShelfCollapse" xml:space="preserve"><value>Hide the list</value></data>
+  <data name="ShelfItemHelp" xml:space="preserve"><value>Drag to drop it into another folder, an email or a web page. Double-click to open it.</value></data>
+  <data name="ShelfItems" xml:space="preserve"><value>{0} files</value><comment>params: count</comment></data>
+  <data name="ShelfItemsOne" xml:space="preserve"><value>1 file</value></data>
+  <data name="ShelfName" xml:space="preserve"><value>File shelf</value></data>
+  <data name="ShelfRemove" xml:space="preserve"><value>Remove {0} from the shelf</value><comment>params: name</comment></data>
+  <data name="ShelfStackHelp" xml:space="preserve"><value>Drag to drop the files into another folder, an email or a web page. Click to see them one by one.</value></data>
   <data name="StartedBody" xml:space="preserve"><value>Drag a file and, without letting go, press {0}.{1}</value><comment>params: trigger, hotkeyHint</comment></data>
   <data name="StartedHotkeyHint" xml:space="preserve"><value> Or select files and press {0}.</value><comment>params: hotkey</comment></data>
   <data name="StartedTitle" xml:space="preserve"><value>Kumquat is running</value></data>

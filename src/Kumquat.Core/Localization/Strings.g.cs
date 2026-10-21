@@ -13,6 +13,9 @@ public static partial class Strings
     /// <summary>Copiar a…</summary>
     public static string ActionCopyTo => Get("ActionCopyTo");
 
+    /// <summary>Flotar</summary>
+    public static string ActionFloat => Get("ActionFloat");
+
     /// <summary>Mover a…</summary>
     public static string ActionMoveTo => Get("ActionMoveTo");
 
@@ -624,6 +627,30 @@ public static partial class Strings
 
     /// <summary>Kumquat · Configuración</summary>
     public static string SettingsWindowTitle => Get("SettingsWindowTitle");
+
+    /// <summary>Cerrar la bandeja (los archivos no se tocan)</summary>
+    public static string ShelfClose => Get("ShelfClose");
+
+    /// <summary>Ocultar la lista</summary>
+    public static string ShelfCollapse => Get("ShelfCollapse");
+
+    /// <summary>Arrastra para soltarlo en otra carpeta, un correo o una página. Doble clic para abrirlo.</summary>
+    public static string ShelfItemHelp => Get("ShelfItemHelp");
+
+    /// <summary>{0} archivos</summary>
+    public static string ShelfItems(object? count) => Format("ShelfItems", count);
+
+    /// <summary>1 archivo</summary>
+    public static string ShelfItemsOne => Get("ShelfItemsOne");
+
+    /// <summary>Bandeja de archivos</summary>
+    public static string ShelfName => Get("ShelfName");
+
+    /// <summary>Quitar {0} de la bandeja</summary>
+    public static string ShelfRemove(object? name) => Format("ShelfRemove", name);
+
+    /// <summary>Arrastra para soltar los archivos en otra carpeta, un correo o una página. Clic para verlos uno por uno.</summary>
+    public static string ShelfStackHelp => Get("ShelfStackHelp");
 
     /// <summary>Arrastra un archivo y, sin soltarlo, presiona {0}.{1}</summary>
     public static string StartedBody(object? trigger, object? hotkeyHint) => Format("StartedBody", trigger, hotkeyHint);

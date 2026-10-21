@@ -6,6 +6,7 @@
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="ActionCopyPath" xml:space="preserve"><value>Copiar ruta</value></data>
   <data name="ActionCopyTo" xml:space="preserve"><value>Copiar a…</value></data>
+  <data name="ActionFloat" xml:space="preserve"><value>Flotar</value></data>
   <data name="ActionMoveTo" xml:space="preserve"><value>Mover a…</value></data>
   <data name="ActionSaveIn" xml:space="preserve"><value>Guardar en {0}</value><comment>params: folder</comment></data>
   <data name="ActionShowInFolder" xml:space="preserve"><value>Ver en carpeta</value></data>
@@ -224,6 +225,14 @@ Ejemplos:
   <data name="SettingsWheelHint" xml:space="preserve"><value>Arrastra un archivo y, sin soltarlo, presiona:</value></data>
   <data name="SettingsWheelSection" xml:space="preserve"><value>Abrir la rueda al arrastrar</value></data>
   <data name="SettingsWindowTitle" xml:space="preserve"><value>Kumquat · Configuración</value></data>
+  <data name="ShelfClose" xml:space="preserve"><value>Cerrar la bandeja (los archivos no se tocan)</value></data>
+  <data name="ShelfCollapse" xml:space="preserve"><value>Ocultar la lista</value></data>
+  <data name="ShelfItemHelp" xml:space="preserve"><value>Arrastra para soltarlo en otra carpeta, un correo o una página. Doble clic para abrirlo.</value></data>
+  <data name="ShelfItems" xml:space="preserve"><value>{0} archivos</value><comment>params: count</comment></data>
+  <data name="ShelfItemsOne" xml:space="preserve"><value>1 archivo</value></data>
+  <data name="ShelfName" xml:space="preserve"><value>Bandeja de archivos</value></data>
+  <data name="ShelfRemove" xml:space="preserve"><value>Quitar {0} de la bandeja</value><comment>params: name</comment></data>
+  <data name="ShelfStackHelp" xml:space="preserve"><value>Arrastra para soltar los archivos en otra carpeta, un correo o una página. Clic para verlos uno por uno.</value></data>
   <data name="StartedBody" xml:space="preserve"><value>Arrastra un archivo y, sin soltarlo, presiona {0}.{1}</value><comment>params: trigger, hotkeyHint</comment></data>
   <data name="StartedHotkeyHint" xml:space="preserve"><value> O selecciona archivos y presiona {0}.</value><comment>params: hotkey</comment></data>
   <data name="StartedTitle" xml:space="preserve"><value>Kumquat está activo</value></data>

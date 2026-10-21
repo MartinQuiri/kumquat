@@ -50,6 +50,8 @@ ICONS = {
     "move-to": "arrow-square-out",
     "show-in-folder": "folder-open",
     "terminal": "terminal-window",
+    "float": "push-pin",
+    "paperclip": "paperclip",
     "image": "image-square",
     "audio": "waveform",
     "video": "video-camera",

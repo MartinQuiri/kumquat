@@ -58,6 +58,7 @@ public static class Icons
         ["action.move-to"] = "move-to",
         ["action.show-in-folder"] = "show-in-folder",
         ["action.terminal"] = "terminal",
+        ["action.float"] = "float",
         ["action.install.libreoffice"] = "install",
         ["action.install.calibre"] = "install",
     };

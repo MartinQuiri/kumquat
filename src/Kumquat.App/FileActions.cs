@@ -20,6 +20,9 @@ internal static class FileActions
     public const string ShowInFolder = "action.show-in-folder";
     public const string Terminal = "action.terminal";
 
+    /// <summary>Dejar los archivos en una bandeja flotante para arrastrarlos después (la abre la app).</summary>
+    public const string Float = "action.float";
+
     /// <summary>Guardar un archivo virtual (adjunto, contenido de un .zip) en la carpeta configurada.</summary>
     public const string Save = "action.save";
 
@@ -27,6 +30,7 @@ internal static class FileActions
     public static IReadOnlyList<WheelItem> Items =>
     [
         WheelItem.Action(CopyPath, Strings.ActionCopyPath),
+        WheelItem.Action(Float, Strings.ActionFloat),
         WheelItem.Action(CopyTo, Strings.ActionCopyTo),
         WheelItem.Action(MoveTo, Strings.ActionMoveTo),
         WheelItem.Action(ShowInFolder, Strings.ActionShowInFolder),

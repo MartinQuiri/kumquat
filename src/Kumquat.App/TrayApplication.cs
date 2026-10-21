@@ -12,6 +12,7 @@ using Kumquat.Dialogs;
 using Kumquat.Dialogs.Progress;
 using Kumquat.Dialogs.Search;
 using Kumquat.Dialogs.Settings;
+using Kumquat.Dialogs.Shelf;
 using Kumquat.Hosting;
 using Kumquat.Infrastructure.Files;
 using Kumquat.Interaction;
@@ -120,6 +121,11 @@ internal sealed partial class TrayApplication : IDisposable
             case WheelRingKind.Tools:
                 // Fuera del Drop: puede abrir la ventana de opciones.
                 _ui.Post(() => StartTool(files, item));
+                break;
+            case WheelRingKind.Actions when string.Equals(item.Id, FileActions.Float, StringComparison.Ordinal):
+                // Fuera del Drop: la bandeja es una ventana nueva, junto al puntero.
+                _ui.Post(() => ShelfWindow.Open(files));
+                LogEnqueued(files.Count, item.Id);
                 break;
             case WheelRingKind.Actions when item.Id is FileActions.CopyTo or FileActions.MoveTo:
                 // Fuera del Drop: un diálogo modal dentro del Drop congelaría el arrastre del Explorador.
