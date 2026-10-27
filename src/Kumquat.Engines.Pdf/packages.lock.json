@@ -4,9 +4,9 @@
     "net10.0": {
       "Meziantou.Analyzer": {
         "type": "Direct",
-        "requested": "[3.0.312, )",
-        "resolved": "3.0.312",
-        "contentHash": "lRRGluh3rSFXfxVsIzx4o5DCoxpUpwma6qc8LgI9DjsQx0t6CgS9KZiFKtTUllAHSsrPw/um0FR9gPJMTkeb3Q=="
+        "requested": "[3.0.317, )",
+        "resolved": "3.0.317",
+        "contentHash": "IC9fCjxniZol2dcdj+hiXjK01a8gBWQproGL/qWjBI7CgB5GeEOD5oGV0PwpQaSr7Aa/RPaM8Ddho3Y1OAZe1Q=="
       },
       "Microsoft.CodeAnalysis.BannedApiAnalyzers": {
         "type": "Direct",
