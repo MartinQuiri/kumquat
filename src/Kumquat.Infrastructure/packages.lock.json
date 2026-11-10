@@ -31,9 +31,9 @@
       },
       "SharpCompress": {
         "type": "Direct",
-        "requested": "[0.50.5, )",
-        "resolved": "0.50.5",
-        "contentHash": "wAEAxPV67rmS3IlIm+tvGNPJXEtZNqlwkZrwJZAvz0AagZP0qLtT4mM2hk8S+uO0Kx+wYoy/FsADQpHwsN5y3g=="
+        "requested": "[0.50.8, )",
+        "resolved": "0.50.8",
+        "contentHash": "Loy3gexDEO3smsiokv3553wNDAhWfa6y4f2B8q6Bstc9Xdnmw9nbZtOrlw6YvSbJy6O2yyMgWFINgCazRPZejA=="
       },
       "Microsoft.Extensions.DependencyInjection.Abstractions": {
         "type": "Transitive",
